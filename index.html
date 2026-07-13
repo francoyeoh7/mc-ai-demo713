@@ -8,16 +8,11 @@
 <title>MC AI Demo</title>
 <style>
 :root{
-  --mc-green:#5eb04a;
-  --mc-dirt:#8b5a2b;
-  --mc-stone:#7a7a7a;
-  --mc-wood:#6b4a2a;
-  --panel-bg:rgba(20,22,28,0.88);
-  --panel-border:rgba(255,255,255,0.14);
   --accent:#7ed957;
   --accent-2:#4fc3f7;
-  --warn:#ffb74d;
-  --danger:#ef5350;
+  --gold:#ffdc50;
+  --panel-bg:rgba(18,22,28,0.94);
+  --panel-border:rgba(255,255,255,0.12);
 }
 *{box-sizing:border-box;margin:0;padding:0;user-select:none;-webkit-user-select:none;-webkit-tap-highlight-color:transparent;-webkit-touch-callout:none;}
 html,body{width:100%;height:100%;overflow:hidden;background:#000;font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;color:#eee;touch-action:none;overscroll-behavior:none;}
@@ -31,76 +26,108 @@ canvas{display:block;width:100%;height:100%;touch-action:none;}
 #loading .bar>span{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--accent),var(--accent-2));transition:width .3s;border-radius:3px;}
 #loading .tip{margin-top:12px;font-size:11px;color:#888;letter-spacing:1px;}
 
-/* Orientation hint (portrait) */
+/* Portrait hint */
 #rotate-hint{position:fixed;inset:0;background:#0a0e14;z-index:9998;display:none;align-items:center;justify-content:center;flex-direction:column;color:#ccc;font-size:14px;letter-spacing:1px;}
-#rotate-hint .icon{width:60px;height:90px;border:3px solid #7ed957;border-radius:8px;margin-bottom:16px;position:relative;animation:rot 1.6s infinite ease-in-out;}
+#rotate-hint .icon{width:60px;height:90px;border:3px solid #7ed957;border-radius:8px;margin-bottom:16px;animation:rot 1.6s infinite ease-in-out;}
 @keyframes rot{0%,100%{transform:rotate(0)}50%{transform:rotate(90deg)}}
 @media (orientation:portrait){#rotate-hint{display:flex;}}
 
 /* Joystick */
-#joystick{position:fixed;left:24px;bottom:24px;width:130px;height:130px;border-radius:50%;background:rgba(255,255,255,.07);border:2px solid rgba(255,255,255,.18);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);z-index:20;touch-action:none;}
-#joystick .knob{position:absolute;left:50%;top:50%;width:56px;height:56px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#f0f0f0,#a0a0a0);border:2px solid rgba(0,0,0,.3);transform:translate(-50%,-50%);box-shadow:0 4px 10px rgba(0,0,0,.4);pointer-events:none;}
+#joystick{position:fixed;left:24px;bottom:24px;width:130px;height:130px;border-radius:50%;background:rgba(255,255,255,.07);border:2px solid rgba(255,255,255,.22);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);z-index:20;touch-action:none;}
+#joystick .knob{position:absolute;left:50%;top:50%;width:56px;height:56px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#f5f5f5,#a8a8a8);border:2px solid rgba(0,0,0,.35);transform:translate(-50%,-50%);box-shadow:0 4px 10px rgba(0,0,0,.4);pointer-events:none;}
 
-/* Jump button */
+/* Jump */
 #jump-btn{position:fixed;right:24px;bottom:32px;width:88px;height:88px;border-radius:50%;background:rgba(126,217,87,.18);border:2px solid rgba(126,217,87,.55);color:#dfffcc;font-size:14px;font-weight:600;letter-spacing:2px;z-index:20;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);touch-action:none;}
 #jump-btn:active{background:rgba(126,217,87,.35);}
 
-/* Crosshair (center, tiny) */
-#center-cross{position:fixed;left:50%;top:50%;width:14px;height:14px;transform:translate(-50%,-50%);pointer-events:none;z-index:15;opacity:.55;}
+/* Center crosshair */
+#center-cross{position:fixed;left:50%;top:50%;width:14px;height:14px;transform:translate(-50%,-50%);pointer-events:none;z-index:15;opacity:.6;}
 #center-cross::before,#center-cross::after{content:"";position:absolute;background:#fff;box-shadow:0 0 2px rgba(0,0,0,.9);}
 #center-cross::before{left:50%;top:0;width:2px;height:100%;transform:translateX(-50%);}
 #center-cross::after{left:0;top:50%;width:100%;height:2px;transform:translateY(-50%);}
 
-/* AI Ball button */
-#ai-ball{position:fixed;top:16px;right:16px;width:64px;height:64px;border-radius:50%;z-index:40;background:linear-gradient(135deg,#4fc3f7,#1976d2);border:2px solid rgba(255,255,255,.5);box-shadow:0 6px 18px rgba(30,140,220,.5),inset 0 0 12px rgba(255,255,255,.25);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:20px;letter-spacing:1px;font-family:"Courier New",monospace;transition:transform .2s,box-shadow .3s,background .3s;touch-action:none;}
+/* AI Ball */
+#ai-ball{position:fixed;top:14px;right:14px;width:60px;height:60px;border-radius:50%;z-index:60;background:linear-gradient(135deg,#4fc3f7,#1565c0);border:2px solid rgba(255,255,255,.55);box-shadow:0 6px 18px rgba(30,140,220,.5),inset 0 -8px 12px rgba(0,0,0,.15),inset 0 6px 10px rgba(255,255,255,.25);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:18px;letter-spacing:1px;font-family:"Courier New",monospace;transition:transform .18s,box-shadow .3s,background .3s;touch-action:none;}
 #ai-ball .core{position:relative;z-index:2;}
-#ai-ball .ring{position:absolute;inset:-4px;border-radius:50%;border:2px solid transparent;}
-#ai-ball .badge{position:absolute;top:-4px;right:-4px;width:16px;height:16px;border-radius:50%;background:#ef5350;border:2px solid #fff;display:none;box-shadow:0 0 8px rgba(239,83,80,.9);}
-#ai-ball.has-history .badge{display:block;}
-#ai-ball.dragging{background:linear-gradient(135deg,#ffb74d,#f57c00);box-shadow:0 0 22px rgba(255,183,77,.8),inset 0 0 12px rgba(255,255,255,.3);transform:scale(1.08);}
-#ai-ball.thinking{background:linear-gradient(135deg,#ba68c8,#6a1b9a);}
-#ai-ball.thinking .ring{border-top-color:#fff;border-right-color:#fff;animation:spin 1s linear infinite;}
-#ai-ball.output{background:linear-gradient(135deg,#7ed957,#388e3c);}
+#ai-ball .ring{position:absolute;inset:-5px;border-radius:50%;border:2px solid transparent;pointer-events:none;}
+#ai-ball .badge{position:absolute;top:-3px;right:-3px;width:14px;height:14px;border-radius:50%;background:#ef5350;border:2px solid #fff;display:none;box-shadow:0 0 8px rgba(239,83,80,.9);}
+#ai-ball.has-history .badge{display:block;animation:bad 1.6s ease-in-out infinite;}
+@keyframes bad{0%,100%{transform:scale(1);}50%{transform:scale(1.2);}}
+#ai-ball.dragging{background:linear-gradient(135deg,#ffcd60,#e67a00);box-shadow:0 0 26px rgba(255,183,77,.9),inset 0 6px 10px rgba(255,255,255,.3);transform:scale(1.1);}
+#ai-ball.thinking{background:linear-gradient(135deg,#ba68c8,#4a148c);}
+#ai-ball.thinking .ring{border-top-color:#fff;border-right-color:#fff;animation:spin 0.9s linear infinite;}
+#ai-ball.active{background:linear-gradient(135deg,#7ed957,#2e7d32);box-shadow:0 6px 18px rgba(126,217,87,.55),inset 0 6px 10px rgba(255,255,255,.25);}
 @keyframes spin{to{transform:rotate(360deg);}}
 
 /* Drag crosshair (above finger) */
-#drag-cross{position:fixed;width:56px;height:56px;pointer-events:none;z-index:38;display:none;transform:translate(-50%,-50%);}
-#drag-cross svg{width:100%;height:100%;filter:drop-shadow(0 0 6px rgba(255,220,80,.9));}
+#drag-cross{position:fixed;width:60px;height:60px;pointer-events:none;z-index:58;display:none;transform:translate(-50%,-50%);}
+#drag-cross svg{width:100%;height:100%;filter:drop-shadow(0 0 8px rgba(255,220,80,1));}
 
 /* Voice bubble */
-#voice-bubble{position:fixed;top:14px;left:50%;transform:translateX(-50%);max-width:60%;padding:10px 18px;border-radius:22px;background:rgba(0,0,0,.72);border:1px solid rgba(126,217,87,.5);color:#eaffd6;font-size:14px;line-height:1.4;z-index:45;display:none;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);text-align:center;}
+#voice-bubble{position:fixed;top:12px;left:50%;transform:translateX(-50%);max-width:60%;padding:10px 18px;border-radius:22px;background:rgba(0,0,0,.78);border:1px solid rgba(126,217,87,.55);color:#eaffd6;font-size:14px;line-height:1.4;z-index:65;display:none;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 #voice-bubble .mic{display:inline-block;width:8px;height:8px;border-radius:50%;background:#ef5350;margin-right:8px;vertical-align:middle;animation:pulse 1s infinite;}
 @keyframes pulse{0%,100%{opacity:1;transform:scale(1);}50%{opacity:.4;transform:scale(1.35);}}
 #voice-bubble .txt{vertical-align:middle;}
 
 /* Block name label */
-#block-label{position:fixed;left:50%;top:38%;transform:translate(-50%,-50%);padding:6px 14px;background:rgba(0,0,0,.78);border:1px solid rgba(255,220,80,.7);color:#fff8d0;border-radius:6px;font-size:15px;font-weight:600;letter-spacing:1px;z-index:37;display:none;pointer-events:none;text-shadow:0 1px 2px #000;}
+#block-label{position:fixed;left:50%;top:36%;transform:translate(-50%,-50%);padding:6px 16px;background:rgba(0,0,0,.82);border:1px solid rgba(255,220,80,.75);color:#fff8d0;border-radius:6px;font-size:15px;font-weight:600;letter-spacing:1px;z-index:57;display:none;pointer-events:none;text-shadow:0 1px 2px #000;}
 
-/* Output panel */
-#output-panel{position:fixed;top:92px;right:14px;width:280px;max-width:44vw;max-height:60vh;background:var(--panel-bg);border:1px solid var(--panel-border);border-radius:12px;z-index:42;padding:14px;color:#eee;font-size:13px;line-height:1.5;overflow-y:auto;display:none;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);box-shadow:0 8px 24px rgba(0,0,0,.5);}
-#output-panel h3{font-size:14px;color:var(--accent);margin-bottom:6px;letter-spacing:1px;display:flex;align-items:center;gap:8px;}
-#output-panel h3 .dot{width:8px;height:8px;background:var(--accent);border-radius:50%;box-shadow:0 0 8px var(--accent);}
-#output-panel .desc{color:#cfd8dc;margin-bottom:10px;}
-#output-panel .meta{padding-top:8px;margin-top:8px;border-top:1px dashed rgba(255,255,255,.15);color:#90a4ae;font-size:11px;line-height:1.6;}
-#output-panel .meta b{color:#e0e0e0;font-weight:600;}
-#output-panel .hint{margin-top:10px;font-size:10px;color:#78909c;letter-spacing:.5px;text-align:center;padding-top:6px;border-top:1px dashed rgba(255,255,255,.08);}
+/* Chat panel — single panel for output + history + input */
+#chat-panel{position:fixed;top:82px;right:14px;width:340px;max-width:78vw;height:min(72vh,440px);background:var(--panel-bg);border:1px solid var(--panel-border);border-radius:14px;z-index:55;display:none;flex-direction:column;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);box-shadow:0 8px 28px rgba(0,0,0,.55);transform-origin:top right;animation:panelIn .22s ease-out;}
+#chat-panel.open{display:flex;}
+@keyframes panelIn{from{opacity:0;transform:scale(0.85) translateY(-8px);}to{opacity:1;transform:scale(1) translateY(0);}}
+#chat-panel::before{content:"";position:absolute;top:-7px;right:23px;width:14px;height:14px;background:var(--panel-bg);border-top:1px solid var(--panel-border);border-left:1px solid var(--panel-border);transform:rotate(45deg);}
 
-/* History panel */
-#history-panel{position:fixed;top:92px;right:14px;width:300px;max-width:46vw;max-height:65vh;background:var(--panel-bg);border:1px solid var(--panel-border);border-radius:12px;z-index:42;padding:14px;color:#eee;font-size:12px;overflow-y:auto;display:none;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);box-shadow:0 8px 24px rgba(0,0,0,.5);}
-#history-panel h3{font-size:14px;color:var(--accent-2);margin-bottom:10px;letter-spacing:1px;display:flex;justify-content:space-between;align-items:center;}
-#history-panel h3 .close{background:none;border:1px solid rgba(255,255,255,.2);color:#ccc;width:24px;height:24px;border-radius:50%;font-size:14px;line-height:1;}
-#history-panel .item{padding:8px;border-radius:6px;background:rgba(255,255,255,.04);margin-bottom:8px;border-left:2px solid var(--accent-2);}
-#history-panel .item .name{color:var(--accent);font-weight:600;margin-bottom:3px;font-size:13px;}
-#history-panel .item .q{color:#b0bec5;font-size:11px;margin-bottom:3px;}
-#history-panel .item .d{color:#cfd8dc;font-size:11px;line-height:1.5;}
-#history-panel .empty{color:#78909c;text-align:center;padding:20px;font-size:11px;}
+#chat-panel .chat-head{padding:10px 12px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid rgba(255,255,255,0.06);flex-shrink:0;border-top-left-radius:14px;border-top-right-radius:14px;background:rgba(0,0,0,0.12);}
+#chat-panel .chat-head .who{display:flex;align-items:center;gap:8px;}
+#chat-panel .chat-head .avt{width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,#4fc3f7,#1565c0);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:#fff;font-family:"Courier New",monospace;}
+#chat-panel .chat-head .tt{font-size:13px;font-weight:600;color:#eee;line-height:1.2;}
+#chat-panel .chat-head .st{font-size:10px;color:#7ed957;margin-top:2px;letter-spacing:.4px;}
+#chat-panel .chat-head .cl{width:26px;height:26px;border-radius:50%;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);color:#ccc;font-size:16px;line-height:1;display:flex;align-items:center;justify-content:center;}
+#chat-panel .chat-head .cl:active{background:rgba(255,255,255,0.14);}
 
-/* Hint text */
-#hint{position:fixed;left:12px;top:12px;font-size:10px;color:rgba(255,255,255,.5);z-index:10;line-height:1.5;letter-spacing:.5px;pointer-events:none;text-shadow:0 1px 2px rgba(0,0,0,.8);}
+#chat-panel .chat-body{flex:1;overflow-y:auto;padding:10px 12px;-webkit-overflow-scrolling:touch;}
+#chat-panel .chat-body::-webkit-scrollbar{width:4px;}
+#chat-panel .chat-body::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.12);border-radius:2px;}
+
+#chat-panel .empty-state{color:#78909c;text-align:center;padding:24px 12px;font-size:12px;line-height:1.7;}
+#chat-panel .empty-state .big{font-size:14px;color:#b0bec5;margin-bottom:8px;font-weight:600;}
+
+#chat-panel .msg{margin:8px 0;display:flex;}
+#chat-panel .msg.user{justify-content:flex-end;}
+#chat-panel .msg.ai{justify-content:flex-start;}
+#chat-panel .msg .bubble{max-width:78%;padding:8px 12px;border-radius:12px;line-height:1.5;font-size:12.5px;word-wrap:break-word;overflow-wrap:break-word;}
+#chat-panel .msg.user .bubble{background:linear-gradient(135deg,#2b6cb0,#1e4d7f);color:#f0f8ff;border-bottom-right-radius:4px;}
+#chat-panel .msg.ai .bubble{background:rgba(255,255,255,0.06);color:#e8f0f5;border:1px solid rgba(255,255,255,0.08);border-bottom-left-radius:4px;}
+#chat-panel .msg.ai .bubble.thinking{color:#b0bec5;font-style:italic;}
+#chat-panel .msg.ai .bubble.thinking .dots span{display:inline-block;width:5px;height:5px;background:#7ed957;border-radius:50%;margin:0 1px;animation:thk 1.2s infinite ease-in-out;}
+#chat-panel .msg.ai .bubble.thinking .dots span:nth-child(2){animation-delay:0.15s;}
+#chat-panel .msg.ai .bubble.thinking .dots span:nth-child(3){animation-delay:0.3s;}
+@keyframes thk{0%,80%,100%{opacity:0.25;transform:scale(0.8);}40%{opacity:1;transform:scale(1);}}
+#chat-panel .block-card{background:rgba(126,217,87,0.10);border-left:2px solid #7ed957;padding:6px 8px;border-radius:6px;margin-bottom:6px;}
+#chat-panel .block-card .bt{color:#7ed957;font-weight:700;font-size:12px;margin-bottom:2px;letter-spacing:.5px;display:flex;align-items:center;gap:6px;}
+#chat-panel .block-card .bt .icon{width:12px;height:12px;border-radius:2px;background:#7ed957;display:inline-block;}
+#chat-panel .block-card .bd{color:#cfd8dc;font-size:11px;line-height:1.5;}
+#chat-panel .block-card .pos{color:#78909c;font-size:10px;font-family:monospace;margin-left:auto;}
+
+#chat-panel .chat-foot{padding:8px 10px;border-top:1px solid rgba(255,255,255,0.06);display:flex;gap:6px;align-items:center;flex-shrink:0;background:rgba(0,0,0,0.15);border-bottom-left-radius:14px;border-bottom-right-radius:14px;}
+#chat-panel .chat-foot .mic{width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.15);color:#ccc;display:flex;align-items:center;justify-content:center;flex-shrink:0;padding:0;}
+#chat-panel .chat-foot .mic.rec{background:rgba(239,83,80,0.35);border-color:#ef5350;color:#fff;animation:pulse 1s infinite;}
+#chat-panel .chat-foot .mic svg{width:16px;height:16px;fill:currentColor;}
+#chat-panel .chat-foot input{flex:1;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);color:#eee;padding:8px 12px;border-radius:18px;font-size:12.5px;outline:none;font-family:inherit;user-select:text;-webkit-user-select:text;}
+#chat-panel .chat-foot input:focus{border-color:rgba(126,217,87,0.5);}
+#chat-panel .chat-foot input::placeholder{color:#78909c;}
+#chat-panel .chat-foot .send{width:auto;padding:0 12px;height:34px;border-radius:17px;background:linear-gradient(135deg,#7ed957,#388e3c);border:none;color:#fff;font-size:12px;font-weight:600;flex-shrink:0;}
+#chat-panel .chat-foot .send:active{transform:scale(0.94);}
+#chat-panel .chat-foot .send:disabled{background:rgba(255,255,255,0.1);color:#666;}
+
+/* Hint */
+#hint{position:fixed;left:12px;top:12px;font-size:10px;color:rgba(255,255,255,.55);z-index:10;line-height:1.6;letter-spacing:.5px;pointer-events:none;text-shadow:0 1px 2px rgba(0,0,0,.9);max-width:60%;}
 #hint b{color:var(--accent);}
+#hint.hidden{opacity:0;transition:opacity .5s;}
 
 /* FPS mini */
-#fps{position:fixed;right:14px;top:88px;font-size:10px;color:rgba(255,255,255,.35);z-index:5;font-family:monospace;display:none;}
+#fps{position:fixed;left:12px;bottom:170px;font-size:10px;color:rgba(255,255,255,.35);z-index:5;font-family:monospace;display:none;}
 </style>
 </head>
 <body>
@@ -117,8 +144,8 @@ canvas{display:block;width:100%;height:100%;touch-action:none;}
   </div>
 
   <div id="hint">
-    左侧摇杆移动 · 右侧滑动看视角 · <b>长按右上助手拖到方块</b><br>
-    松手后晃动视角关闭输出 · 点击助手看历史
+    左侧摇杆移动 · 右侧滑动看视角 · <b>长按右上 AI 拖到方块</b><br>
+    松手后左右晃视角关闭对话 · 点击 AI 打开对话
   </div>
 
   <div id="center-cross"></div>
@@ -147,16 +174,31 @@ canvas{display:block;width:100%;height:100%;touch-action:none;}
 
   <div id="block-label"></div>
 
-  <div id="output-panel">
-    <h3><span class="dot"></span><span id="out-name">方块</span></h3>
-    <div class="desc" id="out-desc"></div>
-    <div class="meta" id="out-meta"></div>
-    <div class="hint">左右快速晃动视角关闭 ↔</div>
-  </div>
-
-  <div id="history-panel">
-    <h3><span>对话历史</span><button class="close" id="hist-close">×</button></h3>
-    <div id="hist-list"></div>
+  <div id="chat-panel">
+    <div class="chat-head">
+      <div class="who">
+        <div class="avt">AI</div>
+        <div>
+          <div class="tt">MC 助手</div>
+          <div class="st">● 在线</div>
+        </div>
+      </div>
+      <button class="cl" id="chat-close">×</button>
+    </div>
+    <div class="chat-body" id="chat-body">
+      <div class="empty-state" id="empty-state">
+        <div class="big">你好，我是 MC 助手</div>
+        长按我拖到任意方块，松手可识别它<br>
+        也可以直接在下方向我提问
+      </div>
+    </div>
+    <div class="chat-foot">
+      <button class="mic" id="mic-btn">
+        <svg viewBox="0 0 24 24"><path d="M12 14a3 3 0 003-3V5a3 3 0 00-6 0v6a3 3 0 003 3zm5-3a5 5 0 01-10 0H5a7 7 0 006 6.92V21h2v-3.08A7 7 0 0019 11z"/></svg>
+      </button>
+      <input id="chat-text" type="text" placeholder="问我关于 MC 的问题..." autocomplete="off" autocorrect="off" spellcheck="false" enterkeyhint="send"/>
+      <button class="send" id="send-btn">发送</button>
+    </div>
   </div>
 
   <div id="fps">0</div>
@@ -170,7 +212,6 @@ canvas{display:block;width:100%;height:100%;touch-action:none;}
 }
 </script>
 <script type="module" id="main-script">
-
 import * as THREE from 'three';
 
 // ==============================================================
@@ -188,87 +229,74 @@ const dragCross  = document.getElementById('drag-cross');
 const voiceBubble= document.getElementById('voice-bubble');
 const voiceTxt   = document.getElementById('voice-txt');
 const blockLabel = document.getElementById('block-label');
-const outputPanel= document.getElementById('output-panel');
-const outName    = document.getElementById('out-name');
-const outDesc    = document.getElementById('out-desc');
-const outMeta    = document.getElementById('out-meta');
-const historyPanel=document.getElementById('history-panel');
-const histList   = document.getElementById('hist-list');
-const histClose  = document.getElementById('hist-close');
+const chatPanel  = document.getElementById('chat-panel');
+const chatBody   = document.getElementById('chat-body');
+const emptyState = document.getElementById('empty-state');
+const chatText   = document.getElementById('chat-text');
+const chatClose  = document.getElementById('chat-close');
+const sendBtn    = document.getElementById('send-btn');
+const micBtn     = document.getElementById('mic-btn');
+const hintEl     = document.getElementById('hint');
 const fpsEl      = document.getElementById('fps');
 
-const setLoad = (p, tip)=>{ loadBar.style.width=(p*100)+'%'; if(tip) loadTip.textContent=tip; };
+const setLoad = (p,tip)=>{ loadBar.style.width=(p*100)+'%'; if(tip) loadTip.textContent=tip; };
 
 // ==============================================================
-// Procedural textures — 16x16 MC-style
+// Procedural 16x16 textures — MC style
 // ==============================================================
-function makeTex(drawFn, opts={}){
-  const c=document.createElement('canvas');
-  c.width=16;c.height=16;
-  const ctx=c.getContext('2d');
-  ctx.imageSmoothingEnabled=false;
+function makeTex(drawFn){
+  const c=document.createElement('canvas'); c.width=16; c.height=16;
+  const ctx=c.getContext('2d'); ctx.imageSmoothingEnabled=false;
   drawFn(ctx);
   const t=new THREE.CanvasTexture(c);
   t.magFilter=THREE.NearestFilter;
   t.minFilter=THREE.NearestMipmapLinearFilter;
   t.wrapS=t.wrapT=THREE.RepeatWrapping;
   t.colorSpace=THREE.SRGBColorSpace;
-  t.anisotropy=1;
+  t.generateMipmaps=true;
   return t;
 }
 function fillBase(ctx,c){ ctx.fillStyle=c; ctx.fillRect(0,0,16,16); }
-function speckle(ctx,c,n){
-  ctx.fillStyle=c;
-  for(let i=0;i<n;i++) ctx.fillRect((Math.random()*16)|0,(Math.random()*16)|0,1,1);
-}
+function speckle(ctx,c,n){ ctx.fillStyle=c; for(let i=0;i<n;i++) ctx.fillRect((Math.random()*16)|0,(Math.random()*16)|0,1,1); }
 
 const T={};
 T.grassTop = makeTex(ctx=>{
   fillBase(ctx,'#5eb04a');
-  speckle(ctx,'#4a9a3a',26);
-  speckle(ctx,'#78c465',20);
+  speckle(ctx,'#4a9a3a',28);
+  speckle(ctx,'#78c465',22);
   speckle(ctx,'#3d8730',10);
   speckle(ctx,'#82d06a',8);
 });
 T.dirt = makeTex(ctx=>{
   fillBase(ctx,'#8b5a2b');
   speckle(ctx,'#6d4620',30);
-  speckle(ctx,'#a06e3d',20);
+  speckle(ctx,'#a06e3d',22);
   speckle(ctx,'#5a3a1a',12);
 });
 T.grassSide = makeTex(ctx=>{
   fillBase(ctx,'#8b5a2b');
   speckle(ctx,'#6d4620',22);
-  speckle(ctx,'#a06e3d',15);
+  speckle(ctx,'#a06e3d',16);
   speckle(ctx,'#5a3a1a',8);
   ctx.fillStyle='#5eb04a';
-  for(let x=0;x<16;x++){
-    const h=3+((Math.random()*3)|0);
-    ctx.fillRect(x,0,1,h);
-  }
+  for(let x=0;x<16;x++){ ctx.fillRect(x,0,1,3+((Math.random()*3)|0)); }
   ctx.fillStyle='#4a9a3a';
-  for(let x=0;x<16;x++){
-    if(Math.random()<0.45) ctx.fillRect(x,(Math.random()*4)|0,1,1);
-  }
+  for(let x=0;x<16;x++) if(Math.random()<0.45) ctx.fillRect(x,(Math.random()*4)|0,1,1);
   ctx.fillStyle='#78c465';
-  for(let x=0;x<16;x++){
-    if(Math.random()<0.3) ctx.fillRect(x,(Math.random()*3)|0,1,1);
-  }
+  for(let x=0;x<16;x++) if(Math.random()<0.28) ctx.fillRect(x,(Math.random()*3)|0,1,1);
 });
 T.stone = makeTex(ctx=>{
   fillBase(ctx,'#7f7f7f');
-  speckle(ctx,'#6a6a6a',36);
-  speckle(ctx,'#909090',24);
-  speckle(ctx,'#555',8);
-  speckle(ctx,'#a5a5a5',10);
+  speckle(ctx,'#6a6a6a',38); speckle(ctx,'#909090',24);
+  speckle(ctx,'#555',8); speckle(ctx,'#a5a5a5',10);
 });
 T.cobble = makeTex(ctx=>{
   fillBase(ctx,'#5a5a5a');
   const chunks=[[0,0,7,6],[8,0,7,5],[0,7,4,5],[5,7,6,4],[12,6,4,6],[0,13,7,3],[8,12,8,4]];
   chunks.forEach(([x,y,w,h])=>{
-    ctx.fillStyle='#8a8a8a';ctx.fillRect(x,y,w,h);
-    ctx.fillStyle='#a0a0a0';ctx.fillRect(x,y,w,1);ctx.fillRect(x,y,1,h);
-    ctx.fillStyle='#555';ctx.fillRect(x+w-1,y,1,h);ctx.fillRect(x,y+h-1,w,1);
+    ctx.fillStyle='#8a8a8a'; ctx.fillRect(x,y,w,h);
+    ctx.fillStyle='#a0a0a0'; ctx.fillRect(x,y,w,1); ctx.fillRect(x,y,1,h);
+    ctx.fillStyle='#555'; ctx.fillRect(x+w-1,y,1,h); ctx.fillRect(x,y+h-1,w,1);
     ctx.fillStyle='#6a6a6a';
     for(let i=0;i<3;i++) ctx.fillRect(x+1+((Math.random()*(w-2))|0),y+1+((Math.random()*(h-2))|0),1,1);
   });
@@ -279,43 +307,31 @@ T.logSide = makeTex(ctx=>{
     ctx.fillStyle=Math.random()<0.4?'#553a20':(Math.random()<0.5?'#7a5a35':'#6b4a2a');
     ctx.fillRect(x,0,1,16);
   }
-  speckle(ctx,'#3a2812',18);
-  speckle(ctx,'#8a6a40',10);
-  // couple of knots
+  speckle(ctx,'#3a2812',18); speckle(ctx,'#8a6a40',10);
   for(let i=0;i<2;i++){
     const x=2+((Math.random()*12)|0), y=2+((Math.random()*12)|0);
-    ctx.fillStyle='#3a2812';ctx.fillRect(x,y,2,2);
-    ctx.fillStyle='#553a20';ctx.fillRect(x,y,1,1);
+    ctx.fillStyle='#3a2812'; ctx.fillRect(x,y,2,2);
+    ctx.fillStyle='#553a20'; ctx.fillRect(x,y,1,1);
   }
 });
 T.logTop = makeTex(ctx=>{
   fillBase(ctx,'#b48a58');
-  ctx.strokeStyle='#8a6035';ctx.lineWidth=1;
-  for(let r=1.5;r<8;r+=1.8){
-    ctx.beginPath();ctx.arc(8,8,r,0,Math.PI*2);ctx.stroke();
-  }
-  speckle(ctx,'#8a6035',12);
-  speckle(ctx,'#c9a070',8);
-  ctx.fillStyle='#5a3818';ctx.fillRect(7,7,2,2);
+  ctx.strokeStyle='#8a6035'; ctx.lineWidth=1;
+  for(let r=1.5;r<8;r+=1.8){ ctx.beginPath(); ctx.arc(8,8,r,0,Math.PI*2); ctx.stroke(); }
+  speckle(ctx,'#8a6035',12); speckle(ctx,'#c9a070',8);
+  ctx.fillStyle='#5a3818'; ctx.fillRect(7,7,2,2);
 });
 T.leaves = makeTex(ctx=>{
   fillBase(ctx,'#2a5a1c');
-  speckle(ctx,'#1c3d14',40);
-  speckle(ctx,'#3a7a2a',35);
-  speckle(ctx,'#4d9a35',22);
-  speckle(ctx,'#5cb040',10);
-  // scattered dark holes
-  for(let i=0;i<8;i++){
-    ctx.fillStyle='#132a0d';
-    ctx.fillRect((Math.random()*16)|0,(Math.random()*16)|0,1,1);
-  }
+  speckle(ctx,'#1c3d14',42); speckle(ctx,'#3a7a2a',36);
+  speckle(ctx,'#4d9a35',22); speckle(ctx,'#5cb040',10);
+  for(let i=0;i<10;i++){ ctx.fillStyle='#132a0d'; ctx.fillRect((Math.random()*16)|0,(Math.random()*16)|0,1,1); }
 });
 T.planks = makeTex(ctx=>{
   const rows=[0,4,8,12];
   rows.forEach((y,i)=>{
-    ctx.fillStyle=(i%2)? '#a07040':'#8f5f30';
-    ctx.fillRect(0,y,16,4);
-    ctx.fillStyle='#5a3818';ctx.fillRect(0,y+3,16,1);
+    ctx.fillStyle=(i%2)?'#a07040':'#8f5f30'; ctx.fillRect(0,y,16,4);
+    ctx.fillStyle='#5a3818'; ctx.fillRect(0,y+3,16,1);
     for(let x=0;x<16;x++){
       if(Math.random()<0.25){
         ctx.fillStyle=Math.random()<0.5?'#7a5028':'#b58048';
@@ -323,44 +339,28 @@ T.planks = makeTex(ctx=>{
       }
     }
     const seam=(i*5+3)%16;
-    ctx.fillStyle='#5a3818';ctx.fillRect(seam,y,1,4);
-    ctx.fillStyle='#c89060';ctx.fillRect(0,y,16,1);
+    ctx.fillStyle='#5a3818'; ctx.fillRect(seam,y,1,4);
+    ctx.fillStyle='#c89060'; ctx.fillRect(0,y,16,1);
   });
 });
 T.glass = makeTex(ctx=>{
   ctx.clearRect(0,0,16,16);
-  ctx.fillStyle='rgba(180,220,240,0.15)';ctx.fillRect(0,0,16,16);
-  ctx.strokeStyle='#cfe6f2';ctx.lineWidth=1;
+  ctx.fillStyle='rgba(180,220,240,0.18)'; ctx.fillRect(0,0,16,16);
+  ctx.strokeStyle='#cfe6f2'; ctx.lineWidth=1;
   ctx.strokeRect(0.5,0.5,15,15);
   ctx.strokeRect(2.5,2.5,11,11);
-  ctx.fillStyle='#e0f0f8';
-  ctx.fillRect(0,0,16,1);ctx.fillRect(0,0,1,16);
-  // small shine
-  ctx.fillStyle='rgba(255,255,255,0.4)';
-  ctx.fillRect(3,3,3,1);ctx.fillRect(3,3,1,3);
+  ctx.fillStyle='#e0f0f8'; ctx.fillRect(0,0,16,1); ctx.fillRect(0,0,1,16);
+  ctx.fillStyle='rgba(255,255,255,0.5)'; ctx.fillRect(3,3,3,1); ctx.fillRect(3,3,1,3);
 });
 function oreTex(oreColor,oreLight){
   return makeTex(ctx=>{
     fillBase(ctx,'#7f7f7f');
-    speckle(ctx,'#6a6a6a',30);
-    speckle(ctx,'#909090',18);
-    speckle(ctx,'#555',6);
-    // 3 clusters
+    speckle(ctx,'#6a6a6a',30); speckle(ctx,'#909090',18); speckle(ctx,'#555',6);
     const centers=[[4,4],[11,5],[7,12]];
     centers.forEach(([cx,cy])=>{
       const shape=[[0,0],[1,0],[0,1],[1,1],[2,1],[1,2],[-1,0],[0,-1],[2,0],[-1,1]];
-      shape.forEach(([dx,dy])=>{
-        if(Math.random()<0.7){
-          ctx.fillStyle=oreColor;
-          ctx.fillRect(cx+dx,cy+dy,1,1);
-        }
-      });
-      shape.forEach(([dx,dy])=>{
-        if(Math.random()<0.35){
-          ctx.fillStyle=oreLight;
-          ctx.fillRect(cx+dx,cy+dy,1,1);
-        }
-      });
+      shape.forEach(([dx,dy])=>{ if(Math.random()<0.7){ ctx.fillStyle=oreColor; ctx.fillRect(cx+dx,cy+dy,1,1); } });
+      shape.forEach(([dx,dy])=>{ if(Math.random()<0.35){ ctx.fillStyle=oreLight; ctx.fillRect(cx+dx,cy+dy,1,1); } });
     });
   });
 }
@@ -368,11 +368,10 @@ T.diamond_ore = oreTex('#5cd8e0','#a8f3f7');
 T.iron_ore    = oreTex('#c8a080','#e4c8a8');
 T.coal_ore    = oreTex('#2a2a2a','#4a4a4a');
 T.gold_ore    = oreTex('#e8c060','#ffe090');
+T.redstone_ore= oreTex('#c02020','#ff4040');
 T.sand = makeTex(ctx=>{
   fillBase(ctx,'#e0cf88');
-  speckle(ctx,'#c8b070',28);
-  speckle(ctx,'#f0e0a0',22);
-  speckle(ctx,'#b09858',8);
+  speckle(ctx,'#c8b070',28); speckle(ctx,'#f0e0a0',22); speckle(ctx,'#b09858',8);
 });
 T.bedrock = makeTex(ctx=>{
   fillBase(ctx,'#3a3a3a');
@@ -383,15 +382,29 @@ T.bedrock = makeTex(ctx=>{
   }
   speckle(ctx,'#1a1a1a',10);
 });
+T.water = makeTex(ctx=>{
+  fillBase(ctx,'#2a6cc0');
+  speckle(ctx,'#3080d8',30); speckle(ctx,'#1e5090',22); speckle(ctx,'#4090e8',18);
+  // slight highlight bands
+  for(let y=0;y<16;y+=4){ ctx.fillStyle='rgba(140,200,255,0.15)'; ctx.fillRect(0,y,16,1); }
+});
+T.torch = makeTex(ctx=>{
+  ctx.clearRect(0,0,16,16);
+  // stick
+  ctx.fillStyle='#7a5a35'; ctx.fillRect(7,7,2,9);
+  ctx.fillStyle='#553a20'; ctx.fillRect(8,7,1,9);
+  // flame
+  ctx.fillStyle='#ffdc50'; ctx.fillRect(6,4,4,4);
+  ctx.fillStyle='#ff9020'; ctx.fillRect(6,5,4,1); ctx.fillRect(6,7,4,1);
+  ctx.fillStyle='#fff8c0'; ctx.fillRect(7,5,2,2);
+});
 
 setLoad(0.15,'贴图已生成...');
 
 // ==============================================================
-// Materials — BoxGeometry material order: [+x,-x,+y,-y,+z,-z]
+// Materials
 // ==============================================================
-function mat(map, opts={}){
-  return new THREE.MeshLambertMaterial(Object.assign({map},opts));
-}
+function mat(map, opts={}){ return new THREE.MeshLambertMaterial(Object.assign({map},opts)); }
 const M={};
 M.grass = [mat(T.grassSide),mat(T.grassSide),mat(T.grassTop),mat(T.dirt),mat(T.grassSide),mat(T.grassSide)];
 M.dirt  = mat(T.dirt);
@@ -405,41 +418,28 @@ M.diamond_ore = mat(T.diamond_ore);
 M.iron_ore    = mat(T.iron_ore);
 M.coal_ore    = mat(T.coal_ore);
 M.gold_ore    = mat(T.gold_ore);
+M.redstone_ore= mat(T.redstone_ore);
 M.sand  = mat(T.sand);
 M.bedrock = mat(T.bedrock);
+M.water = new THREE.MeshLambertMaterial({map:T.water,transparent:true,opacity:0.72,depthWrite:false});
 
-// Block info for AI output
 const BLOCK_INFO = {
-  grass:       {name:'草方块',   desc:'覆盖着泥土层的地表方块，顶部长有绿色的草，是MC世界最常见的方块之一。'},
-  dirt:        {name:'泥土',     desc:'普通的泥土方块，用锄头翻耕后可以种植作物。'},
-  stone:       {name:'石头',     desc:'构成地下世界的主要方块，用木镐或以上工具开采，掉落圆石。'},
-  cobble:      {name:'圆石',     desc:'开采石头得到的产物，是建筑和熔炉的基础材料。'},
-  log:         {name:'橡木原木', desc:'从橡树上砍下的原木，可以合成木板，是最基础的建筑材料。'},
-  leaves:      {name:'橡树树叶', desc:'橡树的叶子，随机掉落树苗和苹果，用剪刀可以直接采集。'},
-  planks:      {name:'橡木木板', desc:'由原木合成的木板，是建造小屋、工作台、门等的重要材料。'},
-  glass:       {name:'玻璃',     desc:'由沙子熔炼得到，透明但打碎后不会掉落，除非用附魔精准采集。'},
-  diamond_ore: {name:'钻石矿石', desc:'珍稀的钻石矿石，通常在深度Y=-58附近生成，必须用铁镐及以上工具才能开采。'},
-  iron_ore:    {name:'铁矿石',   desc:'常见的铁矿石，需要石镐开采，冶炼后得到铁锭，是制作铁装备的关键。'},
-  coal_ore:    {name:'煤矿石',   desc:'随处可见的煤矿，用木镐即可开采，掉落煤炭，是燃料和火把的主要来源。'},
-  gold_ore:    {name:'金矿石',   desc:'金光闪闪的金矿石，需要铁镐才能开采，用途包括合成金装备与制作附魔物。'},
+  grass:       {name:'草方块',   desc:'覆盖着泥土层的地表方块，顶部长着绿草。用铲子挖最快。'},
+  dirt:        {name:'泥土',     desc:'普通泥土方块。用锄头翻耕后可种植作物。'},
+  stone:       {name:'石头',     desc:'构成地下世界的主要方块。用木镐及以上开采，掉落圆石。'},
+  cobble:      {name:'圆石',     desc:'开采石头得到的产物，是熔炉与石制工具的基础材料。'},
+  log:         {name:'橡木原木', desc:'橡树砍下的原木。合成 4 个橡木板，是所有建筑与工具的起点。'},
+  leaves:      {name:'橡树树叶', desc:'橡树的叶子，会腐烂消失。少量掉落树苗与苹果。'},
+  planks:      {name:'橡木木板', desc:'由原木合成，是工作台、门、船、栅栏等的原料。'},
+  glass:       {name:'玻璃',     desc:'沙子熔炼得到。透明，被打破后不会掉落——除非用精准采集。'},
+  diamond_ore: {name:'钻石矿石', desc:'珍稀的钻石矿。Y=-58 附近最密集。必须用铁镐及以上开采。'},
+  iron_ore:    {name:'铁矿石',   desc:'常见的铁矿。用石镐开采，熔炼后得到铁锭。'},
+  coal_ore:    {name:'煤矿石',   desc:'随处可见的煤矿。用木镐即可开采，掉落煤炭。'},
+  gold_ore:    {name:'金矿石',   desc:'金光闪闪的金矿。只能用铁镐开采。装备耐久较低。'},
+  redstone_ore:{name:'红石矿石', desc:'红石矿。用铁镐开采，掉落红石粉，用于制作机关电路。'},
   sand:        {name:'沙子',     desc:'受重力影响会掉落的方块，熔炼后得到玻璃。'},
-  bedrock:     {name:'基岩',     desc:'世界的边界方块，任何工具都无法破坏。'}
-};
-const RESPONSES = {
-  grass:'这是MC里最常见的草方块，铺在世界表面。用铲子挖最快，砍下会掉泥土；附魔精准采集可以得到完整的草方块。',
-  dirt:'泥土是草方块下方的基础。用锄头可以把它变成耕地，然后种植小麦、萝卜等作物。它也是新手最容易大量获得的建筑材料。',
-  stone:'石头。用木镐或以上开采，掉落会变成圆石。深入地下你会遇到大量石头。用附魔精准采集时可以直接得到完整石头。',
-  cobble:'圆石！从石头挖来的产物，是熔炉、石制工具、活塞等的核心材料。既坚硬又常见，是新手屋的经典选择。',
-  log:'橡木原木。合成4个橡木板，2块板加2根木棍能做出更多东西。原木顶面的年轮是MC最直观的辨认方式。',
-  leaves:'橡树叶。会随机腐烂消失，有约5%概率掉落树苗、约0.5%概率掉苹果。用剪刀能直接采集叶子本身。',
-  planks:'橡木板。合成箱子、工作台、活板门、船、栅栏等的关键材料。烧一个能作为熔炉燃料使用约15秒。',
-  glass:'玻璃！沙子放熔炉里烧就得到。透明、不能被水源穿透，被打破后不会掉落——除非用了精准采集附魔。',
-  diamond_ore:'钻石矿石！这是MC最激动人心的时刻之一。至少要铁镐才能开采，附魔精准采集能得到完整方块。位于Y=-58附近最密集。',
-  iron_ore:'铁矿石。用石镐及以上开采，冶炼得到铁锭。铁装备的一切基础，也用于水桶、铁轨、砧板等大量物品。',
-  coal_ore:'煤矿石。用木镐即可开采，掉落煤炭本身。煤是熔炉燃料首选，也是火把的必备材料。',
-  gold_ore:'金矿石。金光闪闪但只能用铁镐挖。金装备耐久较低，但金锭在附魔和交易中很重要，尤其在下界。',
-  sand:'沙子。受重力影响，挖掉下方它会掉下来。烧成玻璃，或与砾石合成砂岩、红砂等。',
-  bedrock:'基岩！世界的绝对边界，任何工具都无法破坏——即使是创造模式的钻石镐也不行。'
+  bedrock:     {name:'基岩',     desc:'世界的边界方块，任何工具都无法破坏。'},
+  water:       {name:'水',       desc:'水源方块。可以游泳，落地不掉血，能扑灭火焰。'},
 };
 
 // ==============================================================
@@ -453,71 +453,81 @@ const renderer = new THREE.WebGLRenderer({antialias:false, powerPreference:'high
 renderer.setPixelRatio(Math.min(window.devicePixelRatio||1, 2));
 renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.outputColorSpace = THREE.SRGBColorSpace;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.05;
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 renderer.domElement.style.position='fixed';
 renderer.domElement.style.inset='0';
 renderer.domElement.style.zIndex='0';
 app.appendChild(renderer.domElement);
 
-// Sky dome shader
+// Sky dome
 const skyGeo = new THREE.SphereGeometry(180,24,14);
 const skyMat = new THREE.ShaderMaterial({
-  uniforms:{ top:{value:new THREE.Color(0x3b7ec8)}, mid:{value:new THREE.Color(0x87ceeb)}, bot:{value:new THREE.Color(0xdcecf3)} },
+  uniforms:{ top:{value:new THREE.Color(0x2f6cb8)}, mid:{value:new THREE.Color(0x86c8e8)}, bot:{value:new THREE.Color(0xe5eff2)} },
   vertexShader:'varying vec3 vP; void main(){ vP=position; gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.); }',
   fragmentShader:`
     uniform vec3 top,mid,bot; varying vec3 vP;
     void main(){
       float h = normalize(vP).y;
-      vec3 col;
-      if(h>0.0) col = mix(mid, top, pow(h, 0.55));
-      else      col = mix(mid, bot, pow(-h, 0.5));
+      vec3 col = h>0.0 ? mix(mid,top,pow(h,0.55)) : mix(mid,bot,pow(-h,0.5));
       gl_FragColor = vec4(col,1.0);
     }
   `,
-  side:THREE.BackSide, depthWrite:false, fog:false
+  side:THREE.BackSide, depthWrite:false, fog:false, toneMapped:false
 });
 const sky = new THREE.Mesh(skyGeo, skyMat);
 scene.add(sky);
-scene.fog = new THREE.Fog(0xc4dee9, 28, 75);
+scene.fog = new THREE.Fog(0xc4dee9, 32, 82);
 
 // Lights
-scene.add(new THREE.HemisphereLight(0xbfe3ff, 0x7aa070, 0.75));
-const sun = new THREE.DirectionalLight(0xfff4d0, 0.85);
-sun.position.set(50,80,30);
-scene.add(sun);
-scene.add(new THREE.AmbientLight(0xffffff, 0.18));
+scene.add(new THREE.HemisphereLight(0xbfe3ff, 0x6a8060, 0.55));
+scene.add(new THREE.AmbientLight(0xffffff, 0.12));
 
-// Sun disc
+const sun = new THREE.DirectionalLight(0xfff2c8, 1.35);
+sun.position.set(38, 60, 22);
+sun.castShadow = true;
+sun.shadow.mapSize.set(1024,1024);
+sun.shadow.camera.left = -32;
+sun.shadow.camera.right= 32;
+sun.shadow.camera.top  = 32;
+sun.shadow.camera.bottom=-32;
+sun.shadow.camera.near = 1;
+sun.shadow.camera.far  = 150;
+sun.shadow.bias = -0.0004;
+sun.shadow.normalBias = 0.03;
+scene.add(sun);
+scene.add(sun.target);
+
+// Sun disc + glow
 const sunDisc = new THREE.Mesh(
   new THREE.SphereGeometry(3.5,16,12),
-  new THREE.MeshBasicMaterial({color:0xfff7d0, fog:false})
+  new THREE.MeshBasicMaterial({color:0xfff8d0, fog:false, toneMapped:false})
 );
-sunDisc.position.copy(sun.position).setLength(140);
 scene.add(sunDisc);
-// Glow around sun
 const sunGlow = new THREE.Mesh(
-  new THREE.SphereGeometry(6.5,16,12),
-  new THREE.MeshBasicMaterial({color:0xfff2b0, transparent:true, opacity:0.35, fog:false})
+  new THREE.SphereGeometry(7.5,16,12),
+  new THREE.MeshBasicMaterial({color:0xfff2a0, transparent:true, opacity:0.32, fog:false, toneMapped:false})
 );
-sunGlow.position.copy(sunDisc.position);
 scene.add(sunGlow);
 
 // Clouds
 const cloudGroup = new THREE.Group();
-for(let i=0;i<10;i++){
+for(let i=0;i<12;i++){
   const cw=8+Math.random()*10, cd=5+Math.random()*6;
   const cloud = new THREE.Mesh(
-    new THREE.BoxGeometry(cw,1.2,cd),
+    new THREE.BoxGeometry(cw,1.4,cd),
     new THREE.MeshLambertMaterial({color:0xffffff, transparent:true, opacity:0.9})
   );
-  cloud.position.set((Math.random()-0.5)*110, 34+Math.random()*8, (Math.random()-0.5)*110);
+  cloud.position.set((Math.random()-0.5)*120, 36+Math.random()*8, (Math.random()-0.5)*120);
   cloudGroup.add(cloud);
-  // little bumps
   for(let j=0;j<2;j++){
-    const bp=new THREE.Mesh(
-      new THREE.BoxGeometry(cw*0.5,1.2,cd*0.6),
-      new THREE.MeshLambertMaterial({color:0xffffff,transparent:true,opacity:0.9})
+    const bp = new THREE.Mesh(
+      new THREE.BoxGeometry(cw*0.5,1.4,cd*0.6),
+      new THREE.MeshLambertMaterial({color:0xffffff, transparent:true, opacity:0.9})
     );
-    bp.position.set(cloud.position.x+(Math.random()-0.5)*cw*0.6, cloud.position.y+1, cloud.position.z+(Math.random()-0.5)*cd*0.5);
+    bp.position.set(cloud.position.x+(Math.random()-0.5)*cw*0.6, cloud.position.y+1.2, cloud.position.z+(Math.random()-0.5)*cd*0.5);
     cloudGroup.add(bp);
   }
 }
@@ -529,23 +539,22 @@ setLoad(0.3,'构建方块世界...');
 // World generation
 // ==============================================================
 const world = new Map();
-const key = (x,y,z)=> x+','+y+','+z;
-const setB = (x,y,z,t)=> world.set(key(x,y,z),t);
-const getB = (x,y,z)=> world.get(key(x,y,z));
-const delB = (x,y,z)=> world.delete(key(x,y,z));
-const R = 20;
+const keyOf = (x,y,z)=> x+','+y+','+z;
+const setB = (x,y,z,t)=> world.set(keyOf(x,y,z),t);
+const getB = (x,y,z)=> world.get(keyOf(x,y,z));
+const delB = (x,y,z)=> world.delete(keyOf(x,y,z));
+const R = 22;
 
-// base ground
-for(let x=-R;x<=R;x++){
-  for(let z=-R;z<=R;z++){
-    setB(x,-1,z,'grass');
-    setB(x,-2,z,'dirt');
-    setB(x,-3,z,'dirt');
-    setB(x,-4,z,'stone');
-    setB(x,-5,z,'bedrock');
-  }
+// Base ground
+for(let x=-R;x<=R;x++)for(let z=-R;z<=R;z++){
+  setB(x,-1,z,'grass');
+  setB(x,-2,z,'dirt');
+  setB(x,-3,z,'dirt');
+  setB(x,-4,z,'stone');
+  setB(x,-5,z,'bedrock');
 }
-// bumps / small hills
+
+// Hills
 function hill(cx,cz,r){
   for(let x=cx-r-1;x<=cx+r+1;x++)for(let z=cz-r-1;z<=cz+r+1;z++){
     const d=Math.hypot(x-cx,z-cz);
@@ -553,17 +562,36 @@ function hill(cx,cz,r){
     if(d<r){ setB(x,0,z,'grass'); setB(x,-1,z,'dirt'); }
     if(d<r-1.2){ setB(x,1,z,'grass'); setB(x,0,z,'dirt'); }
     if(d<r-2.4){ setB(x,2,z,'grass'); setB(x,1,z,'dirt'); }
+    if(d<r-3.2){ setB(x,3,z,'grass'); setB(x,2,z,'dirt'); }
   }
 }
-hill(-11,-9,3);
-hill(13,11,3);
+hill(-13,-9,3.5);
+hill(15,12,3);
+hill(-18,8,2.5);
 
-// sand patch
-for(let x=-5;x<=1;x++)for(let z=13;z<=18;z++){
-  if(x>=-R&&x<=R&&z>=-R&&z<=R){ setB(x,-1,z,'sand'); setB(x,-2,z,'sand'); }
+// Small pond (water)
+function pond(cx,cz){
+  for(let x=cx-2;x<=cx+2;x++)for(let z=cz-2;z<=cz+2;z++){
+    if(Math.hypot(x-cx,z-cz)<2.3){
+      delB(x,-1,z);
+      setB(x,-1,z,'water');
+      setB(x,-2,z,'dirt');
+    }
+  }
+  // sand rim
+  for(let x=cx-3;x<=cx+3;x++)for(let z=cz-3;z<=cz+3;z++){
+    const d=Math.hypot(x-cx,z-cz);
+    if(d>=2.3 && d<3.2 && getB(x,-1,z)==='grass') setB(x,-1,z,'sand');
+  }
 }
+pond(-6,-6);
 
-// small pond of glass? skip water — use blue-ish glass? skip.
+// sand beach
+for(let x=-6;x<=1;x++)for(let z=14;z<=19;z++){
+  if(x>=-R&&x<=R&&z>=-R&&z<=R && getB(x,-1,z)==='grass'){
+    setB(x,-1,z,'sand'); setB(x,-2,z,'sand');
+  }
+}
 
 // stone outcrops
 function outcrop(cx,cz){
@@ -573,66 +601,66 @@ function outcrop(cx,cz){
   }
   setB(cx,0,cz,'stone'); setB(cx,1,cz,'stone');
 }
-outcrop(-15,3);
-outcrop(16,-2);
+outcrop(-17,3);
+outcrop(18,-3);
 
 // trees
 function tree(x,z){
-  // find ground top
   let by=0; while(getB(x,by,z)) by++;
   const bottom=by, top=bottom+4;
   for(let i=0;i<4;i++) setB(x,bottom+i,z,'log');
-  for(let dx=-2;dx<=2;dx++) for(let dz=-2;dz<=2;dz++){
+  for(let dx=-2;dx<=2;dx++)for(let dz=-2;dz<=2;dz++){
     if(dx===0&&dz===0) continue;
     if(Math.abs(dx)===2&&Math.abs(dz)===2 && Math.random()<0.6) continue;
     if(!getB(x+dx,top-1,z+dz)) setB(x+dx,top-1,z+dz,'leaves');
     if(!getB(x+dx,top,z+dz))   setB(x+dx,top,z+dz,'leaves');
   }
-  for(let dx=-1;dx<=1;dx++) for(let dz=-1;dz<=1;dz++){
+  for(let dx=-1;dx<=1;dx++)for(let dz=-1;dz<=1;dz++){
     if(!getB(x+dx,top+1,z+dz)) setB(x+dx,top+1,z+dz,'leaves');
   }
   if(!getB(x,top+2,z)) setB(x,top+2,z,'leaves');
   setB(x,top,z,'log');
   setB(x,top+1,z,'log');
 }
-tree(-6,4);
-tree(-14,-4);
+tree(-8,4);
+tree(-15,-3);
 tree(9,-9);
-tree(-3,-11);
+tree(-3,-13);
+tree(13,-14);
+tree(2,-8);
 
-// house
+// House
 function house(x0,z0){
   const w=7,d=6,h=4;
-  for(let x=x0;x<x0+w;x++) for(let z=z0;z<z0+d;z++) setB(x,0,z,'planks');
+  for(let x=x0;x<x0+w;x++)for(let z=z0;z<z0+d;z++) setB(x,0,z,'planks');
   for(let y=1;y<=h;y++){
     for(let x=x0;x<x0+w;x++){ setB(x,y,z0,'planks'); setB(x,y,z0+d-1,'planks'); }
     for(let z=z0;z<z0+d;z++){ setB(x0,y,z,'planks'); setB(x0+w-1,y,z,'planks'); }
   }
-  // corner logs
   for(let y=1;y<=h;y++){
     setB(x0,y,z0,'log'); setB(x0+w-1,y,z0,'log');
     setB(x0,y,z0+d-1,'log'); setB(x0+w-1,y,z0+d-1,'log');
   }
-  // roof — stepped planks
-  for(let x=x0-1;x<=x0+w;x++) for(let z=z0-1;z<=z0+d;z++) setB(x,h+1,z,'planks');
-  for(let x=x0;x<x0+w;x++) for(let z=z0;z<z0+d;z++) if(Math.random()<0.9) setB(x,h+2,z,'planks');
-  // door opening (front, along z0 side)
+  // stepped roof
+  for(let x=x0-1;x<=x0+w;x++)for(let z=z0-1;z<=z0+d;z++) setB(x,h+1,z,'planks');
+  for(let x=x0;x<x0+w;x++)for(let z=z0;z<z0+d;z++) if(Math.random()<0.9) setB(x,h+2,z,'planks');
+  // door
   delB(x0+3,1,z0); delB(x0+3,2,z0);
   // windows
   setB(x0+1,2,z0,'glass'); setB(x0+5,2,z0,'glass');
   setB(x0,2,z0+2,'glass'); setB(x0+w-1,2,z0+3,'glass');
   setB(x0+2,2,z0+d-1,'glass'); setB(x0+4,2,z0+d-1,'glass');
-  // cobble path
-  for(let i=1;i<=4;i++) setB(x0+3,-1,z0-i,'cobble');
+  // path
+  for(let i=1;i<=5;i++) setB(x0+3,-1,z0-i,'cobble');
   // chimney
   for(let y=1;y<=h+3;y++) setB(x0+w-2,y,z0+d-2,'cobble');
 }
 house(5,4);
 
-// ore piles
+// Ore piles
 function orePile(cx,cz,ore,size){
   const cells=[];
-  for(let dx=-size;dx<=size;dx++) for(let dz=-size;dz<=size;dz++){
+  for(let dx=-size;dx<=size;dx++)for(let dz=-size;dz<=size;dz++){
     if(Math.hypot(dx,dz)<=size+0.3) cells.push([dx,dz]);
   }
   cells.forEach(([dx,dz])=>{
@@ -641,37 +669,31 @@ function orePile(cx,cz,ore,size){
   });
   setB(cx,0,cz,ore); setB(cx,1,cz,ore);
 }
-orePile(-9,10,'diamond_ore',2);
-orePile(15,-6,'iron_ore',2);
-orePile(-2,-15,'coal_ore',2);
-orePile(16,15,'gold_ore',2);
+orePile(-11,10,'diamond_ore',2);
+orePile(16,-6,'iron_ore',2);
+orePile(-2,-16,'coal_ore',2);
+orePile(17,15,'gold_ore',2);
+orePile(11,15,'redstone_ore',1);
 
-// scattered
+// scattered blocks
 [
-  [3,0,-4,'cobble'],
-  [-3,0,-2,'planks'],
-  [-11,0,7,'dirt'],
-  [5,0,12,'cobble'],
-  [11,0,-14,'log'],
-  [-17,0,0,'stone'],
-  [4,0,15,'sand'],
-  [-8,0,-2,'cobble'],
+  [3,0,-4,'cobble'],[-3,0,-2,'planks'],[-11,0,7,'dirt'],[5,0,12,'cobble'],
+  [11,0,-14,'log'],[-19,0,0,'stone'],[4,0,15,'sand'],[-8,0,-2,'cobble'],
+  [7,0,17,'planks'],[-14,0,-15,'dirt'],
 ].forEach(([x,y,z,t])=>setB(x,y,z,t));
 
 setLoad(0.55,'构建方块网格...');
 
 // ==============================================================
-// Build InstancedMeshes per type
+// Build InstancedMeshes
 // ==============================================================
 const blockGeo = new THREE.BoxGeometry(1,1,1);
-const meshesByType = {};
-const posByType = {};
 const blockMeshes = [];
 {
   const grouped = new Map();
   for(const [k,type] of world){
-    if(!grouped.has(type)) grouped.set(type, []);
-    const [x,y,z] = k.split(',').map(Number);
+    if(!grouped.has(type)) grouped.set(type,[]);
+    const [x,y,z]=k.split(',').map(Number);
     grouped.get(type).push([x,y,z]);
   }
   for(const [type, list] of grouped){
@@ -686,25 +708,126 @@ const blockMeshes = [];
       im.setMatrixAt(i, dummy.matrix);
     });
     im.instanceMatrix.needsUpdate=true;
-    im.frustumCulled = true;
+    im.castShadow = (type!=='water' && type!=='glass' && type!=='bedrock');
+    im.receiveShadow = true;
+    im.frustumCulled = false;
     scene.add(im);
-    meshesByType[type] = im;
-    posByType[type] = list;
-    if(type!=='bedrock') blockMeshes.push(im); // player can't target bedrock through ground (it's underground anyway)
-    else blockMeshes.push(im);
+    blockMeshes.push(im);
   }
 }
 
-// Highlight — outline + subtle fill
+// Torches (cross-plane sprites emitting light)
+function torch(x,y,z){
+  const g = new THREE.PlaneGeometry(0.35, 0.55);
+  const m = new THREE.MeshBasicMaterial({map:T.torch, transparent:true, alphaTest:0.3, side:THREE.DoubleSide, toneMapped:false});
+  const p1 = new THREE.Mesh(g,m); p1.position.set(x, y+0.28, z);
+  const p2 = new THREE.Mesh(g,m); p2.position.set(x, y+0.28, z); p2.rotation.y = Math.PI/2;
+  scene.add(p1); scene.add(p2);
+  const light = new THREE.PointLight(0xffb060, 0.9, 6.5, 1.6);
+  light.position.set(x, y+0.5, z);
+  scene.add(light);
+}
+torch(5.5, 1.0, 3.5);   // house entrance
+torch(11.5, 1.0, 3.5);
+torch(-10.5, 1.0, 10.5); // near diamond pile
+torch(16.5, 1.0, -5.5); // near iron
+torch(0, 1.0, 12.5);    // near beach
+
+// Flowers (small sprite planes)
+function flower(x,z,color){
+  const c = document.createElement('canvas'); c.width=16; c.height=16;
+  const ctx = c.getContext('2d'); ctx.imageSmoothingEnabled=false;
+  // stem
+  ctx.fillStyle='#3a7a2a'; ctx.fillRect(7,7,2,8); ctx.fillRect(7,9,4,1);
+  // flower
+  ctx.fillStyle = color; ctx.fillRect(5,3,6,4); ctx.fillRect(4,4,1,2); ctx.fillRect(11,4,1,2);
+  ctx.fillStyle='#ffdc50'; ctx.fillRect(7,4,2,2);
+  const tex = new THREE.CanvasTexture(c);
+  tex.magFilter=THREE.NearestFilter; tex.minFilter=THREE.NearestFilter;
+  tex.colorSpace=THREE.SRGBColorSpace;
+  const g = new THREE.PlaneGeometry(0.7,0.7);
+  const m = new THREE.MeshLambertMaterial({map:tex, transparent:true, alphaTest:0.4, side:THREE.DoubleSide});
+  const p1 = new THREE.Mesh(g,m); p1.position.set(x, 0.35, z);
+  const p2 = new THREE.Mesh(g,m); p2.position.set(x, 0.35, z); p2.rotation.y = Math.PI/2;
+  scene.add(p1); scene.add(p2);
+}
+// scatter flowers
+const flowerColors = ['#ff4444','#ffdc50','#f070c0','#c060ff','#ffffff'];
+for(let i=0;i<24;i++){
+  const x = ((Math.random()-0.5)*40)|0;
+  const z = ((Math.random()-0.5)*40)|0;
+  if(getB(x,-1,z)==='grass' && !getB(x,0,z)){
+    flower(x+0.5+(Math.random()-0.5)*0.4, z+0.5+(Math.random()-0.5)*0.4, flowerColors[(Math.random()*flowerColors.length)|0]);
+  }
+}
+
+// Tall grass tufts
+function grassTuft(x,z){
+  const c = document.createElement('canvas'); c.width=16; c.height=16;
+  const ctx = c.getContext('2d'); ctx.imageSmoothingEnabled=false;
+  ctx.fillStyle='#4a9a3a';
+  for(let i=0;i<6;i++){
+    const gx=3+((Math.random()*10)|0);
+    const gh=4+((Math.random()*5)|0);
+    ctx.fillRect(gx,16-gh,1,gh);
+    if(Math.random()<0.5) ctx.fillRect(gx+1,16-gh+1,1,gh-1);
+  }
+  ctx.fillStyle='#78c465';
+  for(let i=0;i<3;i++){ ctx.fillRect(3+((Math.random()*10)|0),10+((Math.random()*5)|0),1,1); }
+  const tex=new THREE.CanvasTexture(c);
+  tex.magFilter=THREE.NearestFilter; tex.minFilter=THREE.NearestFilter;
+  tex.colorSpace=THREE.SRGBColorSpace;
+  const g=new THREE.PlaneGeometry(0.9,0.7);
+  const m=new THREE.MeshLambertMaterial({map:tex,transparent:true,alphaTest:0.4,side:THREE.DoubleSide});
+  const p1=new THREE.Mesh(g,m); p1.position.set(x,0.35,z);
+  const p2=new THREE.Mesh(g,m); p2.position.set(x,0.35,z); p2.rotation.y=Math.PI/2;
+  scene.add(p1); scene.add(p2);
+}
+for(let i=0;i<40;i++){
+  const x=((Math.random()-0.5)*40)|0;
+  const z=((Math.random()-0.5)*40)|0;
+  if(getB(x,-1,z)==='grass' && !getB(x,0,z)){
+    grassTuft(x+0.5+(Math.random()-0.5)*0.4, z+0.5+(Math.random()-0.5)*0.4);
+  }
+}
+
+// Fence around a small garden patch
+function fencePost(x,z){
+  const g = new THREE.BoxGeometry(0.2,0.9,0.2);
+  const m = new THREE.MeshLambertMaterial({map:T.logSide});
+  const mesh = new THREE.Mesh(g,m);
+  mesh.position.set(x, 0.45, z);
+  mesh.castShadow=true; mesh.receiveShadow=true;
+  scene.add(mesh);
+}
+function fenceRail(x1,z1,x2,z2){
+  const dx=x2-x1, dz=z2-z1; const len=Math.hypot(dx,dz);
+  const g=new THREE.BoxGeometry(len,0.08,0.08);
+  const m=new THREE.MeshLambertMaterial({map:T.logSide});
+  const mesh=new THREE.Mesh(g,m);
+  mesh.position.set((x1+x2)/2,0.7,(z1+z2)/2);
+  mesh.rotation.y = -Math.atan2(dz,dx);
+  mesh.castShadow=true;
+  scene.add(mesh);
+  // low rail
+  const mesh2=mesh.clone(); mesh2.position.y=0.35; scene.add(mesh2);
+}
+// simple fence run in front of house on cobble path sides
+const fx0=4.2, fz0=-0.5, fx1=4.2, fz1=3.8;
+fencePost(fx0,fz0); fencePost(fx0,fz1); fenceRail(fx0,fz0,fx1,fz1);
+const fx2=7.8, fx3=7.8;
+fencePost(fx2,fz0); fencePost(fx3,fz1); fenceRail(fx2,fz0,fx3,fz1);
+
+// Highlight — outline + emissive fill (glowing)
 const highlightOutline = new THREE.LineSegments(
-  new THREE.EdgesGeometry(new THREE.BoxGeometry(1.02,1.02,1.02)),
-  new THREE.LineBasicMaterial({color:0xffe040, transparent:true, opacity:0.95, depthTest:false})
+  new THREE.EdgesGeometry(new THREE.BoxGeometry(1.04,1.04,1.04)),
+  new THREE.LineBasicMaterial({color:0xffe040, transparent:true, opacity:0.95, depthTest:false, toneMapped:false})
 );
 highlightOutline.renderOrder=999; highlightOutline.visible=false;
 scene.add(highlightOutline);
 const highlightFill = new THREE.Mesh(
-  new THREE.BoxGeometry(1.005,1.005,1.005),
-  new THREE.MeshBasicMaterial({color:0xffe040, transparent:true, opacity:0.22, depthTest:true, depthWrite:false})
+  new THREE.BoxGeometry(1.01,1.01,1.01),
+  new THREE.MeshBasicMaterial({color:0xffe040, transparent:true, opacity:0.22, depthWrite:false, toneMapped:false})
 );
 highlightFill.renderOrder=998; highlightFill.visible=false;
 scene.add(highlightFill);
@@ -715,17 +838,17 @@ setLoad(0.85,'即将进入世界...');
 // Player + collision
 // ==============================================================
 const player = {
-  pos: new THREE.Vector3(0, 0, 14),
+  pos: new THREE.Vector3(0, 0, 15),
   vel: new THREE.Vector3(),
-  yaw: 0, pitch: 0,
+  yaw: 0, pitch: -0.15,
   onGround: false,
   r: 0.3, h: 1.75, eye: 1.6,
 };
 
 function isSolidBlock(x,y,z){
-  const b = world.get(key(x,y,z));
+  const b = world.get(keyOf(x,y,z));
   if(!b) return false;
-  if(b==='leaves') return false;
+  if(b==='leaves'||b==='water') return false;
   return true;
 }
 
@@ -733,7 +856,6 @@ const WORLD_MIN = -R + 0.5, WORLD_MAX = R + 0.5;
 
 function moveAndCollide(dx,dy,dz){
   const r=player.r, h=player.h;
-  // X
   if(dx!==0){
     player.pos.x += dx;
     const y0=Math.floor(player.pos.y+0.01), y1=Math.floor(player.pos.y+h-0.01);
@@ -741,14 +863,13 @@ function moveAndCollide(dx,dy,dz){
     for(let y=y0;y<=y1;y++)for(let z=z0;z<=z1;z++){
       if(dx>0){
         const bx=Math.floor(player.pos.x+r);
-        if(isSolidBlock(bx,y,z)){ player.pos.x = bx - r - 1e-3; break; }
+        if(isSolidBlock(bx,y,z)){ player.pos.x = bx - r - 1e-3; }
       } else {
         const bx=Math.floor(player.pos.x-r);
-        if(isSolidBlock(bx,y,z)){ player.pos.x = bx + 1 + r + 1e-3; break; }
+        if(isSolidBlock(bx,y,z)){ player.pos.x = bx + 1 + r + 1e-3; }
       }
     }
   }
-  // Z
   if(dz!==0){
     player.pos.z += dz;
     const y0=Math.floor(player.pos.y+0.01), y1=Math.floor(player.pos.y+h-0.01);
@@ -756,14 +877,13 @@ function moveAndCollide(dx,dy,dz){
     for(let y=y0;y<=y1;y++)for(let x=x0;x<=x1;x++){
       if(dz>0){
         const bz=Math.floor(player.pos.z+r);
-        if(isSolidBlock(x,y,bz)){ player.pos.z = bz - r - 1e-3; break; }
+        if(isSolidBlock(x,y,bz)){ player.pos.z = bz - r - 1e-3; }
       } else {
         const bz=Math.floor(player.pos.z-r);
-        if(isSolidBlock(x,y,bz)){ player.pos.z = bz + 1 + r + 1e-3; break; }
+        if(isSolidBlock(x,y,bz)){ player.pos.z = bz + 1 + r + 1e-3; }
       }
     }
   }
-  // Y
   player.pos.y += dy;
   {
     const x0=Math.floor(player.pos.x-r), x1=Math.floor(player.pos.x+r);
@@ -772,17 +892,16 @@ function moveAndCollide(dx,dy,dz){
       const by=Math.floor(player.pos.y);
       let landed=false;
       for(let x=x0;x<=x1;x++)for(let z=z0;z<=z1;z++){
-        if(isSolidBlock(x,by,z)){ player.pos.y = by+1; player.vel.y=0; player.onGround=true; landed=true; break; }
+        if(isSolidBlock(x,by,z)){ player.pos.y = by+1; player.vel.y=0; player.onGround=true; landed=true; }
       }
       if(!landed) player.onGround=false;
     } else {
       const by=Math.floor(player.pos.y+h);
       for(let x=x0;x<=x1;x++)for(let z=z0;z<=z1;z++){
-        if(isSolidBlock(x,by,z)){ player.pos.y = by - h - 1e-3; player.vel.y=0; break; }
+        if(isSolidBlock(x,by,z)){ player.pos.y = by - h - 1e-3; player.vel.y=0; }
       }
     }
   }
-  // Boundary clamp
   if(player.pos.x<WORLD_MIN) player.pos.x=WORLD_MIN;
   if(player.pos.x>WORLD_MAX) player.pos.x=WORLD_MAX;
   if(player.pos.z<WORLD_MIN) player.pos.z=WORLD_MIN;
@@ -791,16 +910,12 @@ function moveAndCollide(dx,dy,dz){
 }
 
 // ==============================================================
-// Input — joystick, look, jump, AI ball drag
+// Input state
 // ==============================================================
-const input = { joyX:0, joyY:0, wantJump:false };
-
+const input = { joyX:0, joyY:0 };
 const JOY = { id:null, cx:0, cy:0, r:52 };
 const LOOK = { id:null, lastX:0, lastY:0 };
-const AI_DRAG = {
-  id:null, startX:0, startY:0, startT:0,
-  curX:0, curY:0, moved:0, active:false, willTap:true,
-};
+const AI_DRAG = { id:null, startX:0, startY:0, startT:0, curX:0, curY:0, moved:0, active:false, willTap:true };
 
 function joyStart(t, rect){
   JOY.id = t.identifier;
@@ -809,65 +924,56 @@ function joyStart(t, rect){
   updateJoy(t.clientX, t.clientY);
 }
 function updateJoy(x,y){
-  let dx = x - JOY.cx, dy = y - JOY.cy;
-  const d = Math.hypot(dx,dy);
-  const R = JOY.r;
-  if(d>R){ dx = dx/d*R; dy = dy/d*R; }
+  let dx = x-JOY.cx, dy = y-JOY.cy;
+  const d = Math.hypot(dx,dy); const Rr = JOY.r;
+  if(d>Rr){ dx = dx/d*Rr; dy = dy/d*Rr; }
   joyKnob.style.transform = `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px))`;
-  input.joyX = dx/R;
-  input.joyY = dy/R;
+  input.joyX = dx/Rr; input.joyY = dy/Rr;
 }
-function joyEnd(){
-  JOY.id=null;
-  input.joyX=0; input.joyY=0;
-  joyKnob.style.transform = 'translate(-50%, -50%)';
-}
+function joyEnd(){ JOY.id=null; input.joyX=0; input.joyY=0; joyKnob.style.transform='translate(-50%,-50%)'; }
 
-function lookStart(t){
-  LOOK.id = t.identifier;
-  LOOK.lastX = t.clientX; LOOK.lastY = t.clientY;
-}
+function lookStart(t){ LOOK.id = t.identifier; LOOK.lastX=t.clientX; LOOK.lastY=t.clientY; }
 function lookMove(t){
-  const dx = t.clientX - LOOK.lastX;
-  const dy = t.clientY - LOOK.lastY;
-  LOOK.lastX = t.clientX; LOOK.lastY = t.clientY;
-  const S = 0.0055;
-  player.yaw   -= dx * S;
-  player.pitch -= dy * S;
+  const dx = t.clientX-LOOK.lastX, dy = t.clientY-LOOK.lastY;
+  LOOK.lastX=t.clientX; LOOK.lastY=t.clientY;
+  const S=0.0055;
+  player.yaw -= dx*S;
+  player.pitch -= dy*S;
   const L = Math.PI/2 - 0.02;
-  if(player.pitch>L) player.pitch=L;
-  if(player.pitch<-L) player.pitch=-L;
+  player.pitch = Math.max(-L, Math.min(L, player.pitch));
 }
 function lookEnd(){ LOOK.id=null; }
 
-// AI ball drag
+// ==============================================================
+// AI ball drag flow
+// ==============================================================
+const HOME = ()=> ({ x: window.innerWidth - 60 - 14, y: 14 });
+
 function aiStart(t){
   AI_DRAG.id = t.identifier;
   AI_DRAG.startX = t.clientX; AI_DRAG.startY = t.clientY;
-  AI_DRAG.curX = t.clientX; AI_DRAG.curY = t.clientY;
-  AI_DRAG.moved = 0;
+  AI_DRAG.curX   = t.clientX; AI_DRAG.curY   = t.clientY;
+  AI_DRAG.moved  = 0;
   AI_DRAG.startT = performance.now();
   AI_DRAG.active = true;
-  AI_DRAG.willTap = true;
-  // visual: enter drag state immediately
-  aiBall.classList.remove('output','thinking');
+  AI_DRAG.willTap= true;
+  aiBall.classList.remove('active','thinking');
   aiBall.classList.add('dragging');
-  // hide any output panel
-  hideOutput();
-  // ball at finger (but center on finger, so offset it a bit)
+  // Collapse chat panel visually (data preserved)
+  closeChat();
+  aiBall.style.transition='none';
   moveAIBallTo(t.clientX, t.clientY);
-  // crosshair above finger
   dragCross.style.display='block';
   moveCrossTo(t.clientX, t.clientY);
-  // voice bubble + start voice
   voiceBubble.style.display='block';
-  voiceTxt.textContent = '正在聆听...';
-  AI_STATE.voiceText = '';
-  startVoice();
+  voiceTxt.textContent='正在聆听...';
+  CHAT.pendingVoice = '';
+  startVoice(text=>{ CHAT.pendingVoice = text; voiceTxt.textContent = text || '正在聆听...'; });
+  // hide first-time hint
+  hintEl.classList.add('hidden');
 }
 function aiMove(t){
-  const dx = t.clientX - AI_DRAG.startX;
-  const dy = t.clientY - AI_DRAG.startY;
+  const dx = t.clientX-AI_DRAG.startX, dy = t.clientY-AI_DRAG.startY;
   const d = Math.hypot(dx,dy);
   if(d > AI_DRAG.moved) AI_DRAG.moved = d;
   if(AI_DRAG.moved > 8) AI_DRAG.willTap = false;
@@ -878,7 +984,7 @@ function aiMove(t){
 function aiEnd(){
   const dt = performance.now() - AI_DRAG.startT;
   const wasTap = AI_DRAG.willTap && dt < 260;
-  AI_DRAG.active = false; AI_DRAG.id = null;
+  AI_DRAG.active=false; AI_DRAG.id=null;
   aiBall.classList.remove('dragging');
   dragCross.style.display='none';
   voiceBubble.style.display='none';
@@ -888,120 +994,247 @@ function aiEnd(){
   stopVoice();
   resetAIBallHome();
   if(wasTap){
-    // tap → open history if any
-    if(AI_STATE.history.length>0) toggleHistory();
+    // tap → toggle chat
+    toggleChat();
     return;
   }
-  // drag → thinking → output
-  const selType = AI_STATE.selectedType;
-  const selPos  = AI_STATE.selectedPos;
-  const voice   = AI_STATE.voiceText;
+  // Drag ended → thinking + open chat with new response
+  const selType = CHAT.selectedType;
+  const selPos  = CHAT.selectedPos;
+  const voice   = CHAT.pendingVoice;
+  openChat();
+  addUserMsg({block:selType, blockPos:selPos, text: voice || '（未识别到语音，请告诉我更多）'});
   aiBall.classList.add('thinking');
+  const thinkingId = addThinkingMsg();
   setTimeout(()=>{
+    removeMsg(thinkingId);
     aiBall.classList.remove('thinking');
-    aiBall.classList.add('output');
-    showOutput(selType, selPos, voice);
-    AI_STATE.state = 'output';
-    // reset shake histories
+    aiBall.classList.add('active');
+    aiBall.classList.add('has-history');
+    addAIMsg(buildResponseForBlock(selType, voice), {block:selType, blockPos:selPos});
+    CHAT.state = 'output';
     shakeYaw.length=0; shakePitch.length=0;
-  }, 1200 + Math.random()*300);
+  }, 900 + Math.random()*300);
 }
 function moveAIBallTo(x,y){
-  const s = 64;
+  const s = 60;
   aiBall.style.left = (x - s/2) + 'px';
   aiBall.style.top  = (y - s/2) + 'px';
-  aiBall.style.right = 'auto';
+  aiBall.style.right='auto';
 }
 function resetAIBallHome(){
+  const h = HOME();
   aiBall.style.transition = 'left .35s cubic-bezier(.2,.9,.2,1.1), top .35s cubic-bezier(.2,.9,.2,1.1)';
-  aiBall.style.left = (window.innerWidth - 64 - 16) + 'px';
-  aiBall.style.top  = '16px';
-  aiBall.style.right = 'auto';
-  setTimeout(()=>{ aiBall.style.transition=''; }, 400);
+  aiBall.style.left = h.x + 'px';
+  aiBall.style.top  = h.y + 'px';
+  aiBall.style.right='auto';
+  setTimeout(()=>{ aiBall.style.transition=''; }, 380);
 }
 function moveCrossTo(x,y){
-  // offset upward ~ 30mm ~ 100..120 css px
   const off = Math.min(140, Math.max(80, window.innerHeight*0.18));
   dragCross.style.left = x + 'px';
   dragCross.style.top  = (y - off) + 'px';
 }
 
 // ==============================================================
-// AI state
+// Chat / AI logic
 // ==============================================================
-const AI_STATE = {
-  state:'idle', // idle | dragging | thinking | output | history
-  voiceText:'',
-  selectedType:null,
-  selectedPos:null,
-  history:[],
+const CHAT = {
+  state: 'idle',   // idle | drag | thinking | output
+  selectedType: null,
+  selectedPos: null,
+  pendingVoice: '',
+  lastBlock: null,
+  hasHistory: false,
 };
 
-function showOutput(type, pos, voice){
-  const info = type ? BLOCK_INFO[type] : null;
-  if(!type || !info){
-    outName.textContent = '未选中方块';
-    outDesc.textContent = '拖动准心对准方块可以询问它的信息。';
-    outMeta.innerHTML = `<b>你说的:</b> ${escapeHtml(voice)||'（未识别到语音）'}`;
-  } else {
-    outName.textContent = info.name;
-    outDesc.textContent = RESPONSES[type] || info.desc;
-    const q = voice ? escapeHtml(voice) : '（未识别到语音，使用默认询问）';
-    outMeta.innerHTML =
-      `<b>选中方块:</b> ${info.name} @ (${pos[0]}, ${pos[1]}, ${pos[2]})<br>` +
-      `<b>你说的:</b> ${q}<br>` +
-      `<b>识别依据:</b> 视线射线 + 语音输入`;
-    // push history
-    AI_STATE.history.unshift({
-      type, name: info.name, voice: voice || '（默认询问）',
-      desc: RESPONSES[type] || info.desc,
-    });
-    if(AI_STATE.history.length>20) AI_STATE.history.pop();
-  }
-  outputPanel.style.display='block';
-}
-function hideOutput(){
-  outputPanel.style.display='none';
-  aiBall.classList.remove('output','thinking');
-  if(AI_STATE.history.length>0) aiBall.classList.add('has-history');
-  AI_STATE.state = AI_STATE.history.length>0 ? 'idle' : 'idle';
-}
-function toggleHistory(){
-  if(historyPanel.style.display==='block'){
-    historyPanel.style.display='none';
-    return;
-  }
-  renderHistory();
-  hideOutput();
-  historyPanel.style.display='block';
-}
-function renderHistory(){
-  if(AI_STATE.history.length===0){
-    histList.innerHTML = '<div class="empty">暂无历史对话</div>';
-    return;
-  }
-  histList.innerHTML = AI_STATE.history.map(h=>`
-    <div class="item">
-      <div class="name">${escapeHtml(h.name)}</div>
-      <div class="q">Q: ${escapeHtml(h.voice)}</div>
-      <div class="d">${escapeHtml(h.desc)}</div>
-    </div>
-  `).join('');
-}
-function escapeHtml(s){
-  return String(s||'').replace(/[&<>"']/g, c=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
+const INTENTS = [
+  {re:/(你好|hello|hi|嗨)/i, r:'你好！我是 MC 助手。拖我到方块上可识别，或直接问我 MC 相关的问题。'},
+  {re:/(你是谁|你叫什么|what are you)/i, r:'我是内嵌在游戏里的 AI 助手。长按拖到任意方块 → 松手可识别它，同时录音提问。'},
+  {re:/钻石|diamond/i, r:'钻石通常在 Y=-58 附近最密集。用铁镐及以上开采。附魔精准采集可保留完整方块。合成钻石装备需要铁砧。'},
+  {re:/铁|iron/i, r:'铁矿常见于 Y=-24 至 Y=56。用石镐开采，熔炼成铁锭。铁装备是中期最实用的装备。'},
+  {re:/煤|coal/i, r:'煤矿几乎哪里都有，木镐可挖。煤炭是熔炉主燃料，也可与木棍合成火把（4 火把/组）。'},
+  {re:/金|gold/i, r:'金矿只能用铁镐挖。金装备耐久很低，但附魔容易，且在下界有猪灵交易用途。'},
+  {re:/红石|redstone/i, r:'红石矿需要铁镐。红石粉用于制作电路、活塞、比较器、中继器等自动化装置。'},
+  {re:/树|木头|原木|log|wood/i, r:'砍树是 MC 的起点。1 原木 → 4 木板，2 板 → 4 木棍。4 木板合成工作台，开启 3×3 合成。'},
+  {re:/合成|craft|做|制作/i, r:'背包内有 2×2 合成表。做工作台后可用 3×3。工具通常：材料放顶部一排，木棍放中列下方。'},
+  {re:/镐|pickaxe/i, r:'工具进阶：木镐 → 石镐（挖铁）→ 铁镐（挖钻石/金）→ 钻石镐（挖黑曜石）→ 下界合金镐（最强）。'},
+  {re:/剑|sword/i, r:'剑用来打怪，同样有木/石/铁/钻/下界合金 5 级。附魔"锋利"能大幅提升伤害。'},
+  {re:/苦力怕|creeper/i, r:'苦力怕会安静靠近并自爆。远距离射箭最安全，或诱它爆炸后掉落火药。它怕猫和豹猫。'},
+  {re:/僵尸|zombie/i, r:'僵尸夜晚出现，晒到太阳会燃烧。装备木剑就够对付大部分。'},
+  {re:/骷髅|skeleton/i, r:'骷髅远程射弓箭。绕柱躲、举盾挡。掉落骨头（骨粉肥料）和箭。'},
+  {re:/末影|enderman|end/i, r:'末影人被直视会攻击。带南瓜头能避免。末地传送门在要塞里，需要 12 个末影之眼激活。'},
+  {re:/夜|晚上|night/i, r:'夜晚危险，怪物大量刷新。快躲进有火把的封闭空间，或点火把把周围照亮。'},
+  {re:/家|房子|建筑|shelter/i, r:'新手房只需 4 面墙 + 屋顶 + 门 + 火把。圆石或木板都行。附近点火把防怪物刷。'},
+  {re:/床|睡觉|bed/i, r:'床 = 3 羊毛 + 3 木板。夜晚右键床跳过黑夜并设定重生点。'},
+  {re:/水|water|游泳/i, r:'水源无限。走进水会游泳；从高处落进水不会摔死。可以用水桶携带。'},
+  {re:/村庄|village/i, r:'村庄有村民可交易。找村庄的方法：橡树平原、沙漠、雪原等生物群系。'},
+  {re:/怎么|how|如何/i, r:'把这个问题说得更具体一点吧，比如"怎么做工作台" 或 "怎么找钻石"，我能给你更准的答案。'},
+];
+const DEFAULT_R = '有意思的问题。我只有一些预设知识，试试问我方块名、工具、生物或"怎么做 XX"。';
+
+function aiRespond(text){
+  if(!text) return DEFAULT_R;
+  for(const it of INTENTS) if(it.re.test(text)) return it.r;
+  return DEFAULT_R;
 }
 
-histClose.addEventListener('click', e=>{
-  e.stopPropagation();
-  historyPanel.style.display='none';
+function buildResponseForBlock(type, voice){
+  if(!type){
+    return '没有对准任何方块。可以再试一次，或直接输入你的问题。' + (voice? '\n你问的是: "'+voice+'"' : '');
+  }
+  const info = BLOCK_INFO[type];
+  const RESP = {
+    grass:'这是 MC 里最常见的草方块，铺在世界表面。用铲子挖最快。附魔精准采集能得到完整草方块。',
+    dirt:'泥土是草方块下的基础。用锄头翻耕后可种植小麦、萝卜、马铃薯。',
+    stone:'石头。用木镐及以上开采，掉落圆石。深入地下大量分布。',
+    cobble:'圆石！从石头挖出的产物。用途极广——熔炉、石制工具、活塞、发射器等。',
+    log:'橡木原木。1 → 4 木板，2 板 → 4 木棍。原木顶面能看到年轮。',
+    leaves:'橡树叶会自然腐烂消失。有约 5% 掉树苗、0.5% 掉苹果。用剪刀能直接采集叶子本身。',
+    planks:'橡木板。合成箱子、工作台、门、船、栅栏。也是熔炉燃料（约 15 秒）。',
+    glass:'玻璃！沙子烧制。透明，被打破不会掉落——除非用精准采集。',
+    diamond_ore:'钻石矿石！最兴奋的时刻。用铁镐及以上开采。Y=-58 附近最密集。附魔精准采集保留方块。',
+    iron_ore:'铁矿石。用石镐及以上，熔炼得到铁锭。装备、水桶、砧板、铁轨全靠它。',
+    coal_ore:'煤矿石。木镐可挖，掉落煤炭。熔炉燃料的主力，加木棍合成火把。',
+    gold_ore:'金矿石。用铁镐及以上。金装备耐久低但附魔潜力大，也是下界猪灵的最爱。',
+    redstone_ore:'红石矿石！铁镐及以上开采，一次掉 4-5 个红石粉。用于制作电路、活塞、机关等自动化。',
+    sand:'沙子。受重力影响会自然下落。烧制得到玻璃，与砾石合成砂岩、红砂等。',
+    bedrock:'基岩！世界的绝对边界，无法被任何工具破坏——包括创造模式的钻石镐。',
+    water:'水源方块。可以游泳，落水不摔死，还能扑灭火焰。用桶可以携带。',
+  };
+  let out = RESP[type] || info.desc;
+  if(voice){
+    const extra = aiRespond(voice);
+    if(extra && extra!==DEFAULT_R){
+      out += '\n\n关于你问的："' + extra;
+    }
+  }
+  return out;
+}
+
+// Chat panel messages
+let msgCount = 0;
+function ensureChatHasMessages(){
+  if(chatBody.children.length===1 && chatBody.children[0]===emptyState){
+    emptyState.remove();
+  }
+}
+function addUserMsg({block, blockPos, text}){
+  ensureChatHasMessages();
+  const el = document.createElement('div');
+  el.className='msg user';
+  const bubble = document.createElement('div');
+  bubble.className='bubble';
+  if(block){
+    const bi = BLOCK_INFO[block];
+    const card = document.createElement('div');
+    card.className='block-card';
+    card.innerHTML = `<div class="bt"><span class="icon"></span>选中: ${escapeHtml(bi.name)}${blockPos?`<span class="pos">(${blockPos.join(',')})</span>`:''}</div>`;
+    bubble.appendChild(card);
+  }
+  const t = document.createElement('div');
+  t.textContent = text;
+  bubble.appendChild(t);
+  el.appendChild(bubble);
+  chatBody.appendChild(el);
+  scrollChat();
+  CHAT.hasHistory = true;
+  aiBall.classList.add('has-history');
+}
+function addAIMsg(text, ctx={}){
+  ensureChatHasMessages();
+  const el = document.createElement('div');
+  el.className='msg ai';
+  const bubble = document.createElement('div');
+  bubble.className='bubble';
+  if(ctx.block){
+    const bi = BLOCK_INFO[ctx.block];
+    const card = document.createElement('div');
+    card.className='block-card';
+    card.innerHTML = `<div class="bt"><span class="icon"></span>${escapeHtml(bi.name)}${ctx.blockPos?`<span class="pos">(${ctx.blockPos.join(',')})</span>`:''}</div><div class="bd">${escapeHtml(bi.desc)}</div>`;
+    bubble.appendChild(card);
+  }
+  const t = document.createElement('div');
+  t.style.whiteSpace='pre-wrap';
+  t.textContent = text;
+  bubble.appendChild(t);
+  el.appendChild(bubble);
+  chatBody.appendChild(el);
+  scrollChat();
+}
+function addThinkingMsg(){
+  ensureChatHasMessages();
+  const id = 'thk-' + (++msgCount);
+  const el = document.createElement('div');
+  el.className='msg ai'; el.id = id;
+  el.innerHTML = `<div class="bubble thinking">思考中<span class="dots"><span></span><span></span><span></span></span></div>`;
+  chatBody.appendChild(el);
+  scrollChat();
+  return id;
+}
+function removeMsg(id){ const e = document.getElementById(id); if(e) e.remove(); }
+function scrollChat(){ chatBody.scrollTop = chatBody.scrollHeight; }
+function escapeHtml(s){ return String(s||'').replace(/[&<>"']/g, c=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c])); }
+
+function openChat(){
+  chatPanel.classList.add('open');
+  scrollChat();
+}
+function closeChat(){
+  chatPanel.classList.remove('open');
+}
+function toggleChat(){
+  if(chatPanel.classList.contains('open')) closeChat();
+  else openChat();
+}
+
+chatClose.addEventListener('click', e=>{ e.stopPropagation(); closeChat(); });
+sendBtn.addEventListener('click', e=>{ e.stopPropagation(); sendChatText(); });
+chatText.addEventListener('keydown', e=>{
+  if(e.key==='Enter'){ e.preventDefault(); sendChatText(); }
 });
+function sendChatText(){
+  const txt = chatText.value.trim();
+  if(!txt) return;
+  chatText.value='';
+  addUserMsg({text: txt});
+  const tid = addThinkingMsg();
+  setTimeout(()=>{
+    removeMsg(tid);
+    addAIMsg(aiRespond(txt));
+  }, 500 + Math.random()*400);
+}
+
+// Mic in chat foot
+let chatMicActive = false;
+micBtn.addEventListener('touchstart', e=>{ e.preventDefault(); e.stopPropagation(); chatMicStart(); }, {passive:false});
+micBtn.addEventListener('touchend',   e=>{ e.preventDefault(); e.stopPropagation(); chatMicStop(); }, {passive:false});
+micBtn.addEventListener('mousedown',  e=>{ e.preventDefault(); chatMicStart(); });
+micBtn.addEventListener('mouseup',    e=>{ e.preventDefault(); chatMicStop(); });
+function chatMicStart(){
+  if(chatMicActive) return;
+  chatMicActive = true;
+  micBtn.classList.add('rec');
+  chatText.placeholder = '正在聆听...';
+  startVoice(text=>{ chatText.value = text; });
+}
+function chatMicStop(){
+  if(!chatMicActive) return;
+  chatMicActive = false;
+  micBtn.classList.remove('rec');
+  chatText.placeholder = '问我关于 MC 的问题...';
+  stopVoice();
+  setTimeout(()=>{
+    if(chatText.value.trim()) sendChatText();
+  }, 250);
+}
 
 // ==============================================================
-// Voice recognition
+// Voice recognition (shared)
 // ==============================================================
 let rec = null;
 let recActive = false;
+let recCallback = null;
 const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
 if(SR){
   try{
@@ -1012,20 +1245,20 @@ if(SR){
     rec.onresult = e=>{
       let t='';
       for(let i=0;i<e.results.length;i++) t += e.results[i][0].transcript;
-      AI_STATE.voiceText = t.trim();
-      voiceTxt.textContent = AI_STATE.voiceText || '正在聆听...';
+      if(recCallback) recCallback(t.trim());
     };
     rec.onerror = ()=>{};
     rec.onend = ()=>{ recActive=false; };
   }catch(e){ rec=null; }
 }
-function startVoice(){
-  if(!rec) return;
+function startVoice(cb){
+  recCallback = cb || null;
+  if(!rec){ if(cb) cb(''); return; }
   if(recActive) return;
-  AI_STATE.voiceText='';
   try{ rec.start(); recActive=true; }catch(e){}
 }
 function stopVoice(){
+  recCallback = null;
   if(!rec || !recActive) return;
   try{ rec.stop(); }catch(e){}
   recActive=false;
@@ -1034,12 +1267,10 @@ function stopVoice(){
 // ==============================================================
 // Touch routing
 // ==============================================================
-function isUIEl(el){
-  return el===joystick || joystick.contains(el)
-      || el===aiBall  || aiBall.contains(el)
-      || el===jumpBtn
-      || el===historyPanel || historyPanel.contains(el)
-      || el===outputPanel  || outputPanel.contains(el);
+function pointInside(el, x, y){
+  if(!el || el.style.display==='none' && !el.classList.contains('open')) return false;
+  const r = el.getBoundingClientRect();
+  return x>=r.left && x<=r.right && y>=r.top && y<=r.bottom;
 }
 
 document.addEventListener('touchstart', e=>{
@@ -1048,16 +1279,16 @@ document.addEventListener('touchstart', e=>{
     if(target===joystick || joystick.contains(target)){
       if(JOY.id===null) joyStart(t, joystick.getBoundingClientRect());
     } else if(target===aiBall || aiBall.contains(target)){
-      if(AI_DRAG.id===null && AI_STATE.state!=='thinking') aiStart(t);
+      if(AI_DRAG.id===null && !aiBall.classList.contains('thinking')) aiStart(t);
     } else if(target===jumpBtn){
       if(player.onGround){ player.vel.y = 8.4; player.onGround=false; }
-    } else if(historyPanel.contains(target) || outputPanel.contains(target)){
-      // ignore — let clicks pass
+    } else if(chatPanel.contains(target)){
+      // Panel — let native scroll / input work. Do not preventDefault.
     } else {
       if(LOOK.id===null) lookStart(t);
     }
   }
-  if(!(historyPanel.contains(e.target)||outputPanel.contains(e.target))) e.preventDefault();
+  if(!chatPanel.contains(e.target)) e.preventDefault();
 },{passive:false});
 
 document.addEventListener('touchmove', e=>{
@@ -1066,7 +1297,7 @@ document.addEventListener('touchmove', e=>{
     else if(t.identifier===AI_DRAG.id) aiMove(t);
     else if(t.identifier===LOOK.id) lookMove(t);
   }
-  if(!(historyPanel.contains(e.target)||outputPanel.contains(e.target))) e.preventDefault();
+  if(!chatPanel.contains(e.target)) e.preventDefault();
 },{passive:false});
 
 function endTouch(t){
@@ -1074,32 +1305,29 @@ function endTouch(t){
   else if(t.identifier===AI_DRAG.id) aiEnd();
   else if(t.identifier===LOOK.id) lookEnd();
 }
-document.addEventListener('touchend', e=>{
-  for(const t of e.changedTouches) endTouch(t);
-},{passive:false});
-document.addEventListener('touchcancel', e=>{
-  for(const t of e.changedTouches) endTouch(t);
-},{passive:false});
+document.addEventListener('touchend',    e=>{ for(const t of e.changedTouches) endTouch(t); },{passive:false});
+document.addEventListener('touchcancel', e=>{ for(const t of e.changedTouches) endTouch(t); },{passive:false});
 
 document.addEventListener('gesturestart', e=>e.preventDefault());
 document.addEventListener('contextmenu', e=>e.preventDefault());
 
-// Also allow desktop mouse for testing (optional)
-let mouseLook=false, mouseLX=0, mouseLY=0;
+// Desktop mouse for testing
+let mouseLook=false, mLX=0, mLY=0, mouseTargetIsChat=false;
 renderer.domElement.addEventListener('mousedown', e=>{
-  if(e.button===0){ mouseLook=true; mouseLX=e.clientX; mouseLY=e.clientY; }
+  if(e.button===0){ mouseLook=true; mLX=e.clientX; mLY=e.clientY; }
 });
 window.addEventListener('mouseup', ()=>{ mouseLook=false; });
 window.addEventListener('mousemove', e=>{
   if(!mouseLook) return;
-  const dx=e.clientX-mouseLX, dy=e.clientY-mouseLY;
-  mouseLX=e.clientX; mouseLY=e.clientY;
+  const dx=e.clientX-mLX, dy=e.clientY-mLY;
+  mLX=e.clientX; mLY=e.clientY;
   const S=0.0035;
   player.yaw-=dx*S; player.pitch-=dy*S;
   const L=Math.PI/2-0.02;
   player.pitch=Math.max(-L,Math.min(L,player.pitch));
 });
 window.addEventListener('keydown', e=>{
+  if(document.activeElement===chatText) return;
   if(e.code==='Space' && player.onGround){ player.vel.y=8.4; player.onGround=false; }
   const s = e.code==='KeyW'?[0,-1]:e.code==='KeyS'?[0,1]:e.code==='KeyA'?[-1,0]:e.code==='KeyD'?[1,0]:null;
   if(s){ input.joyX=s[0]; input.joyY=s[1]; }
@@ -1109,14 +1337,13 @@ window.addEventListener('keyup', e=>{
 });
 
 // ==============================================================
-// Raycast during drag
+// Raycast
 // ==============================================================
 const raycaster = new THREE.Raycaster();
-raycaster.far = 14;
+raycaster.far = 16;
 const ndc = new THREE.Vector2();
 
 function raycastCrosshair(){
-  // use dragCross screen position
   const cx = parseFloat(dragCross.style.left);
   const cy = parseFloat(dragCross.style.top);
   ndc.x = (cx / window.innerWidth) * 2 - 1;
@@ -1124,55 +1351,50 @@ function raycastCrosshair(){
   raycaster.setFromCamera(ndc, camera);
   const hits = raycaster.intersectObjects(blockMeshes, false);
   if(hits.length===0){
-    AI_STATE.selectedType=null;
-    AI_STATE.selectedPos=null;
-    highlightOutline.visible=false;
-    highlightFill.visible=false;
+    CHAT.selectedType=null; CHAT.selectedPos=null;
+    highlightOutline.visible=false; highlightFill.visible=false;
     blockLabel.style.display='none';
     return;
   }
   const h = hits[0];
   const type = h.object.userData.type;
+  if(!type) return;
   const positions = h.object.userData.positions;
   const idx = h.instanceId;
-  if(idx==null || !positions[idx]){ return; }
+  if(idx==null || !positions[idx]) return;
   const [x,y,z] = positions[idx];
-  AI_STATE.selectedType = type;
-  AI_STATE.selectedPos  = [x,y,z];
+  CHAT.selectedType = type;
+  CHAT.selectedPos  = [x,y,z];
   highlightOutline.position.set(x+0.5, y+0.5, z+0.5);
   highlightFill.position.set(x+0.5, y+0.5, z+0.5);
-  highlightOutline.visible=true;
-  highlightFill.visible=true;
+  highlightOutline.visible=true; highlightFill.visible=true;
   const info = BLOCK_INFO[type];
-  if(info){
-    blockLabel.textContent = info.name;
-    blockLabel.style.display='block';
-  }
+  if(info){ blockLabel.textContent = info.name; blockLabel.style.display='block'; }
 }
 
 // ==============================================================
-// Shake detection (close output)
+// Shake detection — used to close chat panel
 // ==============================================================
-const shakeYaw = [];   // {t, y}
-const shakePitch = []; // {t, p}
+const shakeYaw = [];
+const shakePitch = [];
 function pushShake(){
   const now = performance.now();
   shakeYaw.push({t:now, v:player.yaw});
   shakePitch.push({t:now, v:player.pitch});
-  const cutoff = now - 900;
-  while(shakeYaw.length && shakeYaw[0].t<cutoff) shakeYaw.shift();
-  while(shakePitch.length && shakePitch[0].t<cutoff) shakePitch.shift();
+  const cutoff = now - 700;
+  while(shakeYaw.length   && shakeYaw[0].t   < cutoff) shakeYaw.shift();
+  while(shakePitch.length && shakePitch[0].t < cutoff) shakePitch.shift();
 }
 function detectShake(arr){
-  if(arr.length<6) return false;
-  let crossings=0, totalDelta=0;
-  for(let i=1;i<arr.length-1;i++){
-    const d1 = arr[i].v - arr[i-1].v;
-    const d2 = arr[i+1].v - arr[i].v;
-    if(d1*d2 < 0 && Math.abs(d1) > 0.04) crossings++;
-    totalDelta += Math.abs(d1);
+  if(arr.length<4) return false;
+  let crossings=0, totalAbs=0;
+  for(let i=2;i<arr.length;i++){
+    const d1 = arr[i-1].v - arr[i-2].v;
+    const d2 = arr[i].v   - arr[i-1].v;
+    if(d1*d2 < 0 && Math.abs(d1)>0.03 && Math.abs(d2)>0.03) crossings++;
+    totalAbs += Math.abs(d2);
   }
-  return crossings>=3 && totalDelta>0.9;
+  return crossings>=2 && totalAbs>0.5;
 }
 
 // ==============================================================
@@ -1183,72 +1405,52 @@ function onResize(){
   camera.updateProjectionMatrix();
   renderer.setSize(window.innerWidth, window.innerHeight);
   renderer.setPixelRatio(Math.min(window.devicePixelRatio||1, 2));
-  // reset ai ball home if idle
   if(!AI_DRAG.active) resetAIBallHome();
 }
 window.addEventListener('resize', onResize);
-window.addEventListener('orientationchange', ()=> setTimeout(onResize, 200));
+window.addEventListener('orientationchange', ()=> setTimeout(onResize,200));
 
 // ==============================================================
-// Loop
+// Main loop
 // ==============================================================
 const clock = new THREE.Clock();
-let last = performance.now();
 let frames=0, fpsAcc=0;
-
 function loop(){
   const dt = Math.min(0.05, clock.getDelta());
-  // apply input to velocity
-  const speed = 4.6;
+  const speed = 4.8;
   const forward = new THREE.Vector3(-Math.sin(player.yaw), 0, -Math.cos(player.yaw));
-  const right   = new THREE.Vector3(Math.cos(player.yaw),  0, -Math.sin(player.yaw));
+  const right   = new THREE.Vector3( Math.cos(player.yaw), 0, -Math.sin(player.yaw));
   const wish = new THREE.Vector3();
   wish.addScaledVector(forward, -input.joyY);
   wish.addScaledVector(right,    input.joyX);
   if(wish.lengthSq()>1) wish.normalize();
-  const vx = wish.x * speed;
-  const vz = wish.z * speed;
-  // gravity
-  player.vel.y -= 22 * dt;
-  if(player.vel.y < -30) player.vel.y=-30;
+  const vx = wish.x*speed, vz = wish.z*speed;
+  player.vel.y -= 22*dt;
+  if(player.vel.y<-30) player.vel.y=-30;
   moveAndCollide(vx*dt, player.vel.y*dt, vz*dt);
-  // camera
-  camera.position.set(player.pos.x, player.pos.y + player.eye, player.pos.z);
+  camera.position.set(player.pos.x, player.pos.y+player.eye, player.pos.z);
   camera.rotation.y = player.yaw;
   camera.rotation.x = player.pitch;
-  // sky follows
   sky.position.copy(camera.position);
-  // sun follows camera so distance feels infinite
   const sunDir = sun.position.clone().normalize();
   sunDisc.position.copy(camera.position).addScaledVector(sunDir, 140);
   sunGlow.position.copy(sunDisc.position);
-  cloudGroup.position.x += dt * 0.6;
-  if(cloudGroup.position.x > 60) cloudGroup.position.x -= 120;
+  cloudGroup.position.x += dt*0.5;
+  if(cloudGroup.position.x>60) cloudGroup.position.x -= 120;
 
-  // AI drag raycast
-  if(AI_DRAG.active){
-    raycastCrosshair();
-  }
+  if(AI_DRAG.active) raycastCrosshair();
 
-  // Shake detect for closing output
   pushShake();
-  if(AI_STATE.state==='output'){
+  if(chatPanel.classList.contains('open') && !AI_DRAG.active && document.activeElement!==chatText){
     if(detectShake(shakeYaw) || detectShake(shakePitch)){
-      hideOutput();
-      AI_STATE.state = 'idle';
+      closeChat();
       shakeYaw.length=0; shakePitch.length=0;
     }
   }
 
   renderer.render(scene, camera);
-
-  // fps (hidden by default)
-  frames++;
-  fpsAcc += dt;
-  if(fpsAcc>0.5){
-    fpsEl.textContent = Math.round(frames/fpsAcc)+' fps';
-    frames=0; fpsAcc=0;
-  }
+  frames++; fpsAcc+=dt;
+  if(fpsAcc>0.5){ fpsEl.textContent = Math.round(frames/fpsAcc)+' fps'; frames=0; fpsAcc=0; }
   requestAnimationFrame(loop);
 }
 
@@ -1262,7 +1464,10 @@ setTimeout(()=>{
   onResize();
   resetAIBallHome();
   requestAnimationFrame(loop);
+  // hint auto-hide
+  setTimeout(()=> hintEl.classList.add('hidden'), 10000);
 }, 300);
+
 
 </script>
 </body>
