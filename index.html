@@ -1689,14 +1689,14 @@ document.addEventListener('touchstart', e=>{
       if(player.onGround){ player.vel.y = 8.4; player.onGround=false; }
     } else if(chatPanel.contains(target)){
       // Panel — let native scroll / input work. Do not preventDefault.
+    } else if(loadingEl && loadingEl.contains(target)){
+      // Loading overlay — let button click work.
     } else {
       if(LOOK.id===null) lookStart(t);
     }
   }
-  const tgt = e.target;
-  if(chatPanel.contains(tgt)) return;
-  if(loadingEl && loadingEl.contains(tgt)) return;
-  if(tgt && tgt.closest && tgt.closest('button,input,textarea,a,select,[role="button"]')) return;
+  if(chatPanel.contains(e.target)) return;
+  if(loadingEl && loadingEl.contains(e.target)) return;
   e.preventDefault();
 },{passive:false});
 
@@ -1706,9 +1706,7 @@ document.addEventListener('touchmove', e=>{
     else if(t.identifier===AI_DRAG.id) aiMove(t);
     else if(t.identifier===LOOK.id) lookMove(t);
   }
-  const tgt = e.target;
-  if(chatPanel.contains(tgt)) return;
-  if(loadingEl && loadingEl.contains(tgt)) return;
+  if(chatPanel.contains(e.target)) return;
   e.preventDefault();
 },{passive:false});
 
