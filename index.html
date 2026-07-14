@@ -50,7 +50,7 @@ canvas{display:block;width:100%;height:100%;touch-action:none;}
 @media (orientation:portrait){#rotate-hint{display:flex;}}
 
 /* Joystick */
-#joystick{position:fixed;left:62px;bottom:62px;width:130px;height:130px;border-radius:50%;background:rgba(255,255,255,.07);border:2px solid rgba(255,255,255,.22);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);z-index:20;touch-action:none;}
+#joystick{position:fixed;left:52px;bottom:36px;width:130px;height:130px;border-radius:50%;background:rgba(255,255,255,.07);border:2px solid rgba(255,255,255,.22);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);z-index:20;touch-action:none;}
 #joystick .knob{position:absolute;left:50%;top:50%;width:56px;height:56px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#f5f5f5,#a8a8a8);border:2px solid rgba(0,0,0,.35);transform:translate(-50%,-50%);box-shadow:0 4px 10px rgba(0,0,0,.4);pointer-events:none;}
 
 /* Jump */
@@ -116,7 +116,7 @@ canvas{display:block;width:100%;height:100%;touch-action:none;}
 .msg.user .bubble.no-content{padding:0;background:transparent;}
 
 /* AI thinking bubble */
-.msg.ai .bubble.thinking{background:rgba(255,255,255,0.06);color:#b0bec5;padding:8px 12px;border-radius:10px;font-style:italic;font-size:12px;border:1px solid rgba(255,255,255,0.08);display:inline-block;flex:0;}
+.msg.ai .bubble.thinking{background:rgba(255,255,255,0.06);color:#b0bec5;padding:8px 14px;border-radius:14px;font-style:italic;font-size:12px;border:1px solid rgba(255,255,255,0.08);flex:0 0 auto;align-self:flex-start;width:auto;min-width:110px;max-width:100%;white-space:nowrap;}
 .msg.ai .bubble.thinking .dots span{display:inline-block;width:5px;height:5px;background:#7ed957;border-radius:50%;margin:0 1px;animation:thk 1.2s infinite ease-in-out;}
 .msg.ai .bubble.thinking .dots span:nth-child(2){animation-delay:0.15s;}
 .msg.ai .bubble.thinking .dots span:nth-child(3){animation-delay:0.3s;}
@@ -1092,36 +1092,56 @@ function aiStart(t){
   AI_DRAG.curX   = t.clientX; AI_DRAG.curY   = t.clientY;
   AI_DRAG.moved  = 0;
   AI_DRAG.startT = performance.now();
-  AI_DRAG.active = true;
+  AI_DRAG.active = false;
   AI_DRAG.willTap= true;
+  if(AI_DRAG.holdTimer){ clearTimeout(AI_DRAG.holdTimer); }
+  AI_DRAG.holdTimer = setTimeout(()=>{
+    AI_DRAG.holdTimer = null;
+    if(AI_DRAG.id !== null && !AI_DRAG.active) activateAIDrag();
+  }, 500);
+}
+function activateAIDrag(){
+  AI_DRAG.active = true;
+  AI_DRAG.willTap = false;
+  if(navigator.vibrate) navigator.vibrate(30);
   aiBall.classList.remove('active','thinking');
   aiBall.classList.add('dragging');
-  // Collapse chat panel visually (data preserved)
   closeChat();
   aiBall.style.transition='none';
-  moveAIBallTo(t.clientX, t.clientY);
+  moveAIBallTo(AI_DRAG.curX, AI_DRAG.curY);
   dragCross.style.display='block';
-  moveCrossTo(t.clientX, t.clientY);
+  moveCrossTo(AI_DRAG.curX, AI_DRAG.curY);
   voiceBubble.style.display='block';
   voiceTxt.textContent='正在聆听...';
   CHAT.pendingVoice = '';
   startVoice(text=>{ CHAT.pendingVoice = text; voiceTxt.textContent = text || '正在聆听...'; });
-  // hide first-time hint
   hintEl.classList.add('hidden');
 }
 function aiMove(t){
   const dx = t.clientX-AI_DRAG.startX, dy = t.clientY-AI_DRAG.startY;
   const d = Math.hypot(dx,dy);
   if(d > AI_DRAG.moved) AI_DRAG.moved = d;
-  if(AI_DRAG.moved > 8) AI_DRAG.willTap = false;
   AI_DRAG.curX = t.clientX; AI_DRAG.curY = t.clientY;
+  if(!AI_DRAG.active){
+    // Big move before hold timer → activate drag early
+    if(AI_DRAG.moved > 18){
+      if(AI_DRAG.holdTimer){ clearTimeout(AI_DRAG.holdTimer); AI_DRAG.holdTimer=null; }
+      activateAIDrag();
+    }
+    return;
+  }
   moveAIBallTo(t.clientX, t.clientY);
   moveCrossTo(t.clientX, t.clientY);
 }
 function aiEnd(){
-  const dt = performance.now() - AI_DRAG.startT;
-  const wasTap = AI_DRAG.willTap && dt < 260;
+  const wasActive = AI_DRAG.active;
+  if(AI_DRAG.holdTimer){ clearTimeout(AI_DRAG.holdTimer); AI_DRAG.holdTimer=null; }
   AI_DRAG.active=false; AI_DRAG.id=null;
+  if(!wasActive){
+    // pure tap — never entered drag mode → toggle chat panel
+    toggleChat();
+    return;
+  }
   aiBall.classList.remove('dragging');
   dragCross.style.display='none';
   voiceBubble.style.display='none';
@@ -1130,11 +1150,6 @@ function aiEnd(){
   highlightFill.visible=false;
   stopVoice();
   resetAIBallHome();
-  if(wasTap){
-    // tap → toggle chat
-    toggleChat();
-    return;
-  }
   // Drag ended → open chat with proper card type
   const selType = CHAT.selectedType;
   const selPos  = CHAT.selectedPos;
