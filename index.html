@@ -97,7 +97,7 @@ canvas{display:block;width:100%;height:100%;touch-action:none;}
 #drag-cross svg{width:100%;height:100%;filter:drop-shadow(0 0 8px rgba(255,220,80,1));}
 
 /* Voice bubble */
-#voice-bubble{position:fixed;top:12px;left:50%;transform:translateX(-50%);max-width:60%;padding:10px 18px;border-radius:22px;background:rgba(0,0,0,.78);border:1px solid rgba(126,217,87,.55);color:#eaffd6;font-size:14px;line-height:1.4;z-index:65;display:none;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+#voice-bubble{position:fixed;top:22px;right:92px;left:auto;max-width:200px;padding:10px 16px;border-radius:16px 16px 4px 16px;background:rgba(0,0,0,.8);border:1px solid rgba(126,217,87,.55);color:#eaffd6;font-size:14px;line-height:1.4;z-index:65;display:none;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);text-align:left;white-space:normal;box-shadow:0 8px 22px rgba(0,0,0,.5),0 0 16px rgba(126,217,87,.28);}
 #voice-bubble .mic{display:inline-block;width:8px;height:8px;border-radius:50%;background:#ef5350;margin-right:8px;vertical-align:middle;animation:pulse 1s infinite;}
 @keyframes pulse{0%,100%{opacity:1;transform:scale(1);}50%{opacity:.4;transform:scale(1.35);}}
 #voice-bubble .txt{vertical-align:middle;}
@@ -259,11 +259,11 @@ body.ai-suppressed #chat-panel{opacity:.32 !important;filter:saturate(.4);transi
 /* 状态监视器 已移除 */
 
 /* 模拟事件面板 */
-#sim-toggle{position:fixed;left:50%;top:12px;transform:translateX(-50%);z-index:61;padding:8px 16px;border-radius:20px;
+#sim-toggle{position:fixed;left:12px;top:12px;z-index:61;padding:8px 16px;border-radius:20px;
   background:rgba(126,217,87,.16);border:1px solid rgba(126,217,87,.5);color:#cfffb8;font-size:11px;font-weight:600;
   letter-spacing:1px;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);}
 #sim-toggle:active{background:rgba(126,217,87,.3);}
-#sim-panel{position:fixed;left:50%;top:52px;transform:translateX(-50%);z-index:62;width:230px;max-height:78vh;overflow-y:auto;padding:12px;border-radius:12px;
+#sim-panel{position:fixed;left:12px;top:52px;z-index:62;width:230px;max-height:78vh;overflow-y:auto;padding:12px;border-radius:12px;
   background:rgba(12,16,22,.95);border:1px solid rgba(255,255,255,.12);box-shadow:0 10px 30px rgba(0,0,0,.5);
   display:none;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);}
 #sim-panel.open{display:block;animation:bubbleIn .25s ease;}
@@ -329,7 +329,6 @@ body.ai-suppressed #chat-panel{opacity:.32 !important;filter:saturate(.4);transi
   <div id="block-label"></div>
 
   <div id="chat-panel">
-    <button class="cl" id="chat-close" title="关闭">×</button>
     <div class="chat-body" id="chat-body">
       <div class="empty-state" id="empty-state">
         <div class="big">你好，我是 MC 助手</div>
@@ -424,6 +423,14 @@ const hintEl     = document.getElementById('hint');
 const fpsEl      = document.getElementById('fps');
 
 const setLoad = (p,tip)=>{ loadBar.style.width=(p*100)+'%'; if(tip) loadTip.textContent=tip; };
+
+// 语音气泡贴着悬浮球左侧展开
+function placeVoiceNearBall(){
+  const r = aiBall.getBoundingClientRect();
+  voiceBubble.style.left = 'auto';
+  voiceBubble.style.right = (window.innerWidth - r.left + 10) + 'px';
+  voiceBubble.style.top = r.top + 'px';
+}
 
 // ==============================================================
 // Fullscreen + platform detection
@@ -1242,6 +1249,7 @@ function aiStart(t){
     if(AI_DRAG.id !== null && !AI_DRAG.active){
       AI_DRAG.listening = true;
       setAIState('listen');
+      placeVoiceNearBall();
       voiceBubble.style.display='block';
       voiceTxt.textContent='正在聆听...';
       CHAT.pendingVoice = '';
@@ -1261,6 +1269,7 @@ function activateAIDrag(){
   moveAIBallTo(AI_DRAG.curX, AI_DRAG.curY);
   dragCross.style.display='block';
   moveCrossTo(AI_DRAG.curX, AI_DRAG.curY);
+  placeVoiceNearBall();
   voiceBubble.style.display='block';
   voiceTxt.textContent = CHAT.pendingVoice || '正在感知环境...';
   if(!recActive){
@@ -1283,6 +1292,7 @@ function aiMove(t){
   }
   moveAIBallTo(t.clientX, t.clientY);
   moveCrossTo(t.clientX, t.clientY);
+  if(voiceBubble.style.display==='block') placeVoiceNearBall();
 }
 function aiEnd(){
   const wasActive = AI_DRAG.active;
@@ -2381,6 +2391,7 @@ setTimeout(()=> hintEl.classList.add('hidden'), 15000);
       hideBubble(); hideCard(); closeChat(false);
       setAIState('listen');
       voiceTxt.textContent = '正在聆听…（快捷语音）';
+      placeVoiceNearBall();
       voiceBubble.style.display = 'block';
       clearTimeout(listenTimer);
       listenTimer = setTimeout(()=>{ voiceBubble.style.display='none'; setAIState('idle'); }, 2600);
