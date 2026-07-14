@@ -89,15 +89,14 @@ canvas{display:block;width:100%;height:100%;touch-action:none;}
 /* Block name label */
 #block-label{position:fixed;left:50%;top:36%;transform:translate(-50%,-50%);padding:6px 16px;background:rgba(0,0,0,.82);border:1px solid rgba(255,220,80,.75);color:#fff8d0;border-radius:6px;font-size:15px;font-weight:600;letter-spacing:1px;z-index:57;display:none;pointer-events:none;text-shadow:0 1px 2px #000;}
 
-/* Chat panel — full-height right side */
-#chat-panel{position:fixed;top:82px;right:14px;bottom:14px;width:min(380px,42vw);background:rgba(15,22,18,0.94);border:1px solid rgba(255,255,255,0.1);border-radius:14px;z-index:55;display:none;flex-direction:column;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);box-shadow:0 8px 28px rgba(0,0,0,.55);transform-origin:top right;animation:panelIn .22s ease-out;}
+/* Chat panel — full-height right side, flush to top-right, overlaps AI ball */
+#chat-panel{position:fixed;top:14px;right:14px;bottom:14px;width:min(380px,78vw);max-width:380px;background:rgba(15,22,18,0.94);border:1px solid rgba(255,255,255,0.1);border-radius:14px;z-index:55;display:none;flex-direction:column;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);box-shadow:0 8px 28px rgba(0,0,0,.55);transform-origin:top right;animation:panelIn .22s ease-out;}
 #chat-panel.open{display:flex;}
 @keyframes panelIn{from{opacity:0;transform:scale(0.92) translateY(-6px);}to{opacity:1;transform:scale(1) translateY(0);}}
-#chat-panel::before{content:"";position:absolute;top:-7px;right:23px;width:14px;height:14px;background:rgba(15,22,18,0.94);border-top:1px solid rgba(255,255,255,0.1);border-left:1px solid rgba(255,255,255,0.1);transform:rotate(45deg);}
-#chat-close{position:absolute;top:8px;right:8px;width:24px;height:24px;border-radius:50%;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);color:#ccc;font-size:14px;line-height:1;z-index:2;display:flex;align-items:center;justify-content:center;padding:0;}
+#chat-close{position:absolute;top:8px;left:8px;width:24px;height:24px;border-radius:50%;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);color:#ccc;font-size:14px;line-height:1;z-index:2;display:flex;align-items:center;justify-content:center;padding:0;}
 #chat-close:active{background:rgba(255,255,255,0.16);}
 
-#chat-panel .chat-body{flex:1;overflow-y:auto;padding:14px 12px 8px;-webkit-overflow-scrolling:touch;}
+#chat-panel .chat-body{flex:1;overflow-y:auto;padding:78px 12px 8px;-webkit-overflow-scrolling:touch;}
 #chat-panel .chat-body::-webkit-scrollbar{width:4px;}
 #chat-panel .chat-body::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.15);border-radius:2px;}
 
