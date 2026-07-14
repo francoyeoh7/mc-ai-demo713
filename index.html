@@ -209,7 +209,7 @@ canvas{display:block;width:100%;height:100%;touch-action:none;}
 
 /* ===== 12态 × 13操作 演示层 ===== */
 /* 主动气泡 (S-03 / S-07) — 悬浮球旁一句话胶囊 */
-#proactive-bubble{position:fixed;z-index:75;max-width:230px;padding:10px 14px;border-radius:16px 16px 16px 4px;
+#proactive-bubble{position:fixed;z-index:75;max-width:230px;padding:10px 14px;border-radius:16px 16px 4px 16px;
   background:rgba(18,24,20,.94);border:1px solid rgba(126,217,87,.5);color:#eaffea;font-size:13px;line-height:1.5;
   box-shadow:0 8px 24px rgba(0,0,0,.5),0 0 18px rgba(126,217,87,.28);display:none;transform-origin:top right;
   animation:bubbleIn .32s cubic-bezier(.2,.9,.25,1);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);}
@@ -252,25 +252,14 @@ body.ai-suppressed #chat-panel{opacity:.32 !important;filter:saturate(.4);transi
   padding:8px 18px;border-radius:20px;background:rgba(180,40,40,.85);color:#fff;font-size:12px;font-weight:600;
   letter-spacing:2px;display:none;box-shadow:0 4px 16px rgba(200,0,0,.5);}
 
-/* 状态监视器 */
-#state-monitor{position:fixed;right:14px;bottom:14px;z-index:60;width:190px;padding:11px 13px;border-radius:12px;
-  background:rgba(12,16,22,.9);border:1px solid rgba(255,255,255,.12);color:#cdd;font-size:11px;
-  backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);box-shadow:0 6px 20px rgba(0,0,0,.4);}
-#state-monitor .sm-title{font-size:10px;letter-spacing:2px;color:#7a8694;margin-bottom:7px;}
-#state-monitor .sm-state{display:flex;align-items:center;gap:8px;margin-bottom:6px;}
-#state-monitor .sm-dot{width:12px;height:12px;border-radius:50%;flex:none;box-shadow:0 0 8px currentColor;}
-#state-monitor .sm-code{font-family:monospace;font-weight:700;font-size:13px;color:#fff;}
-#state-monitor .sm-name{font-size:11px;color:#aeb6bf;}
-#state-monitor .sm-row{display:flex;justify-content:space-between;font-size:10px;color:#889;margin-top:4px;}
-#state-monitor .sm-row b{color:#4fc3f7;font-family:monospace;font-weight:600;}
-#state-monitor .sm-op{margin-top:6px;padding-top:6px;border-top:1px solid rgba(255,255,255,.08);font-size:10px;color:#7ed957;min-height:14px;}
+/* 状态监视器 已移除 */
 
 /* 模拟事件面板 */
 #sim-toggle{position:fixed;left:12px;bottom:12px;z-index:61;padding:8px 13px;border-radius:20px;
   background:rgba(126,217,87,.16);border:1px solid rgba(126,217,87,.5);color:#cfffb8;font-size:11px;font-weight:600;
   letter-spacing:1px;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);}
 #sim-toggle:active{background:rgba(126,217,87,.3);}
-#sim-panel{position:fixed;left:12px;bottom:52px;z-index:62;width:210px;padding:12px;border-radius:12px;
+#sim-panel{position:fixed;left:12px;bottom:52px;z-index:62;width:210px;max-height:78vh;overflow-y:auto;padding:12px;border-radius:12px;
   background:rgba(12,16,22,.95);border:1px solid rgba(255,255,255,.12);box-shadow:0 10px 30px rgba(0,0,0,.5);
   display:none;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);}
 #sim-panel.open{display:block;animation:bubbleIn .25s ease;}
@@ -371,27 +360,21 @@ body.ai-suppressed #chat-panel{opacity:.32 !important;filter:saturate(.4);transi
   <div id="hover-tip"></div>
   <div id="suppress-banner">战斗中 · AI 已抑制</div>
 
-  <div id="state-monitor">
-    <div class="sm-title">状态监视器</div>
-    <div class="sm-state">
-      <span class="sm-dot" id="sm-dot"></span>
-      <span class="sm-code" id="sm-code">S-01</span>
-      <span class="sm-name" id="sm-name">静默·悬浮球</span>
-    </div>
-    <div class="sm-row">认知<b id="sm-cog">idle</b></div>
-    <div class="sm-row">载体<b id="sm-carrier">悬浮球</b></div>
-    <div class="sm-op" id="sm-op">等待操作…</div>
-  </div>
-
   <button id="sim-toggle">模拟事件 ▲</button>
   <div id="sim-panel">
-    <div class="sp-title">AI 主动场景（无法真实触发的用这里演示）</div>
-    <button class="sp-btn" data-sim="stuck">玩家卡关<span class="sp-tag">感知→思考→气泡</span></button>
-    <button class="sp-btn" data-sim="death">连续死亡<span class="sp-tag">情绪陪伴</span></button>
-    <button class="sp-btn" data-sim="rare">发现稀有资源<span class="sp-tag">主动气泡</span></button>
+    <div class="sp-title">AI 主动场景（真玩时要等事件，这里手动复现）</div>
+    <button class="sp-btn" data-sim="stuck">玩家卡关<span class="sp-tag">S06→S10→S03</span></button>
+    <button class="sp-btn" data-sim="death">连续死亡·情绪陪伴<span class="sp-tag">S-07</span></button>
+    <button class="sp-btn" data-sim="rare">发现稀有资源<span class="sp-tag">S06→S03</span></button>
     <button class="sp-btn" data-sim="card">推送图文卡片<span class="sp-tag">S-04</span></button>
     <button class="sp-btn" data-sim="think">后台思考<span class="sp-tag">S-10</span></button>
     <button class="sp-btn" data-sim="combat">进入/退出战斗<span class="sp-tag">S-12</span></button>
+    <div class="sp-title" style="margin-top:10px;padding-top:9px;border-top:1px solid rgba(255,255,255,.08);">玩家主动态（直达演示）</div>
+    <button class="sp-btn" data-sim="activeOrb">活跃·悬浮球<span class="sp-tag">S-02</span></button>
+    <button class="sp-btn" data-sim="panel">召唤面板<span class="sp-tag">S-05</span></button>
+    <button class="sp-btn" data-sim="listenOrb">快捷语音·聆听<span class="sp-tag">S-08</span></button>
+    <button class="sp-btn" data-sim="listenPanel">面板内语音<span class="sp-tag">S-09</span></button>
+    <button class="sp-btn" data-sim="thinkPanel">面板思考中<span class="sp-tag">S-11</span></button>
     <div class="sp-mode">
       <button data-mode="manual" class="on">真实交互</button>
       <button data-mode="auto">自动演示</button>
@@ -1894,14 +1877,24 @@ document.addEventListener('touchstart', e=>{
       // Panel — let native scroll / input work. Do not preventDefault.
     } else if(loadingEl && loadingEl.contains(target)){
       // Loading overlay — let button click work.
+    } else if(isDemoUI(target)){
+      // 演示层 UI（模拟面板/气泡/卡片/菜单）— 放行原生点击
     } else {
       if(LOOK.id===null) lookStart(t);
     }
   }
   if(chatPanel.contains(e.target)) return;
   if(loadingEl && loadingEl.contains(e.target)) return;
+  if(isDemoUI(e.target)) return;
   e.preventDefault();
 },{passive:false});
+
+// 演示层可点 UI：这些元素上的触摸交给浏览器原生点击，不当作转视角
+function isDemoUI(target){
+  return !!(target && target.closest && target.closest(
+    '#sim-toggle,#sim-panel,#proactive-bubble,#float-card,#ctx-menu'
+  ));
+}
 
 document.addEventListener('touchmove', e=>{
   for(const t of e.changedTouches){
@@ -1910,6 +1903,7 @@ document.addEventListener('touchmove', e=>{
     else if(t.identifier===LOOK.id) lookMove(t);
   }
   if(chatPanel.contains(e.target)) return;
+  if(isDemoUI(e.target)) return;
   e.preventDefault();
 },{passive:false});
 
@@ -2097,12 +2091,6 @@ setTimeout(()=> hintEl.classList.add('hidden'), 15000);
   const ctxMenu   = document.getElementById('ctx-menu');
   const hoverTip  = document.getElementById('hover-tip');
   const banner    = document.getElementById('suppress-banner');
-  const smDot     = document.getElementById('sm-dot');
-  const smCode    = document.getElementById('sm-code');
-  const smName    = document.getElementById('sm-name');
-  const smCog     = document.getElementById('sm-cog');
-  const smCarrier = document.getElementById('sm-carrier');
-  const smOp      = document.getElementById('sm-op');
   const simToggle = document.getElementById('sim-toggle');
   const simPanel  = document.getElementById('sim-panel');
 
@@ -2110,22 +2098,6 @@ setTimeout(()=> hintEl.classList.add('hidden'), 15000);
 
   // ---- 认知色 ----
   const COG_COLOR = { idle:'#aeb6bf', active:'#7cff65', sense:'#9b7cff', listen:'#ffad4d', think:'#67b7ff' };
-
-  // ---- S码映射：(认知,载体) → [S码,名称] ----
-  const S_TABLE = {
-    'idle|orb':   ['S-01','静默·悬浮球'],
-    'active|orb': ['S-02','活跃·悬浮球'],
-    'active|bubble':['S-03','活跃·气泡'],
-    'active|card':['S-04','活跃·卡片'],
-    'active|panel':['S-05','活跃·面板'],
-    'sense|orb':  ['S-06','感受·悬浮球'],
-    'sense|bubble':['S-07','感受·气泡'],
-    'listen|orb': ['S-08','聆听·悬浮球'],
-    'listen|panel':['S-09','聆听·面板'],
-    'think|orb':  ['S-10','思考·悬浮球'],
-    'think|panel':['S-11','思考·面板'],
-  };
-  const CARRIER_CN = { orb:'悬浮球', bubble:'气泡', card:'卡片', panel:'面板' };
 
   function currentCarrier(){
     if(chatPanel.classList.contains('open')) return 'panel';
@@ -2135,29 +2107,26 @@ setTimeout(()=> hintEl.classList.add('hidden'), 15000);
   }
   function currentCog(){ return aiBall.dataset.state || 'idle'; }
 
-  function updateMonitor(){
-    let code, name, cog=currentCog(), carrier=currentCarrier();
-    if(suppressed){ code='S-12'; name='游戏抑制态'; }
-    else {
-      const hit = S_TABLE[cog+'|'+carrier] || S_TABLE[cog+'|orb'] || ['S-01','静默·悬浮球'];
-      code=hit[0]; name=hit[1];
-    }
-    smCode.textContent=code; smName.textContent=name;
-    smCog.textContent=cog; smCarrier.textContent=suppressed?'—':CARRIER_CN[carrier];
-    const col = suppressed? '#ff6b6b' : (COG_COLOR[cog]||'#aeb6bf');
-    smDot.style.color=col; smDot.style.background=col;
-  }
+  function updateMonitor(){ /* 状态监视器已移除 */ }
   window.__updateMonitor = updateMonitor;
 
-  function logOp(op, desc){ smOp.textContent = op+' · '+desc; }
+  function logOp(op, desc){ /* 监视器已移除，保留调用位不做事 */ }
 
   // ---- 悬浮球定位辅助 ----
   function ballRect(){ return aiBall.getBoundingClientRect(); }
-  function placeNearBall(el){
+  // 气泡出现在悬浮球【左侧】，顶部对齐
+  function placeLeftOfBall(el){
     const r = ballRect();
-    el.style.top = (r.bottom + 10) + 'px';
-    el.style.right = (window.innerWidth - r.right) + 'px';
     el.style.left = 'auto';
+    el.style.right = (window.innerWidth - r.left + 10) + 'px';
+    el.style.top = (r.top) + 'px';
+  }
+  // 卡片出现在悬浮球下方
+  function placeBelowBall(el){
+    const r = ballRect();
+    el.style.left = 'auto';
+    el.style.right = (window.innerWidth - r.right) + 'px';
+    el.style.top = (r.bottom + 10) + 'px';
   }
 
   // ---- 主动气泡 (S-03 / S-07) ----
@@ -2177,7 +2146,7 @@ setTimeout(()=> hintEl.classList.add('hidden'), 15000);
         pbActs.appendChild(b);
       });
     }
-    placeNearBall(pb);
+    placeLeftOfBall(pb);
     pb.style.display='block';
     setAIState(opts.sense ? 'sense' : 'active');
     updateMonitor();
@@ -2202,7 +2171,7 @@ setTimeout(()=> hintEl.classList.add('hidden'), 15000);
     fcThumb.style.background = data.color || '#2a3340';
     if(data.btn){ fcBtn.style.display='block'; fcBtn.textContent=data.btn; fcBtn.onclick=(e)=>{ e.stopPropagation(); data.onBtn&&data.onBtn(); }; }
     else fcBtn.style.display='none';
-    placeNearBall(fc);
+    placeBelowBall(fc);
     fc.style.display='block';
     setAIState('active');
     updateMonitor();
@@ -2352,7 +2321,39 @@ setTimeout(()=> hintEl.classList.add('hidden'), 15000);
       setSuppressed(!suppressed);
       logOp('SIM', suppressed?'进入战斗→抑制 (S-12)':'退出战斗→恢复');
     },
+    // ---- 玩家主动态直达 ----
+    activeOrb(){                                  // S-02 活跃·悬浮球（无浮层）
+      hideBubble(); hideCard(); closeChat(false);
+      setAIActive(2600);
+    },
+    panel(){                                      // S-05 活跃·面板
+      hideBubble(); hideCard();
+      openChat(true);
+    },
+    listenOrb(){                                  // S-08 聆听·悬浮球
+      hideBubble(); hideCard(); closeChat(false);
+      setAIState('listen');
+      voiceTxt.textContent = '正在聆听…（快捷语音）';
+      voiceBubble.style.display = 'block';
+      clearTimeout(listenTimer);
+      listenTimer = setTimeout(()=>{ voiceBubble.style.display='none'; setAIState('idle'); }, 2600);
+    },
+    listenPanel(){                                // S-09 聆听·面板
+      hideBubble(); hideCard();
+      openChat(false);
+      setAIState('listen');
+      clearTimeout(listenTimer);
+      listenTimer = setTimeout(()=> setAIState('active'), 2600);
+    },
+    thinkPanel(){                                 // S-11 思考·面板（loading）
+      hideBubble(); hideCard();
+      openChat(false);
+      setAIState('think');
+      const tid = addThinkingMsg();
+      setTimeout(()=>{ removeMsg(tid); setAIState('active'); }, 1800);
+    },
   };
+  let listenTimer = null;
 
   document.querySelectorAll('.sp-btn').forEach(b=>{
     b.addEventListener('click', ()=>{ const fn=SCENARIOS[b.dataset.sim]; if(fn) fn(); });
@@ -2381,6 +2382,84 @@ setTimeout(()=> hintEl.classList.add('hidden'), 15000);
     const open=simPanel.classList.toggle('open');
     simToggle.textContent = open ? '模拟事件 ▼' : '模拟事件 ▲';
   });
+
+  // ==============================================================
+  // 真实交互触发：让 AI 在真玩的时候【主动】发气泡
+  //   气泡是 AI 主动行为(S-03/S-07)，不由玩家点出来，而由检测到的事件触发。
+  //   demo 里接了两类真实可检测的事件：① 长时间原地不动(卡住) ② 靠近稀有矿脉
+  // ==============================================================
+  let lastPos = null, lastYaw = 0, idleSec = 0, proactiveCooldown = 0;
+  function busy(){ return suppressed || pb.style.display==='block' || fc.style.display==='block'
+                     || chatPanel.classList.contains('open') || AI_DRAG.active; }
+
+  setInterval(()=>{
+    if(mode!=='manual') return;            // 自动演示模式下不叠加
+    if(proactiveCooldown>0){ proactiveCooldown--; }
+
+    // 计算是否在移动/转视角
+    const p = player.pos;
+    let moved = false;
+    if(lastPos){
+      const d = Math.hypot(p.x-lastPos.x, p.z-lastPos.z);
+      if(d > 0.15 || Math.abs(player.yaw-lastYaw) > 0.12) moved = true;
+    }
+    lastPos = { x:p.x, z:p.z };
+    lastYaw = player.yaw;
+
+    if(busy() || proactiveCooldown>0){ idleSec = 0; return; }
+
+    // ① 靠近稀有矿脉 → 感知气泡（优先级高）
+    const ore = nearestOre();
+    if(ore){
+      proactiveCooldown = 18;   // 约18秒内不重复
+      idleSec = 0;
+      showBubble('你附近有'+ore.name+'矿脉，要我帮你标记吗？', {
+        sense:true,
+        actions:[
+          {label:'标记', primary:true, fn:()=>{ showBubble('已标记 ⛏ 记得带对应等级的镐'); setTimeout(hideBubble,1600); }},
+          {label:'忽略', fn:()=>{ hideBubble(); setAIState('idle'); }},
+        ]
+      });
+      return;
+    }
+
+    // ② 原地不动累计 → 卡住？主动搭话
+    if(moved){ idleSec = 0; }
+    else {
+      idleSec++;
+      if(idleSec >= 7){
+        idleSec = 0; proactiveCooldown = 15;
+        showBubble('在这待了一会儿了，需要我帮你看看接下来做什么吗？', {
+          sense:true,
+          actions:[
+            {label:'好啊', primary:true, fn:()=>{
+              setAIState('think');
+              setTimeout(()=> showBubble('先补点食物，然后往东边找橡树砍木头做工具。', {
+                actions:[{label:'知道了', primary:true, fn:()=>{ hideBubble(); setAIState('idle'); }}]
+              }), 1100);
+            }},
+            {label:'不用', fn:()=>{ hideBubble(); setAIState('idle'); }},
+          ]
+        });
+      }
+    }
+  }, 1000);
+
+  // 找最近稀有矿（钻石/铁/煤），范围内才返回
+  function nearestOre(){
+    const RARE = { diamond:'钻石', iron:'铁', coal:'煤' };
+    let best=null, bestD=6;   // 6格内
+    for(const m of blockMeshes){
+      const type = m.userData && m.userData.type;
+      if(!RARE[type]) continue;
+      const positions = m.userData.positions || [];
+      for(const pos of positions){
+        const d = Math.hypot(pos[0]-player.pos.x, pos[2]-player.pos.z);
+        if(d < bestD){ bestD=d; best={ name:RARE[type], type }; }
+      }
+    }
+    return best;
+  }
 
   updateMonitor();
 })();
