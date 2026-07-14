@@ -297,11 +297,6 @@ body.ai-suppressed #chat-panel{opacity:.32 !important;filter:saturate(.4);transi
     <div>请横屏使用</div>
   </div>
 
-  <div id="hint">
-    左侧摇杆移动 · 右侧滑动看视角 · <b>长按右上 AI 拖到方块</b><br>
-    松手后左右晃视角关闭对话 · 点击 AI 打开对话
-  </div>
-
   <div id="center-cross"></div>
 
   <div id="joystick"><div class="knob" id="joy-knob"></div></div>
@@ -390,7 +385,7 @@ body.ai-suppressed #chat-panel{opacity:.32 !important;filter:saturate(.4);transi
 <script type="importmap">
 {
   "imports": {
-    "three": "https://unpkg.com/three@0.160.0/build/three.module.js"
+    "three": "./three.module.js"
   }
 }
 </script>
@@ -1276,7 +1271,7 @@ function activateAIDrag(){
     CHAT.pendingVoice = '';
     startVoice(text=>{ CHAT.pendingVoice = text; voiceTxt.textContent = text || '正在感知环境...'; });
   }
-  hintEl.classList.add('hidden');
+  if(hintEl) hintEl.classList.add('hidden');
 }
 function aiMove(t){
   const dx = t.clientX-AI_DRAG.startX, dy = t.clientY-AI_DRAG.startY;
@@ -1746,7 +1741,6 @@ function openChat(markActive=true){ if(window.__hideOverlays) window.__hideOverl
 function closeChat(resetState=true){ chatPanel.classList.remove('open'); if(resetState && !AI_DRAG.active && !chatMicActive) setAIState('idle'); }
 function toggleChat(){ if(chatPanel.classList.contains('open')) closeChat(); else openChat(); }
 
-chatClose.addEventListener('click', e=>{ e.stopPropagation(); closeChat(); });
 chatText.addEventListener('keydown', e=>{
   if(e.key==='Enter'){ e.preventDefault(); sendChatText(); }
 });
@@ -2088,7 +2082,6 @@ loadTip.textContent = '点击下方按钮进入';
 onResize();
 resetAIBallHome();
 requestAnimationFrame(loop);
-setTimeout(()=> hintEl.classList.add('hidden'), 15000);
 
 // ==============================================================
 // 12态 × 13操作 演示层
@@ -2300,9 +2293,13 @@ setTimeout(()=> hintEl.classList.add('hidden'), 15000);
     el.addEventListener('contextmenu', e=>{ e.preventDefault(); cb(e.clientX, e.clientY); });
   }
 
-  // 点击外部 (OP-10) 收起浮层 / 菜单
+  // 点击外部 (OP-10) 收起浮层 / 菜单 / 对话面板
   document.addEventListener('pointerdown', e=>{
     if(!ctxMenu.contains(e.target) && ctxMenu.style.display==='block'){ closeCtxMenu(); }
+    // 面板打开时，点击对话框以外的任意空白处即关闭（球本身用于toggle，排除）
+    if(chatPanel.classList.contains('open') && !chatPanel.contains(e.target) && !aiBall.contains(e.target)){
+      closeChat();
+    }
     if(pb.style.display==='block' && !pb.contains(e.target) && !aiBall.contains(e.target)){ /* 保留气泡, 外点不强关, 交给划走 */ }
   }, true);
 
