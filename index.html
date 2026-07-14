@@ -334,25 +334,32 @@ function isFS(){
 
 // Setup enter button + platform hint on load screen
 function setupEnterFlow(){
+  const bindEnter = (fn)=>{
+    let fired = false;
+    const wrap = (e)=>{
+      if(fired) return; fired = true;
+      if(e && e.preventDefault) e.preventDefault();
+      if(e && e.stopPropagation) e.stopPropagation();
+      fn();
+    };
+    enterBtn.addEventListener('click', wrap);
+    enterBtn.addEventListener('touchend', wrap, {passive:false});
+  };
   if(isIOS && !isStandalone){
-    // iOS Safari: fullscreen API restricted. Direct user to add-to-home-screen.
     platformTip.innerHTML = 'iOS Safari 无法通过按钮全屏。<br>请点浏览器分享 → <b>添加到主屏幕</b>，从图标启动即全屏无栏。';
     enterBtn.textContent = '直接进入';
-    enterBtn.addEventListener('click', hideLoading);
+    bindEnter(hideLoading);
   } else if(isStandalone){
     platformTip.textContent = '已在独立模式运行';
     enterBtn.textContent = '进入';
-    enterBtn.addEventListener('click', hideLoading);
+    bindEnter(hideLoading);
   } else if(canRequestFS()){
     platformTip.innerHTML = '进入后浏览器地址栏隐藏。<br>横屏效果最佳。';
-    enterBtn.addEventListener('click', ()=>{
-      requestFS();
-      hideLoading();
-    });
+    bindEnter(()=>{ requestFS(); hideLoading(); });
   } else {
     platformTip.textContent = '此浏览器不支持全屏 API，直接进入';
     enterBtn.textContent = '进入';
-    enterBtn.addEventListener('click', hideLoading);
+    bindEnter(hideLoading);
   }
 }
 
@@ -1687,7 +1694,11 @@ document.addEventListener('touchstart', e=>{
       if(LOOK.id===null) lookStart(t);
     }
   }
-  if(!chatPanel.contains(e.target)) e.preventDefault();
+  const tgt = e.target;
+  if(chatPanel.contains(tgt)) return;
+  if(loadingEl && loadingEl.contains(tgt)) return;
+  if(tgt && tgt.closest && tgt.closest('button,input,textarea,a,select,[role="button"]')) return;
+  e.preventDefault();
 },{passive:false});
 
 document.addEventListener('touchmove', e=>{
@@ -1696,7 +1707,10 @@ document.addEventListener('touchmove', e=>{
     else if(t.identifier===AI_DRAG.id) aiMove(t);
     else if(t.identifier===LOOK.id) lookMove(t);
   }
-  if(!chatPanel.contains(e.target)) e.preventDefault();
+  const tgt = e.target;
+  if(chatPanel.contains(tgt)) return;
+  if(loadingEl && loadingEl.contains(tgt)) return;
+  e.preventDefault();
 },{passive:false});
 
 function endTouch(t){
