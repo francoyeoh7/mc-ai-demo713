@@ -385,7 +385,7 @@ body.ai-suppressed #chat-panel{opacity:.32 !important;filter:saturate(.4);transi
 <script type="importmap">
 {
   "imports": {
-    "three": "./three.module.js"
+    "three": "https://unpkg.com/three@0.160.0/build/three.module.js"
   }
 }
 </script>
@@ -2521,6 +2521,40 @@ requestAnimationFrame(loop);
 })();
 
 
+</script>
+<script>
+(function(){
+  var done=false;
+  window.addEventListener('error',function(e){
+    var tip=document.getElementById('load-tip');
+    if(tip && !done) tip.textContent='加载出错，点按钮重试进入';
+    revealEnter(true);
+  });
+  function revealEnter(forced){
+    var b=document.getElementById('enter-btn');
+    var loading=document.getElementById('loading');
+    if(!b||!loading) return;
+    if(!b.classList.contains('ready')){
+      b.classList.add('ready');
+      if(forced) b.textContent='强制进入';
+    }
+    if(!b.__safebound){
+      b.__safebound=true;
+      var go=function(){ loading.style.opacity='0'; setTimeout(function(){loading.style.display='none';},400); };
+      b.addEventListener('click',go);
+      b.addEventListener('touchend',go,{passive:false});
+    }
+  }
+  setTimeout(function(){
+    var b=document.getElementById('enter-btn');
+    var loading=document.getElementById('loading');
+    if(loading && loading.style.display!=='none' && b && !b.classList.contains('ready')){
+      var tip=document.getElementById('load-tip');
+      if(tip) tip.textContent='资源加载较慢，可点按钮进入';
+      revealEnter(true);
+    } else { done=true; }
+  }, 7000);
+})();
 </script>
 </body>
 </html>
