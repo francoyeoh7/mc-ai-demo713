@@ -291,6 +291,12 @@
   async function processRequestWithAI(request, options = {}) {
     const fetchImpl = options.fetchImpl || (typeof fetch === 'function' ? fetch.bind(globalThis) : null);
     const endpoint = options.endpoint || '/api/strategy';
+    const localIntent = classifyIntent(request.query, request.context || {});
+    const localRoute = resolveRoute({ query: request.query, intent: localIntent, context: request.context || {} });
+    if (localRoute.path === 'PURE_C') {
+      const local = await processRequest(request);
+      return { ...local, aiEnhanced: false, localInstant: true };
+    }
     if (!fetchImpl) {
       const local = await processRequest(request);
       return { ...local, aiEnhanced: false, failure: local.failure || { code: 'AI_PROXY_UNAVAILABLE', message: '浏览器不支持网络请求' } };
