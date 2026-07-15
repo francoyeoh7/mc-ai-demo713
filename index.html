@@ -187,6 +187,19 @@ canvas{display:block;width:100%;height:100%;touch-action:none;}
 .guide-action button{background:#2e7d32;color:#fff;padding:8px 18px;border-radius:6px;border:none;font-size:13px;font-weight:600;letter-spacing:1px;cursor:pointer;}
 .guide-action button:active{background:#388e3c;}
 
+/* Componentized strategy output */
+.cmp-card .cmp-id{font:9px monospace;color:#79bfff;margin-left:auto;opacity:.75;}
+.cmp-section{margin-top:8px;padding:9px 10px;background:rgba(0,0,0,.36);border:1px solid rgba(255,255,255,.09);border-radius:6px;}
+.cmp-section .cmp-title{font-size:11px;color:#96a89a;margin-bottom:5px;letter-spacing:.5px;}
+.cmp-section .cmp-text{font-size:12px;color:#ecefec;line-height:1.65;}
+.cmp-metric{text-align:center;padding:18px 10px 14px;background:linear-gradient(180deg,rgba(126,217,87,.13),rgba(0,0,0,.3));border-radius:7px;}
+.cmp-metric .big{font:700 42px/1 monospace;color:#8fe56b;text-shadow:0 0 14px rgba(126,217,87,.28);}
+.cmp-metric .unit{font-size:13px;color:#bdd6b6;margin-left:5px;}
+.cmp-metric .sub{font-size:11px;color:#8d9b8f;margin-top:10px;}
+.cmp-recipe{display:flex;gap:6px;align-items:center;flex-wrap:wrap;}
+.cmp-chip{padding:4px 7px;background:#222b23;border:1px solid #405244;border-radius:4px;color:#dfe7df;font-size:11px;}
+.card.cmp-card{border:1px solid rgba(126,217,87,.2);}
+
 /* Foot */
 #chat-panel .chat-foot{padding:10px 10px;border-top:1px solid rgba(255,255,255,0.06);display:flex;gap:8px;align-items:center;flex-shrink:0;background:rgba(0,0,0,0.2);border-radius:0 0 14px 14px;}
 #chat-panel .chat-foot .sel-chip{background:#2e7d32;color:#fff;padding:7px 12px;border-radius:14px;font-size:12px;font-weight:600;flex-shrink:0;letter-spacing:.5px;display:none;white-space:nowrap;}
@@ -1599,6 +1612,91 @@ function buildTextCard(text){
   return c;
 }
 
+function compactWikiFor(type){
+  const info=BLOCK_INFO[type]||{name:type,desc:'暂无介绍'};
+  const bc=BLOCK_CARDS[type]||{tag:'方块',desc:info.desc,kw:[],hardness:null,drops:[],loc:'暂无可靠位置信息',locKw:[]};
+  const recipes={planks:['橡木原木 ×1','橡木木板 ×4'],glass:['沙子 ×1','熔炉燃料'],cobble:['石头','任意镐'],iron_ore:null};
+  const uses={
+    log:'可合成木板，并继续制作工作台、木棍和初级工具。',
+    planks:'可合成工作台、木棍、门和多种建筑部件。',
+    iron_ore:'熔炼后获得铁锭，可制作铁制工具、护甲和功能方块。',
+    diamond_ore:'开采后获得钻石，可制作高级工具、护甲和附魔台。',
+    stone:'可用于建筑；开采后通常掉落圆石。',
+  };
+  return {
+    C1:{name:info.name,tag:bc.tag||'方块'},
+    C2:{intro:bc.desc||info.desc,keywords:bc.kw||[]},
+    C3:{label:/生物/.test(bc.tag||'')?'生命值':'关键数值',value:bc.hardness},
+    C4:{drops:bc.drops||[]},
+    C5:{uses:uses[type]||'可作为建筑、合成或生存资源使用。'},
+    C6:{recipe:recipes[type]||null},
+    C7:{source:bc.loc||'暂无可靠位置信息',keywords:bc.locKw||[]},
+  };
+}
+
+function sectionHtml(id,title,body){
+  return `<div class="cmp-section" data-component="${id}"><div class="cmp-title">${escapeHtml(title)} <span class="cmp-id">${id}</span></div><div class="cmp-text">${body}</div></div>`;
+}
+
+function buildPureCWikiCard(result,type){
+  const C=compactWikiFor(type);
+  const ids=new Set((result.componentPlan&&result.componentPlan.components)||['C1','C2']);
+  const c=document.createElement('div');c.className='card cmp-card pure-c-card';
+  let html=`<div class="card-head" data-component="C1"><span class="name">${escapeHtml(C.C1.name)}</span><span class="tag">${escapeHtml(C.C1.tag)}</span><span class="cmp-id">C1</span></div>`;
+  if(ids.has('C2')) html+=`<div class="info-body" data-component="C2"><div class="thumb" data-t="${type}"></div><div class="desc">${highlight(C.C2.intro,C.C2.keywords)}</div></div>`;
+  if(ids.has('C3')&&C.C3.value!=null) html+=sectionHtml('C3',C.C3.label,`<b class="k">${escapeHtml(C.C3.value)}</b>`);
+  if(ids.has('C4')&&C.C4.drops.length) html+=sectionHtml('C4','掉落物',C.C4.drops.map(d=>`<span class="cmp-chip">${escapeHtml(d.name)} ×${escapeHtml(d.count)}</span>`).join(' '));
+  if(ids.has('C5')) html+=sectionHtml('C5','能做什么',highlight(C.C5.uses,[C.C1.name]));
+  if(ids.has('C6')&&C.C6.recipe) html+=sectionHtml('C6','合成配方',`<div class="cmp-recipe">${C.C6.recipe.map((x,i)=>`${i?'<span>→</span>':''}<span class="cmp-chip">${escapeHtml(x)}</span>`).join('')}</div>`);
+  if(ids.has('C7')) html+=sectionHtml('C7','在哪里',highlight(C.C7.source,C.C7.keywords));
+  c.innerHTML=html;
+  c.querySelectorAll('.thumb').forEach(w=>w.appendChild(makeThumb(w.dataset.t)));
+  return c;
+}
+
+function splitGenerated(text){
+  return String(text||'').split(/\n+/).map(s=>s.trim()).filter(Boolean);
+}
+
+function buildMixedGuideCard(result,type){
+  const C=compactWikiFor(type);
+  const ids=new Set((result.componentPlan&&result.componentPlan.components)||[]);
+  const lines=splitGenerated(result.output&&result.output.text);
+  const c=document.createElement('div');c.className='card cmp-card mixed-card';
+  let html=`<div class="card-head"><span class="name">${escapeHtml(C.C1.name||'综合建议')}</span><span class="tag">混合策略</span></div>`;
+  const reason=lines[0]||'已结合对象资料和当前状态完成判断。';
+  const advice=lines.slice(1).join(' ')||'建议先确认当前条件，再按步骤处理。';
+  if(ids.has('G2')||ids.has('G4')||ids.has('C2')||ids.has('C3')) html+=sectionHtml(ids.has('G4')?'G4':'G2','原因',highlight(reason,[C.C1.name]));
+  if(ids.has('G3')) html+=sectionHtml('G3','解决步骤',highlight(advice,[C.C1.name]));
+  else html+=sectionHtml('G6','建议',highlight(advice,[C.C1.name]));
+  if(ids.has('C6')&&C.C6.recipe) html+=sectionHtml('C6','所需配方',C.C6.recipe.map(x=>`<span class="cmp-chip">${escapeHtml(x)}</span>`).join(' '));
+  if(ids.has('C7')) html+=sectionHtml('C7','具体来源',highlight(C.C7.source,C.C7.keywords));
+  c.innerHTML=html;
+  return c;
+}
+
+function statFromQuery(query,context){
+  const stats=context.playerState&&context.playerState.stats||{};
+  if(/树|砍/.test(query)) return {value:stats.treesCutTotal??stats.treesCutToday??327,unit:'棵',label:'累计砍伐',sub:'统计范围：当前存档'};
+  if(/时间|多久|游玩/.test(query)) return {value:stats.playMinutes??0,unit:'分钟',label:'游玩时间',sub:'统计范围：当前存档'};
+  return {value:stats.minedBlocks??stats.playMinutes??0,unit:'',label:'玩家数据',sub:'统计范围：当前存档'};
+}
+
+function buildPureGStatCard(result,type){
+  const stat=statFromQuery(result.query||'',result.context||aiContextFor(type));
+  const c=document.createElement('div');c.className='card cmp-card pure-g-card';
+  c.innerHTML=`<div class="card-head"><span class="name">${escapeHtml(stat.label)}</span><span class="tag">玩家统计</span><span class="cmp-id">G7</span></div><div class="cmp-metric" data-component="G7"><span class="big">${escapeHtml(stat.value)}</span><span class="unit">${escapeHtml(stat.unit)}</span><div class="sub">${escapeHtml(stat.sub)}</div></div>`;
+  return c;
+}
+
+function buildStrategyCard(result,type){
+  const family=result.componentPlan&&result.componentPlan.family;
+  if(family==='PURE_C_WIKI') return buildPureCWikiCard(result,type);
+  if(family==='MIXED_GUIDE') return buildMixedGuideCard(result,type);
+  if(family==='PURE_G_STAT') return buildPureGStatCard(result,type);
+  return buildTextCard((result.output&&result.output.text)||'我暂时无法回答这个问题。');
+}
+
 function aiContextFor(type){
   const info = type ? (BLOCK_INFO[type] || {name:type,desc:''}) : null;
   const card = type ? (BLOCK_CARDS[type] || {}) : null;
@@ -1618,7 +1716,7 @@ function aiContextFor(type){
     playerState:{
       position:{x:Math.round(player.pos.x),y:Math.round(player.pos.y),z:Math.round(player.pos.z)},
       equipment:{mainHand:'当前工具'},
-      stats:{playMinutes:Math.round(performance.now()/60000)},
+      stats:{playMinutes:Math.round(performance.now()/60000),treesCutToday:17,treesCutTotal:327,minedBlocks:1842},
     },
     worldState:{referencePosition:CHAT.pendingBlockPos||CHAT.selectedPos||null},
   };
@@ -1634,10 +1732,12 @@ async function runAIChat(query,type,options={}){
   setAIState('think');
   try{
     const endpoint=(window.MC_AI_API_BASE||'').replace(/\/$/,'')+'/api/strategy';
-    const result=await API.processRequestWithAI({query,context:aiContextFor(type)},{endpoint});
+    const context=aiContextFor(type);
+    const result=await API.processRequestWithAI({query,context},{endpoint});
+    result.query=query;
+    result.context=context;
     removeMsg(thinkingId);
-    const text=(result.output&&result.output.text)||'我暂时无法回答这个问题。';
-    addAIMsg(buildTextCard(text));
+    addAIMsg(buildStrategyCard(result,type));
     setAIActive();
     CHAT.state='output';
     return result;

@@ -233,6 +233,16 @@
     };
   }
 
+  function buildComponentPlan(route, intent, components) {
+    const ids = components.map(item => item.id);
+    if (route.path === 'PURE_C') return { family: 'PURE_C_WIKI', components: ids };
+    if (route.path === 'PURE_G' && intent === 'STATUS_QUERY') {
+      return { family: 'PURE_G_STAT', components: ['G1', 'G7'].filter(id => ids.includes(id)) };
+    }
+    if (route.path === 'C_TO_G' || route.path === 'G_TO_C') return { family: 'MIXED_GUIDE', components: ids };
+    return { family: 'TEXT', components: ids };
+  }
+
   async function processRequest({ query, context = {}, contextManager = null }) {
     const cached = contextManager?.resolveFollowUp(query);
     if (cached?.hit) {
@@ -273,8 +283,9 @@
     const { components } = executeComponents({ query, route, context });
     const action = resolveAction(query, intent.label);
     const output = integrateResults({ path: route.path, intent: intent.label, components, action });
+    const componentPlan = buildComponentPlan(route, intent.label, components);
     contextManager?.remember({ query, path: route.path, components });
-    return { intent, route, components, output, action, failure: null };
+    return { intent, route, components, componentPlan, output, action, failure: null };
   }
 
   async function processRequestWithAI(request, options = {}) {
@@ -302,7 +313,7 @@
         output = { ...output, lines, text: lines.join('\n') };
       }
       request.contextManager?.remember({ query: request.query, path: route.path, components });
-      return { intent: ai.intent, route, components, output, action: null, failure: null, aiEnhanced: true };
+      return { intent: ai.intent, route, components, componentPlan: ai.componentPlan || buildComponentPlan(route, ai.intent.label, components), output, action: null, failure: null, aiEnhanced: true };
     } catch (error) {
       const local = await processRequest(request);
       return {
@@ -321,6 +332,7 @@
     fuse,
     assemble,
     integrateResults,
+    buildComponentPlan,
     resolveAction,
     processRequest,
     processRequestWithAI,
