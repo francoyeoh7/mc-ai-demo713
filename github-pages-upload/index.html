@@ -1,0 +1,2680 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,minimum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="MC AI">
+<meta name="theme-color" content="#0a0e14">
+<meta name="screen-orientation" content="landscape">
+<meta name="x5-orientation" content="landscape">
+<meta name="full-screen" content="yes">
+<meta name="x5-fullscreen" content="true">
+<link rel="manifest" href='data:application/manifest+json,{"name":"MC AI Demo","short_name":"MC AI","start_url":".","display":"fullscreen","orientation":"landscape","background_color":"#0a0e14","theme_color":"#0a0e14","icons":[{"src":"data:image/svg+xml;utf8,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 192 192%22%3E%3Crect width=%22192%22 height=%22192%22 fill=%22%234fc3f7%22/%3E%3Ctext x=%2296%22 y=%22120%22 text-anchor=%22middle%22 font-family=%22monospace%22 font-size=%2270%22 font-weight=%22bold%22 fill=%22white%22%3EAI%3C/text%3E%3C/svg%3E","sizes":"192x192","type":"image/svg+xml"}]}'>
+<title>MC AI Demo</title>
+<style>
+:root{
+  --accent:#7ed957;
+  --accent-2:#4fc3f7;
+  --gold:#ffdc50;
+  --panel-bg:rgba(18,22,28,0.94);
+  --panel-border:rgba(255,255,255,0.12);
+}
+*{box-sizing:border-box;margin:0;padding:0;user-select:none;-webkit-user-select:none;-webkit-tap-highlight-color:transparent;-webkit-touch-callout:none;}
+html,body{width:100%;height:100%;overflow:hidden;background:#000;font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;color:#eee;touch-action:none;overscroll-behavior:none;}
+#app{position:fixed;inset:0;overflow:hidden;}
+canvas{display:block;width:100%;height:100%;touch-action:none;}
+
+/* Loading */
+#loading{position:fixed;inset:0;background:#0a0e14;display:flex;align-items:center;justify-content:center;flex-direction:column;z-index:9999;transition:opacity .5s;}
+#loading .logo{font-size:22px;font-weight:700;letter-spacing:4px;color:var(--accent);text-shadow:0 0 12px rgba(126,217,87,.5);margin-bottom:18px;}
+#loading .bar{width:200px;height:6px;background:rgba(255,255,255,.08);border-radius:3px;overflow:hidden;}
+#loading .bar>span{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--accent),var(--accent-2));transition:width .3s;border-radius:3px;}
+#loading .tip{margin-top:12px;font-size:11px;color:#888;letter-spacing:1px;}
+#loading .enter-btn{margin-top:22px;padding:10px 28px;border-radius:22px;background:linear-gradient(135deg,#7ed957,#388e3c);border:none;color:#fff;font-size:14px;font-weight:600;letter-spacing:2px;box-shadow:0 4px 12px rgba(126,217,87,.4);cursor:pointer;opacity:0;pointer-events:none;transition:opacity .3s;}
+#loading .enter-btn.ready{opacity:1;pointer-events:auto;}
+#loading .enter-btn:active{transform:scale(0.96);}
+#loading .platform-tip{margin-top:14px;font-size:10px;color:#666;line-height:1.6;text-align:center;max-width:80vw;}
+
+/* Fullscreen toggle mini-button (in-app) */
+#fs-btn{position:fixed;right:82px;top:22px;width:34px;height:34px;border-radius:50%;background:rgba(0,0,0,0.55);border:1px solid rgba(255,255,255,0.2);color:#eee;z-index:30;display:flex;align-items:center;justify-content:center;padding:0;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);}
+#fs-btn svg{width:16px;height:16px;fill:currentColor;}
+#fs-btn:active{background:rgba(0,0,0,0.75);}
+
+/* Portrait hint */
+#rotate-hint{position:fixed;inset:0;background:#0a0e14;z-index:9998;display:none;align-items:center;justify-content:center;flex-direction:column;color:#ccc;font-size:14px;letter-spacing:1px;}
+#rotate-hint .icon{width:60px;height:90px;border:3px solid #7ed957;border-radius:8px;margin-bottom:16px;animation:rot 1.6s infinite ease-in-out;}
+@keyframes rot{0%,100%{transform:rotate(0)}50%{transform:rotate(90deg)}}
+@media (orientation:portrait){#rotate-hint{display:flex;}}
+
+/* Joystick */
+#joystick{position:fixed;left:52px;bottom:36px;width:130px;height:130px;border-radius:50%;background:rgba(255,255,255,.07);border:2px solid rgba(255,255,255,.22);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);z-index:20;touch-action:none;}
+#joystick .knob{position:absolute;left:50%;top:50%;width:56px;height:56px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#f5f5f5,#a8a8a8);border:2px solid rgba(0,0,0,.35);transform:translate(-50%,-50%);box-shadow:0 4px 10px rgba(0,0,0,.4);pointer-events:none;}
+
+/* Jump */
+#jump-btn{position:fixed;right:24px;bottom:32px;width:88px;height:88px;border-radius:50%;background:rgba(126,217,87,.18);border:2px solid rgba(126,217,87,.55);color:#dfffcc;font-size:14px;font-weight:600;letter-spacing:2px;z-index:20;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);touch-action:none;}
+#jump-btn:active{background:rgba(126,217,87,.35);}
+
+/* Center crosshair */
+#center-cross{position:fixed;left:50%;top:50%;width:14px;height:14px;transform:translate(-50%,-50%);pointer-events:none;z-index:15;opacity:.6;}
+#center-cross::before,#center-cross::after{content:"";position:absolute;background:#fff;box-shadow:0 0 2px rgba(0,0,0,.9);}
+#center-cross::before{left:50%;top:0;width:2px;height:100%;transform:translateX(-50%);}
+#center-cross::after{left:0;top:50%;width:100%;height:2px;transform:translateY(-50%);}
+
+/* AI Ball — five-state glass orb */
+#ai-ball{--orb:#79838e;--orb-soft:rgba(121,131,142,.34);position:fixed;top:22px;right:22px;width:60px;height:60px;border-radius:50%;z-index:70;background:radial-gradient(circle at 30% 22%,rgba(255,255,255,.42),transparent 28%),radial-gradient(circle at 50% 62%,var(--orb),#121820 76%);border:1px solid rgba(255,255,255,.36);box-shadow:0 10px 28px rgba(0,0,0,.34),0 0 22px var(--orb-soft),inset 0 1px 1px rgba(255,255,255,.42),inset 0 -10px 20px rgba(0,0,0,.3);display:flex;align-items:center;justify-content:center;transition:transform .28s cubic-bezier(.2,.8,.2,1),box-shadow .4s ease,background .4s ease;touch-action:none;isolation:isolate;}
+#ai-ball::before{content:"";position:absolute;inset:9px;border-radius:50%;background:radial-gradient(circle at 38% 30%,rgba(255,255,255,.42),rgba(255,255,255,.06) 36%,rgba(0,0,0,.18) 72%);border:1px solid rgba(255,255,255,.18);box-shadow:inset 0 0 12px rgba(255,255,255,.08),0 0 13px var(--orb-soft);z-index:1;}
+#ai-ball::after{content:"";position:absolute;left:17px;top:11px;width:19px;height:8px;border-radius:50%;background:linear-gradient(180deg,rgba(255,255,255,.62),rgba(255,255,255,0));filter:blur(.4px);transform:rotate(-18deg);z-index:3;opacity:.72;}
+#ai-ball .core{position:relative;z-index:2;width:12px;height:12px;border-radius:50%;background:#e5ebef;box-shadow:0 0 7px rgba(255,255,255,.82),0 0 18px var(--orb);transition:transform .35s ease,background .35s ease,box-shadow .35s ease;}
+#ai-ball .ring{position:absolute;inset:-6px;border-radius:50%;border:1px solid rgba(255,255,255,.14);pointer-events:none;opacity:.55;transition:opacity .35s ease,transform .35s ease,border-color .35s ease;}
+#ai-ball .ring::before,#ai-ball .ring::after{content:"";position:absolute;inset:4px;border-radius:50%;border:1px solid transparent;}
+#ai-ball .badge{position:absolute;top:-2px;right:-2px;width:11px;height:11px;border-radius:50%;background:#ff665c;border:2px solid #e8edf0;display:none;box-shadow:0 0 10px rgba(255,102,92,.72);z-index:5;}
+#ai-ball.has-history .badge{display:block;animation:badgeBreath 2.4s ease-in-out infinite;}
+#ai-ball[data-state="idle"]{--orb:#79838e;--orb-soft:rgba(121,131,142,.28);animation:orbIdle 4.2s ease-in-out infinite;}
+#ai-ball[data-state="listen"]{--orb:#dd8b38;--orb-soft:rgba(221,139,56,.42);transform:scale(1.035);}
+#ai-ball[data-state="listen"] .ring{border-color:rgba(255,184,92,.55);animation:listenWave 1.55s cubic-bezier(.2,.65,.25,1) infinite;}
+#ai-ball[data-state="listen"] .ring::before{border-color:rgba(255,190,105,.3);animation:listenWave 1.55s .42s cubic-bezier(.2,.65,.25,1) infinite;}
+#ai-ball[data-state="sense"]{--orb:#8b68d8;--orb-soft:rgba(139,104,216,.48);transform:scale(1.07);}
+#ai-ball[data-state="sense"] .ring{opacity:1;border-top-color:#d9c8ff;border-right-color:rgba(217,200,255,.16);border-bottom-color:#8e6ee2;border-left-color:rgba(142,110,226,.16);animation:senseScan 1.35s linear infinite;}
+#ai-ball[data-state="sense"] .ring::after{inset:-4px;border-top-color:rgba(217,200,255,.34);border-bottom-color:rgba(139,104,216,.16);animation:senseScan 2.4s linear infinite reverse;}
+#ai-ball[data-state="think"]{--orb:#3f8ed8;--orb-soft:rgba(63,142,216,.5);}
+#ai-ball[data-state="think"] .core{animation:thinkCore 1.05s ease-in-out infinite;}
+#ai-ball[data-state="think"] .ring{opacity:1;border-top-color:#bde7ff;border-right-color:#4ba3ed;border-bottom-color:rgba(75,163,237,.12);animation:senseScan .82s cubic-bezier(.55,.1,.45,.9) infinite;}
+#ai-ball[data-state="active"]{--orb:#54a968;--orb-soft:rgba(84,169,104,.42);animation:activeBloom 2.8s ease-in-out infinite;}
+#ai-ball[data-state="active"] .ring{border-color:rgba(145,231,157,.42);opacity:.82;}
+#ai-ball[data-state="active"] .core{background:#eaffea;box-shadow:0 0 8px rgba(234,255,234,.92),0 0 22px #62c679;}
+@keyframes orbIdle{0%,100%{transform:scale(.985);filter:saturate(.78);}50%{transform:scale(1);filter:saturate(.96);}}
+@keyframes listenWave{0%{transform:scale(.82);opacity:.76;}75%,100%{transform:scale(1.28);opacity:0;}}
+@keyframes senseScan{to{transform:rotate(360deg);}}
+@keyframes thinkCore{0%,100%{transform:scale(.65);opacity:.65;}50%{transform:scale(1.2);opacity:1;}}
+@keyframes activeBloom{0%,100%{box-shadow:0 10px 28px rgba(0,0,0,.34),0 0 18px var(--orb-soft),inset 0 1px 1px rgba(255,255,255,.42),inset 0 -10px 20px rgba(0,0,0,.3);}50%{box-shadow:0 10px 28px rgba(0,0,0,.34),0 0 29px var(--orb-soft),inset 0 1px 1px rgba(255,255,255,.42),inset 0 -10px 20px rgba(0,0,0,.3);}}
+@keyframes badgeBreath{0%,100%{transform:scale(.88);opacity:.75;}50%{transform:scale(1.08);opacity:1;}}
+
+/* Drag crosshair (above finger) */
+#drag-cross{position:fixed;width:60px;height:60px;pointer-events:none;z-index:58;display:none;transform:translate(-50%,-50%);}
+#drag-cross svg{width:100%;height:100%;filter:drop-shadow(0 0 8px rgba(255,220,80,1));}
+
+/* Voice bubble */
+#voice-bubble{position:fixed;top:22px;right:92px;left:auto;max-width:200px;padding:10px 16px;border-radius:16px 16px 4px 16px;background:rgba(0,0,0,.8);border:1px solid rgba(126,217,87,.55);color:#eaffd6;font-size:14px;line-height:1.4;z-index:65;display:none;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);text-align:left;white-space:normal;box-shadow:0 8px 22px rgba(0,0,0,.5),0 0 16px rgba(126,217,87,.28);}
+#voice-bubble .mic{display:inline-block;width:8px;height:8px;border-radius:50%;background:#ef5350;margin-right:8px;vertical-align:middle;animation:pulse 1s infinite;}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1);}50%{opacity:.4;transform:scale(1.35);}}
+#voice-bubble .txt{vertical-align:middle;}
+
+/* Block name label */
+#block-label{position:fixed;left:50%;top:36%;transform:translate(-50%,-50%);padding:6px 16px;background:rgba(0,0,0,.82);border:1px solid rgba(255,220,80,.75);color:#fff8d0;border-radius:6px;font-size:15px;font-weight:600;letter-spacing:1px;z-index:57;display:none;pointer-events:none;text-shadow:0 1px 2px #000;}
+
+/* Chat panel — full-height right side, flush to top-right, overlaps AI ball */
+#chat-panel{position:fixed;top:22px;right:22px;bottom:14px;width:min(380px,78vw);max-width:380px;background:rgba(15,22,18,0.94);border:1px solid rgba(255,255,255,0.1);border-radius:14px;z-index:55;display:none;flex-direction:column;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);box-shadow:0 8px 28px rgba(0,0,0,.55);transform-origin:top right;animation:panelIn .22s ease-out;}
+#chat-panel.open{display:flex;}
+@keyframes panelIn{from{opacity:0;transform:scale(0.92) translateY(-6px);}to{opacity:1;transform:scale(1) translateY(0);}}
+#chat-close{position:absolute;top:8px;left:8px;width:24px;height:24px;border-radius:50%;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);color:#ccc;font-size:14px;line-height:1;z-index:2;display:flex;align-items:center;justify-content:center;padding:0;}
+#chat-close:active{background:rgba(255,255,255,0.16);}
+
+#chat-panel .chat-body{flex:1;overflow-y:auto;padding:78px 12px 8px;-webkit-overflow-scrolling:touch;}
+#chat-panel .chat-body::-webkit-scrollbar{width:4px;}
+#chat-panel .chat-body::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.15);border-radius:2px;}
+
+#chat-panel .empty-state{color:#78909c;text-align:center;padding:24px 12px;font-size:12px;line-height:1.7;}
+#chat-panel .empty-state .big{font-size:14px;color:#b0bec5;margin-bottom:8px;font-weight:600;}
+
+/* Message row */
+.msg{margin:12px 0;display:flex;align-items:flex-start;gap:8px;}
+.msg.user{justify-content:flex-end;}
+.msg .avatar{width:34px;height:34px;flex-shrink:0;image-rendering:pixelated;border-radius:4px;overflow:hidden;background-size:cover;background-position:center;background-repeat:no-repeat;}
+.msg .bubble{min-width:0;}
+.msg.user .bubble{max-width:calc(100% - 46px);}
+.msg.ai .bubble{max-width:calc(100% - 46px);flex:1;}
+
+/* User bubble (green pill) */
+.msg.user .bubble{background:#2e7d32;color:#fff;padding:9px 16px;border-radius:18px;font-size:13px;line-height:1.4;word-wrap:break-word;overflow-wrap:break-word;font-weight:500;}
+.msg.user .bubble.no-content{padding:0;background:transparent;}
+
+/* AI thinking bubble */
+.msg.ai .bubble.thinking{background:rgba(255,255,255,0.06);color:#b0bec5;padding:8px 14px;border-radius:14px;font-style:italic;font-size:12px;border:1px solid rgba(255,255,255,0.08);flex:0 0 auto;align-self:flex-start;width:auto;min-width:110px;max-width:100%;white-space:nowrap;}
+.msg.ai .bubble.thinking .dots span{display:inline-block;width:5px;height:5px;background:#7ed957;border-radius:50%;margin:0 1px;animation:thk 1.2s infinite ease-in-out;}
+.msg.ai .bubble.thinking .dots span:nth-child(2){animation-delay:0.15s;}
+.msg.ai .bubble.thinking .dots span:nth-child(3){animation-delay:0.3s;}
+@keyframes thk{0%,80%,100%{opacity:0.25;transform:scale(0.8);}40%{opacity:1;transform:scale(1);}}
+
+/* Card base (dark green panel) */
+.card{background:#141a15;border-radius:10px;padding:12px;color:#e8e8e8;font-size:12px;line-height:1.55;}
+.card .card-head{background:#000;padding:8px 14px;border-radius:6px;margin-bottom:10px;display:flex;align-items:center;gap:10px;}
+.card .card-head .name{font-size:16px;font-weight:800;color:#fff;letter-spacing:2px;}
+.card .card-head .tag{padding:3px 10px;background:rgba(255,255,255,0.1);border-radius:4px;font-size:11px;color:#ccc;letter-spacing:1px;}
+.card .k{color:#7ed957;font-weight:600;}
+
+/* Choice buttons */
+.card .opt{width:100%;padding:12px 16px;background:#2e7d32;border:none;border-radius:6px;color:#fff;font-size:15px;font-weight:600;display:flex;align-items:center;gap:12px;margin-top:8px;text-align:left;cursor:pointer;letter-spacing:1px;transition:background .15s;}
+.card .opt:active{background:#388e3c;}
+.card .opt .oi{width:22px;height:22px;flex-shrink:0;display:inline-flex;align-items:center;justify-content:center;}
+.card .opt .oi svg{width:100%;height:100%;fill:currentColor;}
+
+/* Info card body */
+.info-body{display:flex;gap:12px;margin-bottom:2px;padding:4px 2px;}
+.info-body .thumb{width:70px;height:70px;background:rgba(255,255,255,0.06);border-radius:6px;flex-shrink:0;display:flex;align-items:center;justify-content:center;overflow:hidden;padding:4px;}
+.info-body .thumb canvas,.info-body .thumb img{image-rendering:pixelated;image-rendering:-moz-crisp-edges;width:100%;height:100%;object-fit:contain;}
+.info-body .desc{flex:1;color:#e0e0e0;padding-top:4px;font-size:12px;line-height:1.55;}
+
+.stats-row{margin-top:8px;padding:10px 12px;background:rgba(0,0,0,0.35);border-radius:6px;display:flex;justify-content:space-between;align-items:center;gap:8px;}
+.stats-row .label{color:#7ed957;font-size:13px;font-weight:600;flex-shrink:0;letter-spacing:.5px;}
+.stats-row .val{display:flex;gap:2px;align-items:center;font-size:11px;color:#ccc;flex-wrap:wrap;justify-content:flex-end;}
+.hearts{display:inline-flex;gap:1px;}
+.hearts svg{width:13px;height:13px;}
+.stats-row .num{margin-left:8px;font-family:monospace;color:#fff;font-size:13px;font-weight:600;}
+
+.drops-row{margin-top:8px;padding:10px 12px;background:rgba(0,0,0,0.35);border-radius:6px;}
+.drops-row .label{color:#7ed957;font-size:13px;font-weight:600;margin-bottom:8px;letter-spacing:.5px;}
+.drops-list{display:flex;gap:14px;flex-wrap:wrap;}
+.drop{text-align:center;}
+.drop .icon-wrap{width:44px;height:44px;background:rgba(0,0,0,0.4);border-radius:5px;position:relative;margin:0 auto;display:flex;align-items:center;justify-content:center;overflow:hidden;padding:3px;}
+.drop .icon-wrap canvas,.drop .icon-wrap img{image-rendering:pixelated;width:100%;height:100%;object-fit:contain;}
+.drop .icon-wrap .count{position:absolute;bottom:1px;right:3px;font-size:10px;color:#fff;font-family:monospace;font-weight:700;text-shadow:1px 1px 0 #000,-1px 1px 0 #000,1px -1px 0 #000,-1px -1px 0 #000;}
+.drop .lbl{font-size:11px;color:#ccc;margin-top:4px;letter-spacing:.5px;}
+
+.loc-row{margin-top:8px;padding:10px 12px;background:rgba(0,0,0,0.35);border-radius:6px;}
+.loc-row .title{color:#7ed957;font-size:13px;font-weight:600;margin-bottom:6px;display:flex;align-items:center;gap:5px;letter-spacing:.5px;}
+.loc-row .title svg{width:13px;height:13px;fill:#7ed957;}
+.loc-row .text{font-size:12px;line-height:1.7;color:#ddd;}
+
+/* Guide card */
+.guide-sec{margin-bottom:10px;}
+.guide-sec:last-child{margin-bottom:0;}
+.guide-sec .sec-title{font-size:14px;font-weight:700;color:#fff;margin-bottom:6px;padding:6px 12px;background:rgba(0,0,0,0.35);border-radius:4px;letter-spacing:1px;}
+.guide-sec .sec-text{font-size:12px;line-height:1.7;color:#e0e0e0;padding:2px 4px;}
+.guide-action{margin-top:12px;text-align:right;}
+.guide-action button{background:#2e7d32;color:#fff;padding:8px 18px;border-radius:6px;border:none;font-size:13px;font-weight:600;letter-spacing:1px;cursor:pointer;}
+.guide-action button:active{background:#388e3c;}
+
+/* Foot */
+#chat-panel .chat-foot{padding:10px 10px;border-top:1px solid rgba(255,255,255,0.06);display:flex;gap:8px;align-items:center;flex-shrink:0;background:rgba(0,0,0,0.2);border-radius:0 0 14px 14px;}
+#chat-panel .chat-foot .sel-chip{background:#2e7d32;color:#fff;padding:7px 12px;border-radius:14px;font-size:12px;font-weight:600;flex-shrink:0;letter-spacing:.5px;display:none;white-space:nowrap;}
+#chat-panel .chat-foot .sel-chip.on{display:block;}
+#chat-panel .chat-foot input{flex:1;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);color:#eee;padding:8px 14px;border-radius:16px;font-size:12.5px;outline:none;font-family:inherit;user-select:text;-webkit-user-select:text;min-width:0;}
+#chat-panel .chat-foot input:focus{border-color:rgba(126,217,87,0.5);}
+#chat-panel .chat-foot input::placeholder{color:#78909c;}
+#chat-panel .chat-foot .mic{width:42px;height:34px;border-radius:8px;background:linear-gradient(135deg,#7ed957,#388e3c);border:none;color:#fff;display:flex;align-items:center;justify-content:center;flex-shrink:0;padding:0;cursor:pointer;}
+#chat-panel .chat-foot .mic svg{width:18px;height:18px;fill:currentColor;}
+#chat-panel .chat-foot .mic:active{transform:scale(0.94);}
+#chat-panel .chat-foot .mic.rec{background:linear-gradient(135deg,#ef5350,#c62828);animation:pulse 1s infinite;}
+
+/* Hint */
+#hint{position:fixed;left:12px;top:12px;font-size:10px;color:rgba(255,255,255,.55);z-index:10;line-height:1.6;letter-spacing:.5px;pointer-events:none;text-shadow:0 1px 2px rgba(0,0,0,.9);max-width:60%;}
+#hint b{color:var(--accent);}
+#hint.hidden{opacity:0;transition:opacity .5s;}
+
+/* FPS mini */
+#fps{position:fixed;left:12px;bottom:170px;font-size:10px;color:rgba(255,255,255,.35);z-index:5;font-family:monospace;display:none;}
+
+/* ===== 12态 × 13操作 演示层 ===== */
+/* 主动气泡 (S-03 / S-07) — 悬浮球旁一句话胶囊 */
+#proactive-bubble{position:fixed;z-index:75;max-width:230px;padding:10px 14px;border-radius:16px 16px 4px 16px;
+  background:rgba(18,24,20,.94);border:1px solid rgba(126,217,87,.5);color:#eaffea;font-size:13px;line-height:1.5;
+  box-shadow:0 8px 24px rgba(0,0,0,.5),0 0 18px rgba(126,217,87,.28);display:none;transform-origin:top right;
+  animation:bubbleIn .32s cubic-bezier(.2,.9,.25,1);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);}
+#proactive-bubble.sense{border-color:rgba(139,104,216,.55);box-shadow:0 8px 24px rgba(0,0,0,.5),0 0 18px rgba(139,104,216,.3);color:#efe8ff;}
+#proactive-bubble .pb-txt{margin-bottom:8px;}
+#proactive-bubble .pb-acts{display:flex;gap:8px;}
+#proactive-bubble .pb-btn{flex:1;padding:6px 0;border-radius:9px;border:none;font-size:12px;font-weight:600;letter-spacing:1px;}
+#proactive-bubble .pb-yes{background:linear-gradient(135deg,#7ed957,#3f9e42);color:#fff;}
+#proactive-bubble .pb-no{background:rgba(255,255,255,.1);color:#aab;}
+#proactive-bubble .pb-hint{margin-top:6px;font-size:9px;color:#889;letter-spacing:.5px;}
+@keyframes bubbleIn{from{opacity:0;transform:scale(.7) translateY(-6px);}to{opacity:1;transform:scale(1);}}
+/* 滑走 / 收起动效 */
+#proactive-bubble.leaving,#float-card.leaving{animation:none;transition:transform .28s cubic-bezier(.4,0,.6,1),opacity .28s ease;
+  transform:translateX(135%) scale(.92);opacity:0;pointer-events:none;}
+#proactive-bubble.settling,#float-card.settling{transition:transform .18s ease;}
+
+/* 浮动卡片 (S-04) */
+#float-card{position:fixed;z-index:74;width:250px;max-width:78vw;padding:14px;border-radius:14px;
+  background:rgba(16,20,26,.96);border:1px solid rgba(79,195,247,.4);color:#e8eef4;font-size:12px;line-height:1.55;
+  box-shadow:0 12px 34px rgba(0,0,0,.55),0 0 20px rgba(79,195,247,.2);display:none;
+  animation:bubbleIn .3s cubic-bezier(.2,.9,.25,1);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);}
+#float-card .fc-head{display:flex;align-items:center;gap:8px;margin-bottom:8px;font-size:14px;font-weight:700;color:var(--gold);}
+#float-card .fc-thumb{width:26px;height:26px;border-radius:5px;background:#2a3340;flex:none;}
+#float-card .fc-body b{color:var(--accent);}
+#float-card .fc-btn{margin-top:10px;width:100%;padding:8px 0;border-radius:9px;border:none;font-size:12px;font-weight:600;
+  background:linear-gradient(135deg,#4fc3f7,#2b8fc4);color:#fff;letter-spacing:1px;}
+#float-card .fc-hint{margin-top:6px;font-size:9px;color:#7a8694;text-align:center;}
+
+/* 次级菜单 (OP-05 / OP-08 / OP-12) */
+#ctx-menu{position:fixed;z-index:80;min-width:150px;padding:5px;border-radius:10px;background:rgba(22,26,32,.98);
+  border:1px solid rgba(255,255,255,.14);box-shadow:0 10px 30px rgba(0,0,0,.6);display:none;}
+#ctx-menu .cm-item{padding:9px 12px;border-radius:7px;font-size:12px;color:#dde;cursor:pointer;}
+#ctx-menu .cm-item:active{background:rgba(255,255,255,.1);}
+#ctx-menu .cm-item.danger{color:#ff8a80;}
+
+/* tooltip (OP-11 悬停) */
+#hover-tip{position:fixed;z-index:82;padding:5px 9px;border-radius:6px;background:rgba(0,0,0,.85);
+  color:#eee;font-size:11px;display:none;pointer-events:none;white-space:nowrap;}
+
+/* 抑制态 (S-12) — 全部AI浮层半透明 */
+body.ai-suppressed #ai-ball,body.ai-suppressed #proactive-bubble,body.ai-suppressed #float-card,
+body.ai-suppressed #chat-panel{opacity:.32 !important;filter:saturate(.4);transition:opacity .4s;}
+#suppress-banner{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:83;
+  padding:8px 18px;border-radius:20px;background:rgba(180,40,40,.85);color:#fff;font-size:12px;font-weight:600;
+  letter-spacing:2px;display:none;box-shadow:0 4px 16px rgba(200,0,0,.5);}
+
+/* 状态监视器 已移除 */
+
+/* 模拟事件面板 */
+#sim-toggle{position:fixed;left:12px;top:12px;z-index:61;padding:8px 16px;border-radius:20px;
+  background:rgba(126,217,87,.16);border:1px solid rgba(126,217,87,.5);color:#cfffb8;font-size:11px;font-weight:600;
+  letter-spacing:1px;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);}
+#sim-toggle:active{background:rgba(126,217,87,.3);}
+#sim-panel{position:fixed;left:12px;top:52px;z-index:62;width:230px;max-height:78vh;overflow-y:auto;padding:12px;border-radius:12px;
+  background:rgba(12,16,22,.95);border:1px solid rgba(255,255,255,.12);box-shadow:0 10px 30px rgba(0,0,0,.5);
+  display:none;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);}
+#sim-panel.open{display:block;animation:bubbleIn .25s ease;}
+#sim-panel .sp-title{font-size:10px;letter-spacing:2px;color:#7a8694;margin-bottom:9px;}
+#sim-panel .sp-btn{display:block;width:100%;text-align:left;padding:9px 11px;margin-bottom:6px;border-radius:8px;
+  border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.04);color:#dde;font-size:12px;}
+#sim-panel .sp-btn:active{background:rgba(255,255,255,.14);}
+#sim-panel .sp-btn .sp-tag{float:right;font-family:monospace;font-size:10px;color:#7ed957;}
+#sim-panel .sp-mode{display:flex;gap:6px;margin-top:8px;padding-top:9px;border-top:1px solid rgba(255,255,255,.08);}
+#sim-panel .sp-mode button{flex:1;padding:7px 0;border-radius:8px;border:1px solid rgba(255,255,255,.12);
+  background:rgba(255,255,255,.04);color:#aab;font-size:11px;}
+#sim-panel .sp-mode button.on{background:linear-gradient(135deg,#4fc3f7,#2b8fc4);color:#fff;border-color:transparent;}
+
+/* ===== 多元意图混合识别策略控制台 ===== */
+#strategy-toggle{position:fixed;left:124px;top:12px;z-index:86;padding:8px 14px;border-radius:20px;
+  background:rgba(79,195,247,.16);border:1px solid rgba(79,195,247,.5);color:#bfeeff;font-size:11px;font-weight:700;letter-spacing:.5px;}
+#strategy-toggle:active{background:rgba(79,195,247,.3);}
+#strategy-panel{position:fixed;left:12px;top:52px;bottom:14px;z-index:85;width:min(430px,48vw);padding:14px;border-radius:14px;
+  background:rgba(8,12,18,.96);border:1px solid rgba(79,195,247,.28);box-shadow:0 12px 36px rgba(0,0,0,.58);display:none;
+  overflow:auto;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);color:#dce7f3;}
+#strategy-panel.open{display:block;animation:bubbleIn .22s ease;}
+#strategy-panel .st-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
+#strategy-panel .st-head b{font-size:14px;color:#fff;}
+#strategy-panel .st-head span{font:10px monospace;color:#4fc3f7;}
+#strategy-panel .st-scenes{display:grid;grid-template-columns:repeat(2,1fr);gap:6px;margin-bottom:10px;}
+#strategy-panel button{border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.05);color:#dce7f3;border-radius:8px;padding:8px;font-size:11px;text-align:left;}
+#strategy-panel button:active{background:rgba(79,195,247,.2);}
+#strategy-panel .st-input{display:flex;gap:6px;margin-bottom:10px;}
+#strategy-query{flex:1;min-width:0;border:1px solid rgba(255,255,255,.14);background:#111823;color:#fff;border-radius:8px;padding:9px;font-size:12px;outline:none;}
+#strategy-run{flex:none;background:linear-gradient(135deg,#4fc3f7,#2b8fc4)!important;color:#fff!important;font-weight:700;}
+#strategy-panel .st-layer{padding:9px 10px;margin-bottom:7px;border-radius:9px;background:rgba(255,255,255,.035);border-left:3px solid #34495e;}
+#strategy-panel .st-layer.on{border-left-color:#4fc3f7;background:rgba(79,195,247,.075);}
+#strategy-panel .st-layer.fail{border-left-color:#ef5350;}
+#strategy-panel .st-name{font-size:10px;letter-spacing:1px;color:#7f91a3;margin-bottom:4px;}
+#strategy-panel .st-value{font-size:11px;line-height:1.55;color:#d7e2ed;white-space:pre-wrap;}
+#strategy-panel .st-route{display:inline-block;padding:2px 7px;border-radius:5px;background:rgba(126,217,87,.15);color:#a8ef89;font:11px monospace;margin-right:5px;}
+#strategy-panel .st-component{display:inline-block;margin:2px 4px 2px 0;padding:2px 6px;border-radius:5px;background:rgba(126,87,194,.2);color:#d4c1ff;font:10px monospace;}
+#strategy-panel .st-output{border:1px solid rgba(126,217,87,.28);background:rgba(126,217,87,.07);padding:10px;border-radius:9px;font-size:12px;line-height:1.65;color:#efffea;}
+#strategy-panel .st-action{display:inline-block;margin-top:7px;border:1px solid rgba(79,195,247,.4);color:#8cddff;padding:4px 8px;border-radius:7px;font-size:10px;}
+#strategy-panel .st-note{font-size:9px;color:#647485;margin-top:8px;line-height:1.5;}
+@media(max-width:720px){#strategy-panel{width:calc(100vw - 24px);right:12px;}#strategy-toggle{left:112px;}}
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="loading">
+    <div class="logo">M C · A I</div>
+    <div class="bar"><span id="load-bar"></span></div>
+    <div class="tip" id="load-tip">正在生成方块世界...</div>
+    <button class="enter-btn" id="enter-btn">进 入 全 屏</button>
+    <div class="platform-tip" id="platform-tip"></div>
+  </div>
+
+  <button id="fs-btn" title="全屏切换">
+    <svg viewBox="0 0 24 24"><path d="M5 5h5V3H3v7h2V5zm9-2v2h5v5h2V3h-7zM5 19v-5H3v7h7v-2H5zm14 0h-5v2h7v-7h-2v5z"/></svg>
+  </button>
+
+  <div id="rotate-hint">
+    <div class="icon"></div>
+    <div>请横屏使用</div>
+  </div>
+
+  <div id="center-cross"></div>
+
+  <div id="joystick"><div class="knob" id="joy-knob"></div></div>
+  <button id="jump-btn">JUMP</button>
+
+  <div id="ai-ball" data-state="idle" aria-label="AI 助手：待命">
+    <div class="ring"></div>
+    <div class="core"></div>
+    <div class="badge"></div>
+  </div>
+
+  <div id="drag-cross">
+    <svg viewBox="0 0 100 100">
+      <circle cx="50" cy="50" r="30" fill="none" stroke="#ffdc50" stroke-width="3"/>
+      <circle cx="50" cy="50" r="4" fill="#ffdc50"/>
+      <line x1="50" y1="10" x2="50" y2="34" stroke="#ffdc50" stroke-width="3"/>
+      <line x1="50" y1="66" x2="50" y2="90" stroke="#ffdc50" stroke-width="3"/>
+      <line x1="10" y1="50" x2="34" y2="50" stroke="#ffdc50" stroke-width="3"/>
+      <line x1="66" y1="50" x2="90" y2="50" stroke="#ffdc50" stroke-width="3"/>
+    </svg>
+  </div>
+
+  <div id="voice-bubble"><span class="mic"></span><span class="txt" id="voice-txt">正在聆听...</span></div>
+
+  <div id="block-label"></div>
+
+  <div id="chat-panel">
+    <div class="chat-body" id="chat-body">
+      <div class="empty-state" id="empty-state">
+        <div class="big">你好，我是 MC 助手</div>
+        长按我拖到任意方块，松手可识别它<br>
+        也可以直接在下方向我提问
+      </div>
+    </div>
+    <div class="chat-foot">
+      <div class="sel-chip" id="sel-chip">选中【木头】</div>
+      <input id="chat-text" type="text" placeholder="铁矿去哪里找?" autocomplete="off" autocorrect="off" spellcheck="false" enterkeyhint="send"/>
+      <button class="mic" id="mic-btn" title="按住说话">
+        <svg viewBox="0 0 24 24"><path d="M12 14a3 3 0 003-3V5a3 3 0 00-6 0v6a3 3 0 003 3zm5-3a5 5 0 01-10 0H5a7 7 0 006 6.92V21h2v-3.08A7 7 0 0019 11z"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- ===== 12态演示层 ===== -->
+  <div id="proactive-bubble">
+    <div class="pb-txt"></div>
+    <div class="pb-acts"></div>
+    <div class="pb-hint">点击接受 · 向右划走驳回 · 长按更多</div>
+  </div>
+
+  <div id="float-card">
+    <div class="fc-head"><span class="fc-thumb"></span><span class="fc-name"></span></div>
+    <div class="fc-body"></div>
+    <button class="fc-btn"></button>
+    <div class="fc-hint">向右划走收起 · 长按关闭这类</div>
+  </div>
+
+  <div id="ctx-menu"></div>
+  <div id="hover-tip"></div>
+  <div id="suppress-banner">战斗中 · AI 已抑制</div>
+
+  <button id="sim-toggle">模拟事件 ▲</button>
+  <div id="sim-panel">
+    <div class="sp-title">AI 主动场景（真玩时要等事件，这里手动复现）</div>
+    <button class="sp-btn" data-sim="stuck">玩家卡关<span class="sp-tag">S06→S10→S03</span></button>
+    <button class="sp-btn" data-sim="death">连续死亡·情绪陪伴<span class="sp-tag">S-07</span></button>
+    <button class="sp-btn" data-sim="rare">发现稀有资源<span class="sp-tag">S06→S03</span></button>
+    <button class="sp-btn" data-sim="card">气泡→展开卡片<span class="sp-tag">S-04</span></button>
+    <button class="sp-btn" data-sim="think">后台思考<span class="sp-tag">S-10</span></button>
+    <button class="sp-btn" data-sim="combat">进入/退出战斗<span class="sp-tag">S-12</span></button>
+    <div class="sp-title" style="margin-top:10px;padding-top:9px;border-top:1px solid rgba(255,255,255,.08);">玩家主动态（直达演示）</div>
+    <button class="sp-btn" data-sim="activeOrb">活跃·悬浮球<span class="sp-tag">S-02</span></button>
+    <button class="sp-btn" data-sim="panel">召唤面板<span class="sp-tag">S-05</span></button>
+    <button class="sp-btn" data-sim="listenOrb">快捷语音·聆听<span class="sp-tag">S-08</span></button>
+    <button class="sp-btn" data-sim="listenPanel">面板内语音<span class="sp-tag">S-09</span></button>
+    <button class="sp-btn" data-sim="thinkPanel">面板思考中<span class="sp-tag">S-11</span></button>
+    <div class="sp-mode">
+      <button data-mode="manual" class="on">真实交互</button>
+      <button data-mode="auto">自动演示</button>
+    </div>
+  </div>
+
+  <button id="strategy-toggle">策略控制台</button>
+  <div id="strategy-panel">
+    <div class="st-head"><b>多元意图混合识别</b><span>6-LAYER TRACE</span></div>
+    <div class="st-scenes">
+      <button data-strategy-scene="pure-c">纯C · 羊掉什么</button>
+      <button data-strategy-scene="c-g">C→G · 剑还能用多久</button>
+      <button data-strategy-scene="pure-g">纯G · 今天砍了多少树</button>
+      <button data-strategy-scene="g-c">G→C · 下一步干嘛</button>
+      <button data-strategy-scene="follow-up">追问 · 铁锭哪来</button>
+      <button data-strategy-scene="action">边界 · 帮我砍树</button>
+    </div>
+    <div class="st-input"><input id="strategy-query" placeholder="输入问题，如：这把剑还能用多久？"><button id="strategy-run">运行</button></div>
+    <div class="st-layer" id="st-l1"><div class="st-name">层1 · 意图分类器</div><div class="st-value">等待输入</div></div>
+    <div class="st-layer" id="st-l2"><div class="st-name">层2 · 路径决策器</div><div class="st-value">答案核心是否输出 Wiki？是否读取玩家/世界状态？</div></div>
+    <div class="st-layer" id="st-l3"><div class="st-name">层3 · 组件执行器</div><div class="st-value">C 按需调用；G 以 G1 为前置串行执行</div></div>
+    <div class="st-layer" id="st-l4"><div class="st-name">层4 · 整合器</div><div class="st-value">extract_core → fuse → assemble</div></div>
+    <div class="st-layer" id="st-l5"><div class="st-name">层5 · 上下文管理器</div><div class="st-value">参考对象、上轮路径与组件缓存</div></div>
+    <div class="st-layer" id="st-l6"><div class="st-name">层6 · 失败处理</div><div class="st-value">未触发</div></div>
+    <div class="st-output" id="strategy-output">选择场景或输入问题查看输出</div>
+    <div class="st-note">C = 对象 Wiki 静态数据组件；G = 玩家/世界动态指引组件。C→G 与 G→C 表示数据调用顺序，不代表 LLM 顺序。</div>
+  </div>
+
+  <div id="fps">0</div>
+</div>
+
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://unpkg.com/three@0.160.0/build/three.module.js"
+  }
+}
+</script>
+<script type="module" id="main-script">
+import * as THREE from 'three';
+
+// ==============================================================
+// DOM refs
+// ==============================================================
+const app        = document.getElementById('app');
+const loadingEl  = document.getElementById('loading');
+const loadBar    = document.getElementById('load-bar');
+const loadTip    = document.getElementById('load-tip');
+const joystick   = document.getElementById('joystick');
+const joyKnob    = document.getElementById('joy-knob');
+const jumpBtn    = document.getElementById('jump-btn');
+const aiBall     = document.getElementById('ai-ball');
+const dragCross  = document.getElementById('drag-cross');
+const voiceBubble= document.getElementById('voice-bubble');
+const voiceTxt   = document.getElementById('voice-txt');
+const blockLabel = document.getElementById('block-label');
+const chatPanel  = document.getElementById('chat-panel');
+const chatBody   = document.getElementById('chat-body');
+const emptyState = document.getElementById('empty-state');
+const chatText   = document.getElementById('chat-text');
+const chatClose  = document.getElementById('chat-close');
+const selChip    = document.getElementById('sel-chip');
+const micBtn     = document.getElementById('mic-btn');
+const hintEl     = document.getElementById('hint');
+const fpsEl      = document.getElementById('fps');
+
+const setLoad = (p,tip)=>{ loadBar.style.width=(p*100)+'%'; if(tip) loadTip.textContent=tip; };
+
+// 语音气泡贴着悬浮球左侧展开
+function placeVoiceNearBall(){
+  const r = aiBall.getBoundingClientRect();
+  voiceBubble.style.left = 'auto';
+  voiceBubble.style.right = (window.innerWidth - r.left + 10) + 'px';
+  voiceBubble.style.top = r.top + 'px';
+}
+
+// ==============================================================
+// Fullscreen + platform detection
+// ==============================================================
+const enterBtn = document.getElementById('enter-btn');
+const platformTip = document.getElementById('platform-tip');
+const fsBtn = document.getElementById('fs-btn');
+const ua = navigator.userAgent;
+const isIOS = /iPad|iPhone|iPod/.test(ua) && !window.MSStream;
+const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+
+function canRequestFS(){
+  const el = document.documentElement;
+  return !!(el.requestFullscreen || el.webkitRequestFullscreen || el.msRequestFullscreen);
+}
+function requestFS(){
+  const el = document.documentElement;
+  const fn = el.requestFullscreen || el.webkitRequestFullscreen || el.msRequestFullscreen;
+  if(fn){ try{ fn.call(el); }catch(e){} }
+  // Lock landscape if possible
+  if(screen.orientation && screen.orientation.lock){
+    screen.orientation.lock('landscape').catch(()=>{});
+  }
+}
+function exitFS(){
+  const fn = document.exitFullscreen || document.webkitExitFullscreen || document.msExitFullscreen;
+  if(fn){ try{ fn.call(document); }catch(e){} }
+}
+function isFS(){
+  return !!(document.fullscreenElement || document.webkitFullscreenElement || document.msFullscreenElement);
+}
+
+// Setup enter button + platform hint on load screen
+function setupEnterFlow(){
+  const bindEnter = (fn)=>{
+    let fired = false;
+    const wrap = (e)=>{
+      if(fired) return; fired = true;
+      if(e && e.preventDefault) e.preventDefault();
+      if(e && e.stopPropagation) e.stopPropagation();
+      fn();
+    };
+    enterBtn.addEventListener('click', wrap);
+    enterBtn.addEventListener('touchend', wrap, {passive:false});
+  };
+  if(isIOS && !isStandalone){
+    platformTip.innerHTML = 'iOS Safari 无法通过按钮全屏。<br>请点浏览器分享 → <b>添加到主屏幕</b>，从图标启动即全屏无栏。';
+    enterBtn.textContent = '直接进入';
+    bindEnter(hideLoading);
+  } else if(isStandalone){
+    platformTip.textContent = '已在独立模式运行';
+    enterBtn.textContent = '进入';
+    bindEnter(hideLoading);
+  } else if(canRequestFS()){
+    platformTip.innerHTML = '进入后浏览器地址栏隐藏。<br>横屏效果最佳。';
+    bindEnter(()=>{ requestFS(); hideLoading(); });
+  } else {
+    platformTip.textContent = '此浏览器不支持全屏 API，直接进入';
+    enterBtn.textContent = '进入';
+    bindEnter(hideLoading);
+  }
+}
+
+function hideLoading(){
+  loadingEl.style.opacity='0';
+  setTimeout(()=>loadingEl.style.display='none', 500);
+}
+
+// In-app fullscreen toggle button
+fsBtn.addEventListener('click', e=>{
+  e.stopPropagation();
+  if(isFS()) exitFS(); else requestFS();
+});
+// Hide FS button in standalone mode (no need)
+if(isStandalone || isIOS){ fsBtn.style.display='none'; }
+document.addEventListener('fullscreenchange', ()=>{
+  fsBtn.title = isFS() ? '退出全屏' : '进入全屏';
+});
+
+// ==============================================================
+// Procedural 16x16 textures — MC style
+// ==============================================================
+function makeTex(drawFn){
+  const c=document.createElement('canvas'); c.width=16; c.height=16;
+  const ctx=c.getContext('2d'); ctx.imageSmoothingEnabled=false;
+  drawFn(ctx);
+  const t=new THREE.CanvasTexture(c);
+  t.magFilter=THREE.NearestFilter;
+  t.minFilter=THREE.NearestMipmapLinearFilter;
+  t.wrapS=t.wrapT=THREE.RepeatWrapping;
+  t.colorSpace=THREE.SRGBColorSpace;
+  t.generateMipmaps=true;
+  return t;
+}
+function fillBase(ctx,c){ ctx.fillStyle=c; ctx.fillRect(0,0,16,16); }
+function speckle(ctx,c,n){ ctx.fillStyle=c; for(let i=0;i<n;i++) ctx.fillRect((Math.random()*16)|0,(Math.random()*16)|0,1,1); }
+
+const T={};
+T.grassTop = makeTex(ctx=>{
+  fillBase(ctx,'#5eb04a');
+  speckle(ctx,'#4a9a3a',28);
+  speckle(ctx,'#78c465',22);
+  speckle(ctx,'#3d8730',10);
+  speckle(ctx,'#82d06a',8);
+});
+T.dirt = makeTex(ctx=>{
+  fillBase(ctx,'#8b5a2b');
+  speckle(ctx,'#6d4620',30);
+  speckle(ctx,'#a06e3d',22);
+  speckle(ctx,'#5a3a1a',12);
+});
+T.grassSide = makeTex(ctx=>{
+  fillBase(ctx,'#8b5a2b');
+  speckle(ctx,'#6d4620',22);
+  speckle(ctx,'#a06e3d',16);
+  speckle(ctx,'#5a3a1a',8);
+  ctx.fillStyle='#5eb04a';
+  for(let x=0;x<16;x++){ ctx.fillRect(x,0,1,3+((Math.random()*3)|0)); }
+  ctx.fillStyle='#4a9a3a';
+  for(let x=0;x<16;x++) if(Math.random()<0.45) ctx.fillRect(x,(Math.random()*4)|0,1,1);
+  ctx.fillStyle='#78c465';
+  for(let x=0;x<16;x++) if(Math.random()<0.28) ctx.fillRect(x,(Math.random()*3)|0,1,1);
+});
+T.stone = makeTex(ctx=>{
+  fillBase(ctx,'#7f7f7f');
+  speckle(ctx,'#6a6a6a',38); speckle(ctx,'#909090',24);
+  speckle(ctx,'#555',8); speckle(ctx,'#a5a5a5',10);
+});
+T.cobble = makeTex(ctx=>{
+  fillBase(ctx,'#5a5a5a');
+  const chunks=[[0,0,7,6],[8,0,7,5],[0,7,4,5],[5,7,6,4],[12,6,4,6],[0,13,7,3],[8,12,8,4]];
+  chunks.forEach(([x,y,w,h])=>{
+    ctx.fillStyle='#8a8a8a'; ctx.fillRect(x,y,w,h);
+    ctx.fillStyle='#a0a0a0'; ctx.fillRect(x,y,w,1); ctx.fillRect(x,y,1,h);
+    ctx.fillStyle='#555'; ctx.fillRect(x+w-1,y,1,h); ctx.fillRect(x,y+h-1,w,1);
+    ctx.fillStyle='#6a6a6a';
+    for(let i=0;i<3;i++) ctx.fillRect(x+1+((Math.random()*(w-2))|0),y+1+((Math.random()*(h-2))|0),1,1);
+  });
+});
+T.logSide = makeTex(ctx=>{
+  fillBase(ctx,'#6b4a2a');
+  for(let x=0;x<16;x++){
+    ctx.fillStyle=Math.random()<0.4?'#553a20':(Math.random()<0.5?'#7a5a35':'#6b4a2a');
+    ctx.fillRect(x,0,1,16);
+  }
+  speckle(ctx,'#3a2812',18); speckle(ctx,'#8a6a40',10);
+  for(let i=0;i<2;i++){
+    const x=2+((Math.random()*12)|0), y=2+((Math.random()*12)|0);
+    ctx.fillStyle='#3a2812'; ctx.fillRect(x,y,2,2);
+    ctx.fillStyle='#553a20'; ctx.fillRect(x,y,1,1);
+  }
+});
+T.logTop = makeTex(ctx=>{
+  fillBase(ctx,'#b48a58');
+  ctx.strokeStyle='#8a6035'; ctx.lineWidth=1;
+  for(let r=1.5;r<8;r+=1.8){ ctx.beginPath(); ctx.arc(8,8,r,0,Math.PI*2); ctx.stroke(); }
+  speckle(ctx,'#8a6035',12); speckle(ctx,'#c9a070',8);
+  ctx.fillStyle='#5a3818'; ctx.fillRect(7,7,2,2);
+});
+T.leaves = makeTex(ctx=>{
+  fillBase(ctx,'#2a5a1c');
+  speckle(ctx,'#1c3d14',42); speckle(ctx,'#3a7a2a',36);
+  speckle(ctx,'#4d9a35',22); speckle(ctx,'#5cb040',10);
+  for(let i=0;i<10;i++){ ctx.fillStyle='#132a0d'; ctx.fillRect((Math.random()*16)|0,(Math.random()*16)|0,1,1); }
+});
+T.planks = makeTex(ctx=>{
+  const rows=[0,4,8,12];
+  rows.forEach((y,i)=>{
+    ctx.fillStyle=(i%2)?'#a07040':'#8f5f30'; ctx.fillRect(0,y,16,4);
+    ctx.fillStyle='#5a3818'; ctx.fillRect(0,y+3,16,1);
+    for(let x=0;x<16;x++){
+      if(Math.random()<0.25){
+        ctx.fillStyle=Math.random()<0.5?'#7a5028':'#b58048';
+        ctx.fillRect(x,y+((Math.random()*3)|0),1,1);
+      }
+    }
+    const seam=(i*5+3)%16;
+    ctx.fillStyle='#5a3818'; ctx.fillRect(seam,y,1,4);
+    ctx.fillStyle='#c89060'; ctx.fillRect(0,y,16,1);
+  });
+});
+T.glass = makeTex(ctx=>{
+  ctx.clearRect(0,0,16,16);
+  ctx.fillStyle='rgba(180,220,240,0.18)'; ctx.fillRect(0,0,16,16);
+  ctx.strokeStyle='#cfe6f2'; ctx.lineWidth=1;
+  ctx.strokeRect(0.5,0.5,15,15);
+  ctx.strokeRect(2.5,2.5,11,11);
+  ctx.fillStyle='#e0f0f8'; ctx.fillRect(0,0,16,1); ctx.fillRect(0,0,1,16);
+  ctx.fillStyle='rgba(255,255,255,0.5)'; ctx.fillRect(3,3,3,1); ctx.fillRect(3,3,1,3);
+});
+function oreTex(oreColor,oreLight){
+  return makeTex(ctx=>{
+    fillBase(ctx,'#7f7f7f');
+    speckle(ctx,'#6a6a6a',30); speckle(ctx,'#909090',18); speckle(ctx,'#555',6);
+    const centers=[[4,4],[11,5],[7,12]];
+    centers.forEach(([cx,cy])=>{
+      const shape=[[0,0],[1,0],[0,1],[1,1],[2,1],[1,2],[-1,0],[0,-1],[2,0],[-1,1]];
+      shape.forEach(([dx,dy])=>{ if(Math.random()<0.7){ ctx.fillStyle=oreColor; ctx.fillRect(cx+dx,cy+dy,1,1); } });
+      shape.forEach(([dx,dy])=>{ if(Math.random()<0.35){ ctx.fillStyle=oreLight; ctx.fillRect(cx+dx,cy+dy,1,1); } });
+    });
+  });
+}
+T.diamond_ore = oreTex('#5cd8e0','#a8f3f7');
+T.iron_ore    = oreTex('#c8a080','#e4c8a8');
+T.coal_ore    = oreTex('#2a2a2a','#4a4a4a');
+T.gold_ore    = oreTex('#e8c060','#ffe090');
+T.redstone_ore= oreTex('#c02020','#ff4040');
+T.sand = makeTex(ctx=>{
+  fillBase(ctx,'#e0cf88');
+  speckle(ctx,'#c8b070',28); speckle(ctx,'#f0e0a0',22); speckle(ctx,'#b09858',8);
+});
+T.bedrock = makeTex(ctx=>{
+  fillBase(ctx,'#3a3a3a');
+  for(let i=0;i<14;i++){
+    ctx.fillStyle=['#252525','#4a4a4a','#5a5a5a','#2f2f2f','#3f3f3f'][(Math.random()*5)|0];
+    const x=(Math.random()*13)|0,y=(Math.random()*13)|0;
+    ctx.fillRect(x,y,2+((Math.random()*3)|0),2+((Math.random()*3)|0));
+  }
+  speckle(ctx,'#1a1a1a',10);
+});
+T.water = makeTex(ctx=>{
+  fillBase(ctx,'#2a6cc0');
+  speckle(ctx,'#3080d8',30); speckle(ctx,'#1e5090',22); speckle(ctx,'#4090e8',18);
+  // slight highlight bands
+  for(let y=0;y<16;y+=4){ ctx.fillStyle='rgba(140,200,255,0.15)'; ctx.fillRect(0,y,16,1); }
+});
+T.torch = makeTex(ctx=>{
+  ctx.clearRect(0,0,16,16);
+  // stick
+  ctx.fillStyle='#7a5a35'; ctx.fillRect(7,7,2,9);
+  ctx.fillStyle='#553a20'; ctx.fillRect(8,7,1,9);
+  // flame
+  ctx.fillStyle='#ffdc50'; ctx.fillRect(6,4,4,4);
+  ctx.fillStyle='#ff9020'; ctx.fillRect(6,5,4,1); ctx.fillRect(6,7,4,1);
+  ctx.fillStyle='#fff8c0'; ctx.fillRect(7,5,2,2);
+});
+
+setLoad(0.15,'贴图已生成...');
+
+// ==============================================================
+// Materials
+// ==============================================================
+function mat(map, opts={}){ return new THREE.MeshLambertMaterial(Object.assign({map},opts)); }
+const M={};
+M.grass = [mat(T.grassSide),mat(T.grassSide),mat(T.grassTop),mat(T.dirt),mat(T.grassSide),mat(T.grassSide)];
+M.dirt  = mat(T.dirt);
+M.stone = mat(T.stone);
+M.cobble= mat(T.cobble);
+M.log   = [mat(T.logSide),mat(T.logSide),mat(T.logTop),mat(T.logTop),mat(T.logSide),mat(T.logSide)];
+M.leaves= mat(T.leaves);
+M.planks= mat(T.planks);
+M.glass = mat(T.glass,{transparent:true,opacity:0.55,depthWrite:false});
+M.diamond_ore = mat(T.diamond_ore);
+M.iron_ore    = mat(T.iron_ore);
+M.coal_ore    = mat(T.coal_ore);
+M.gold_ore    = mat(T.gold_ore);
+M.redstone_ore= mat(T.redstone_ore);
+M.sand  = mat(T.sand);
+M.bedrock = mat(T.bedrock);
+M.water = new THREE.MeshLambertMaterial({map:T.water,transparent:true,opacity:0.72,depthWrite:false});
+
+const BLOCK_INFO = {
+  grass:       {name:'草方块',   desc:'覆盖着泥土层的地表方块，顶部长着绿草。用铲子挖最快。'},
+  dirt:        {name:'泥土',     desc:'普通泥土方块。用锄头翻耕后可种植作物。'},
+  stone:       {name:'石头',     desc:'构成地下世界的主要方块。用木镐及以上开采，掉落圆石。'},
+  cobble:      {name:'圆石',     desc:'开采石头得到的产物，是熔炉与石制工具的基础材料。'},
+  log:         {name:'橡木原木', desc:'橡树砍下的原木。合成 4 个橡木板，是所有建筑与工具的起点。'},
+  leaves:      {name:'橡树树叶', desc:'橡树的叶子，会腐烂消失。少量掉落树苗与苹果。'},
+  planks:      {name:'橡木木板', desc:'由原木合成，是工作台、门、船、栅栏等的原料。'},
+  glass:       {name:'玻璃',     desc:'沙子熔炼得到。透明，被打破后不会掉落——除非用精准采集。'},
+  diamond_ore: {name:'钻石矿石', desc:'珍稀的钻石矿。Y=-58 附近最密集。必须用铁镐及以上开采。'},
+  iron_ore:    {name:'铁矿石',   desc:'常见的铁矿。用石镐开采，熔炼后得到铁锭。'},
+  coal_ore:    {name:'煤矿石',   desc:'随处可见的煤矿。用木镐即可开采，掉落煤炭。'},
+  gold_ore:    {name:'金矿石',   desc:'金光闪闪的金矿。只能用铁镐开采。装备耐久较低。'},
+  redstone_ore:{name:'红石矿石', desc:'红石矿。用铁镐开采，掉落红石粉，用于制作机关电路。'},
+  sand:        {name:'沙子',     desc:'受重力影响会掉落的方块，熔炼后得到玻璃。'},
+  bedrock:     {name:'基岩',     desc:'世界的边界方块，任何工具都无法破坏。'},
+  water:       {name:'水',       desc:'水源方块。可以游泳，落地不掉血，能扑灭火焰。'},
+};
+
+// ==============================================================
+// Scene / camera / renderer
+// ==============================================================
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 300);
+camera.rotation.order='YXZ';
+
+const renderer = new THREE.WebGLRenderer({antialias:false, powerPreference:'high-performance'});
+renderer.setPixelRatio(Math.min(window.devicePixelRatio||1, 2));
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.05;
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.domElement.style.position='fixed';
+renderer.domElement.style.inset='0';
+renderer.domElement.style.zIndex='0';
+app.appendChild(renderer.domElement);
+
+// Sky dome
+const skyGeo = new THREE.SphereGeometry(180,24,14);
+const skyMat = new THREE.ShaderMaterial({
+  uniforms:{ top:{value:new THREE.Color(0x2f6cb8)}, mid:{value:new THREE.Color(0x86c8e8)}, bot:{value:new THREE.Color(0xe5eff2)} },
+  vertexShader:'varying vec3 vP; void main(){ vP=position; gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.); }',
+  fragmentShader:`
+    uniform vec3 top,mid,bot; varying vec3 vP;
+    void main(){
+      float h = normalize(vP).y;
+      vec3 col = h>0.0 ? mix(mid,top,pow(h,0.55)) : mix(mid,bot,pow(-h,0.5));
+      gl_FragColor = vec4(col,1.0);
+    }
+  `,
+  side:THREE.BackSide, depthWrite:false, fog:false, toneMapped:false
+});
+const sky = new THREE.Mesh(skyGeo, skyMat);
+scene.add(sky);
+scene.fog = new THREE.Fog(0xc4dee9, 32, 82);
+
+// Lights
+scene.add(new THREE.HemisphereLight(0xbfe3ff, 0x6a8060, 0.55));
+scene.add(new THREE.AmbientLight(0xffffff, 0.12));
+
+const sun = new THREE.DirectionalLight(0xfff2c8, 1.35);
+sun.position.set(38, 60, 22);
+sun.castShadow = true;
+sun.shadow.mapSize.set(1024,1024);
+sun.shadow.camera.left = -32;
+sun.shadow.camera.right= 32;
+sun.shadow.camera.top  = 32;
+sun.shadow.camera.bottom=-32;
+sun.shadow.camera.near = 1;
+sun.shadow.camera.far  = 150;
+sun.shadow.bias = -0.0004;
+sun.shadow.normalBias = 0.03;
+scene.add(sun);
+scene.add(sun.target);
+
+// Sun disc + glow
+const sunDisc = new THREE.Mesh(
+  new THREE.SphereGeometry(3.5,16,12),
+  new THREE.MeshBasicMaterial({color:0xfff8d0, fog:false, toneMapped:false})
+);
+scene.add(sunDisc);
+const sunGlow = new THREE.Mesh(
+  new THREE.SphereGeometry(7.5,16,12),
+  new THREE.MeshBasicMaterial({color:0xfff2a0, transparent:true, opacity:0.32, fog:false, toneMapped:false})
+);
+scene.add(sunGlow);
+
+// Clouds
+const cloudGroup = new THREE.Group();
+for(let i=0;i<12;i++){
+  const cw=8+Math.random()*10, cd=5+Math.random()*6;
+  const cloud = new THREE.Mesh(
+    new THREE.BoxGeometry(cw,1.4,cd),
+    new THREE.MeshLambertMaterial({color:0xffffff, transparent:true, opacity:0.9})
+  );
+  cloud.position.set((Math.random()-0.5)*120, 36+Math.random()*8, (Math.random()-0.5)*120);
+  cloudGroup.add(cloud);
+  for(let j=0;j<2;j++){
+    const bp = new THREE.Mesh(
+      new THREE.BoxGeometry(cw*0.5,1.4,cd*0.6),
+      new THREE.MeshLambertMaterial({color:0xffffff, transparent:true, opacity:0.9})
+    );
+    bp.position.set(cloud.position.x+(Math.random()-0.5)*cw*0.6, cloud.position.y+1.2, cloud.position.z+(Math.random()-0.5)*cd*0.5);
+    cloudGroup.add(bp);
+  }
+}
+scene.add(cloudGroup);
+
+setLoad(0.3,'构建方块世界...');
+
+// ==============================================================
+// World generation
+// ==============================================================
+const world = new Map();
+const keyOf = (x,y,z)=> x+','+y+','+z;
+const setB = (x,y,z,t)=> world.set(keyOf(x,y,z),t);
+const getB = (x,y,z)=> world.get(keyOf(x,y,z));
+const delB = (x,y,z)=> world.delete(keyOf(x,y,z));
+const R = 22;
+
+// Base ground
+for(let x=-R;x<=R;x++)for(let z=-R;z<=R;z++){
+  setB(x,-1,z,'grass');
+  setB(x,-2,z,'dirt');
+  setB(x,-3,z,'dirt');
+  setB(x,-4,z,'stone');
+  setB(x,-5,z,'bedrock');
+}
+
+// Hills
+function hill(cx,cz,r){
+  for(let x=cx-r-1;x<=cx+r+1;x++)for(let z=cz-r-1;z<=cz+r+1;z++){
+    const d=Math.hypot(x-cx,z-cz);
+    if(x<-R||x>R||z<-R||z>R) continue;
+    if(d<r){ setB(x,0,z,'grass'); setB(x,-1,z,'dirt'); }
+    if(d<r-1.2){ setB(x,1,z,'grass'); setB(x,0,z,'dirt'); }
+    if(d<r-2.4){ setB(x,2,z,'grass'); setB(x,1,z,'dirt'); }
+    if(d<r-3.2){ setB(x,3,z,'grass'); setB(x,2,z,'dirt'); }
+  }
+}
+hill(-13,-9,3.5);
+hill(15,12,3);
+hill(-18,8,2.5);
+
+// Small pond (water)
+function pond(cx,cz){
+  for(let x=cx-2;x<=cx+2;x++)for(let z=cz-2;z<=cz+2;z++){
+    if(Math.hypot(x-cx,z-cz)<2.3){
+      delB(x,-1,z);
+      setB(x,-1,z,'water');
+      setB(x,-2,z,'dirt');
+    }
+  }
+  // sand rim
+  for(let x=cx-3;x<=cx+3;x++)for(let z=cz-3;z<=cz+3;z++){
+    const d=Math.hypot(x-cx,z-cz);
+    if(d>=2.3 && d<3.2 && getB(x,-1,z)==='grass') setB(x,-1,z,'sand');
+  }
+}
+pond(-6,-6);
+
+// sand beach
+for(let x=-6;x<=1;x++)for(let z=14;z<=19;z++){
+  if(x>=-R&&x<=R&&z>=-R&&z<=R && getB(x,-1,z)==='grass'){
+    setB(x,-1,z,'sand'); setB(x,-2,z,'sand');
+  }
+}
+
+// stone outcrops
+function outcrop(cx,cz){
+  for(let dx=-1;dx<=1;dx++)for(let dz=-1;dz<=1;dz++){
+    if(Math.random()<0.6) setB(cx+dx,0,cz+dz,'stone');
+    if(Math.random()<0.3) setB(cx+dx,1,cz+dz,'stone');
+  }
+  setB(cx,0,cz,'stone'); setB(cx,1,cz,'stone');
+}
+outcrop(-17,3);
+outcrop(18,-3);
+
+// trees
+function tree(x,z){
+  let by=0; while(getB(x,by,z)) by++;
+  const bottom=by, top=bottom+4;
+  for(let i=0;i<4;i++) setB(x,bottom+i,z,'log');
+  for(let dx=-2;dx<=2;dx++)for(let dz=-2;dz<=2;dz++){
+    if(dx===0&&dz===0) continue;
+    if(Math.abs(dx)===2&&Math.abs(dz)===2 && Math.random()<0.6) continue;
+    if(!getB(x+dx,top-1,z+dz)) setB(x+dx,top-1,z+dz,'leaves');
+    if(!getB(x+dx,top,z+dz))   setB(x+dx,top,z+dz,'leaves');
+  }
+  for(let dx=-1;dx<=1;dx++)for(let dz=-1;dz<=1;dz++){
+    if(!getB(x+dx,top+1,z+dz)) setB(x+dx,top+1,z+dz,'leaves');
+  }
+  if(!getB(x,top+2,z)) setB(x,top+2,z,'leaves');
+  setB(x,top,z,'log');
+  setB(x,top+1,z,'log');
+}
+tree(-8,4);
+tree(-15,-3);
+tree(9,-9);
+tree(-3,-13);
+tree(13,-14);
+tree(2,-8);
+
+// House
+function house(x0,z0){
+  const w=7,d=6,h=4;
+  for(let x=x0;x<x0+w;x++)for(let z=z0;z<z0+d;z++) setB(x,0,z,'planks');
+  for(let y=1;y<=h;y++){
+    for(let x=x0;x<x0+w;x++){ setB(x,y,z0,'planks'); setB(x,y,z0+d-1,'planks'); }
+    for(let z=z0;z<z0+d;z++){ setB(x0,y,z,'planks'); setB(x0+w-1,y,z,'planks'); }
+  }
+  for(let y=1;y<=h;y++){
+    setB(x0,y,z0,'log'); setB(x0+w-1,y,z0,'log');
+    setB(x0,y,z0+d-1,'log'); setB(x0+w-1,y,z0+d-1,'log');
+  }
+  // stepped roof
+  for(let x=x0-1;x<=x0+w;x++)for(let z=z0-1;z<=z0+d;z++) setB(x,h+1,z,'planks');
+  for(let x=x0;x<x0+w;x++)for(let z=z0;z<z0+d;z++) if(Math.random()<0.9) setB(x,h+2,z,'planks');
+  // door
+  delB(x0+3,1,z0); delB(x0+3,2,z0);
+  // windows
+  setB(x0+1,2,z0,'glass'); setB(x0+5,2,z0,'glass');
+  setB(x0,2,z0+2,'glass'); setB(x0+w-1,2,z0+3,'glass');
+  setB(x0+2,2,z0+d-1,'glass'); setB(x0+4,2,z0+d-1,'glass');
+  // path
+  for(let i=1;i<=5;i++) setB(x0+3,-1,z0-i,'cobble');
+  // chimney
+  for(let y=1;y<=h+3;y++) setB(x0+w-2,y,z0+d-2,'cobble');
+}
+house(5,4);
+
+// Ore piles
+function orePile(cx,cz,ore,size){
+  const cells=[];
+  for(let dx=-size;dx<=size;dx++)for(let dz=-size;dz<=size;dz++){
+    if(Math.hypot(dx,dz)<=size+0.3) cells.push([dx,dz]);
+  }
+  cells.forEach(([dx,dz])=>{
+    if(Math.random()<0.8) setB(cx+dx,0,cz+dz,Math.random()<0.55?ore:'stone');
+    if(Math.abs(dx)<=1&&Math.abs(dz)<=1&&Math.random()<0.7) setB(cx+dx,1,cz+dz,Math.random()<0.5?ore:'cobble');
+  });
+  setB(cx,0,cz,ore); setB(cx,1,cz,ore);
+}
+orePile(-11,10,'diamond_ore',2);
+orePile(16,-6,'iron_ore',2);
+orePile(-2,-16,'coal_ore',2);
+orePile(17,15,'gold_ore',2);
+orePile(11,15,'redstone_ore',1);
+
+// scattered blocks
+[
+  [3,0,-4,'cobble'],[-3,0,-2,'planks'],[-11,0,7,'dirt'],[5,0,12,'cobble'],
+  [11,0,-14,'log'],[-19,0,0,'stone'],[4,0,15,'sand'],[-8,0,-2,'cobble'],
+  [7,0,17,'planks'],[-14,0,-15,'dirt'],
+].forEach(([x,y,z,t])=>setB(x,y,z,t));
+
+setLoad(0.55,'构建方块网格...');
+
+// ==============================================================
+// Build InstancedMeshes
+// ==============================================================
+const blockGeo = new THREE.BoxGeometry(1,1,1);
+const blockMeshes = [];
+{
+  const grouped = new Map();
+  for(const [k,type] of world){
+    if(!grouped.has(type)) grouped.set(type,[]);
+    const [x,y,z]=k.split(',').map(Number);
+    grouped.get(type).push([x,y,z]);
+  }
+  for(const [type, list] of grouped){
+    const material = M[type];
+    const im = new THREE.InstancedMesh(blockGeo, material, list.length);
+    im.userData.type = type;
+    im.userData.positions = list;
+    const dummy = new THREE.Object3D();
+    list.forEach(([x,y,z],i)=>{
+      dummy.position.set(x+0.5, y+0.5, z+0.5);
+      dummy.updateMatrix();
+      im.setMatrixAt(i, dummy.matrix);
+    });
+    im.instanceMatrix.needsUpdate=true;
+    im.castShadow = (type!=='water' && type!=='glass' && type!=='bedrock');
+    im.receiveShadow = true;
+    im.frustumCulled = false;
+    scene.add(im);
+    blockMeshes.push(im);
+  }
+}
+
+// Torches (cross-plane sprites emitting light)
+function torch(x,y,z){
+  const g = new THREE.PlaneGeometry(0.35, 0.55);
+  const m = new THREE.MeshBasicMaterial({map:T.torch, transparent:true, alphaTest:0.3, side:THREE.DoubleSide, toneMapped:false});
+  const p1 = new THREE.Mesh(g,m); p1.position.set(x, y+0.28, z);
+  const p2 = new THREE.Mesh(g,m); p2.position.set(x, y+0.28, z); p2.rotation.y = Math.PI/2;
+  scene.add(p1); scene.add(p2);
+  const light = new THREE.PointLight(0xffb060, 0.9, 6.5, 1.6);
+  light.position.set(x, y+0.5, z);
+  scene.add(light);
+}
+torch(5.5, 1.0, 3.5);   // house entrance
+torch(11.5, 1.0, 3.5);
+torch(-10.5, 1.0, 10.5); // near diamond pile
+torch(16.5, 1.0, -5.5); // near iron
+torch(0, 1.0, 12.5);    // near beach
+
+// Flowers (small sprite planes)
+function flower(x,z,color){
+  const c = document.createElement('canvas'); c.width=16; c.height=16;
+  const ctx = c.getContext('2d'); ctx.imageSmoothingEnabled=false;
+  // stem
+  ctx.fillStyle='#3a7a2a'; ctx.fillRect(7,7,2,8); ctx.fillRect(7,9,4,1);
+  // flower
+  ctx.fillStyle = color; ctx.fillRect(5,3,6,4); ctx.fillRect(4,4,1,2); ctx.fillRect(11,4,1,2);
+  ctx.fillStyle='#ffdc50'; ctx.fillRect(7,4,2,2);
+  const tex = new THREE.CanvasTexture(c);
+  tex.magFilter=THREE.NearestFilter; tex.minFilter=THREE.NearestFilter;
+  tex.colorSpace=THREE.SRGBColorSpace;
+  const g = new THREE.PlaneGeometry(0.7,0.7);
+  const m = new THREE.MeshLambertMaterial({map:tex, transparent:true, alphaTest:0.4, side:THREE.DoubleSide});
+  const p1 = new THREE.Mesh(g,m); p1.position.set(x, 0.35, z);
+  const p2 = new THREE.Mesh(g,m); p2.position.set(x, 0.35, z); p2.rotation.y = Math.PI/2;
+  scene.add(p1); scene.add(p2);
+}
+// scatter flowers
+const flowerColors = ['#ff4444','#ffdc50','#f070c0','#c060ff','#ffffff'];
+for(let i=0;i<24;i++){
+  const x = ((Math.random()-0.5)*40)|0;
+  const z = ((Math.random()-0.5)*40)|0;
+  if(getB(x,-1,z)==='grass' && !getB(x,0,z)){
+    flower(x+0.5+(Math.random()-0.5)*0.4, z+0.5+(Math.random()-0.5)*0.4, flowerColors[(Math.random()*flowerColors.length)|0]);
+  }
+}
+
+// Tall grass tufts
+function grassTuft(x,z){
+  const c = document.createElement('canvas'); c.width=16; c.height=16;
+  const ctx = c.getContext('2d'); ctx.imageSmoothingEnabled=false;
+  ctx.fillStyle='#4a9a3a';
+  for(let i=0;i<6;i++){
+    const gx=3+((Math.random()*10)|0);
+    const gh=4+((Math.random()*5)|0);
+    ctx.fillRect(gx,16-gh,1,gh);
+    if(Math.random()<0.5) ctx.fillRect(gx+1,16-gh+1,1,gh-1);
+  }
+  ctx.fillStyle='#78c465';
+  for(let i=0;i<3;i++){ ctx.fillRect(3+((Math.random()*10)|0),10+((Math.random()*5)|0),1,1); }
+  const tex=new THREE.CanvasTexture(c);
+  tex.magFilter=THREE.NearestFilter; tex.minFilter=THREE.NearestFilter;
+  tex.colorSpace=THREE.SRGBColorSpace;
+  const g=new THREE.PlaneGeometry(0.9,0.7);
+  const m=new THREE.MeshLambertMaterial({map:tex,transparent:true,alphaTest:0.4,side:THREE.DoubleSide});
+  const p1=new THREE.Mesh(g,m); p1.position.set(x,0.35,z);
+  const p2=new THREE.Mesh(g,m); p2.position.set(x,0.35,z); p2.rotation.y=Math.PI/2;
+  scene.add(p1); scene.add(p2);
+}
+for(let i=0;i<40;i++){
+  const x=((Math.random()-0.5)*40)|0;
+  const z=((Math.random()-0.5)*40)|0;
+  if(getB(x,-1,z)==='grass' && !getB(x,0,z)){
+    grassTuft(x+0.5+(Math.random()-0.5)*0.4, z+0.5+(Math.random()-0.5)*0.4);
+  }
+}
+
+// Fence around a small garden patch
+function fencePost(x,z){
+  const g = new THREE.BoxGeometry(0.2,0.9,0.2);
+  const m = new THREE.MeshLambertMaterial({map:T.logSide});
+  const mesh = new THREE.Mesh(g,m);
+  mesh.position.set(x, 0.45, z);
+  mesh.castShadow=true; mesh.receiveShadow=true;
+  scene.add(mesh);
+}
+function fenceRail(x1,z1,x2,z2){
+  const dx=x2-x1, dz=z2-z1; const len=Math.hypot(dx,dz);
+  const g=new THREE.BoxGeometry(len,0.08,0.08);
+  const m=new THREE.MeshLambertMaterial({map:T.logSide});
+  const mesh=new THREE.Mesh(g,m);
+  mesh.position.set((x1+x2)/2,0.7,(z1+z2)/2);
+  mesh.rotation.y = -Math.atan2(dz,dx);
+  mesh.castShadow=true;
+  scene.add(mesh);
+  // low rail
+  const mesh2=mesh.clone(); mesh2.position.y=0.35; scene.add(mesh2);
+}
+// simple fence run in front of house on cobble path sides
+const fx0=4.2, fz0=-0.5, fx1=4.2, fz1=3.8;
+fencePost(fx0,fz0); fencePost(fx0,fz1); fenceRail(fx0,fz0,fx1,fz1);
+const fx2=7.8, fx3=7.8;
+fencePost(fx2,fz0); fencePost(fx3,fz1); fenceRail(fx2,fz0,fx3,fz1);
+
+// Highlight — outline + emissive fill (glowing)
+const highlightOutline = new THREE.LineSegments(
+  new THREE.EdgesGeometry(new THREE.BoxGeometry(1.04,1.04,1.04)),
+  new THREE.LineBasicMaterial({color:0xffe040, transparent:true, opacity:0.95, depthTest:false, toneMapped:false})
+);
+highlightOutline.renderOrder=999; highlightOutline.visible=false;
+scene.add(highlightOutline);
+const highlightFill = new THREE.Mesh(
+  new THREE.BoxGeometry(1.01,1.01,1.01),
+  new THREE.MeshBasicMaterial({color:0xffe040, transparent:true, opacity:0.22, depthWrite:false, toneMapped:false})
+);
+highlightFill.renderOrder=998; highlightFill.visible=false;
+scene.add(highlightFill);
+
+setLoad(0.85,'即将进入世界...');
+
+// ==============================================================
+// Player + collision
+// ==============================================================
+const player = {
+  pos: new THREE.Vector3(0, 0, 15),
+  vel: new THREE.Vector3(),
+  yaw: 0, pitch: -0.15,
+  onGround: false,
+  r: 0.3, h: 1.75, eye: 1.6,
+};
+
+function isSolidBlock(x,y,z){
+  const b = world.get(keyOf(x,y,z));
+  if(!b) return false;
+  if(b==='leaves'||b==='water') return false;
+  return true;
+}
+
+const WORLD_MIN = -R + 0.5, WORLD_MAX = R + 0.5;
+
+function moveAndCollide(dx,dy,dz){
+  const r=player.r, h=player.h;
+  if(dx!==0){
+    player.pos.x += dx;
+    const y0=Math.floor(player.pos.y+0.01), y1=Math.floor(player.pos.y+h-0.01);
+    const z0=Math.floor(player.pos.z-r), z1=Math.floor(player.pos.z+r);
+    for(let y=y0;y<=y1;y++)for(let z=z0;z<=z1;z++){
+      if(dx>0){
+        const bx=Math.floor(player.pos.x+r);
+        if(isSolidBlock(bx,y,z)){ player.pos.x = bx - r - 1e-3; }
+      } else {
+        const bx=Math.floor(player.pos.x-r);
+        if(isSolidBlock(bx,y,z)){ player.pos.x = bx + 1 + r + 1e-3; }
+      }
+    }
+  }
+  if(dz!==0){
+    player.pos.z += dz;
+    const y0=Math.floor(player.pos.y+0.01), y1=Math.floor(player.pos.y+h-0.01);
+    const x0=Math.floor(player.pos.x-r), x1=Math.floor(player.pos.x+r);
+    for(let y=y0;y<=y1;y++)for(let x=x0;x<=x1;x++){
+      if(dz>0){
+        const bz=Math.floor(player.pos.z+r);
+        if(isSolidBlock(x,y,bz)){ player.pos.z = bz - r - 1e-3; }
+      } else {
+        const bz=Math.floor(player.pos.z-r);
+        if(isSolidBlock(x,y,bz)){ player.pos.z = bz + 1 + r + 1e-3; }
+      }
+    }
+  }
+  player.pos.y += dy;
+  {
+    const x0=Math.floor(player.pos.x-r), x1=Math.floor(player.pos.x+r);
+    const z0=Math.floor(player.pos.z-r), z1=Math.floor(player.pos.z+r);
+    if(dy<=0){
+      const by=Math.floor(player.pos.y);
+      let landed=false;
+      for(let x=x0;x<=x1;x++)for(let z=z0;z<=z1;z++){
+        if(isSolidBlock(x,by,z)){ player.pos.y = by+1; player.vel.y=0; player.onGround=true; landed=true; }
+      }
+      if(!landed) player.onGround=false;
+    } else {
+      const by=Math.floor(player.pos.y+h);
+      for(let x=x0;x<=x1;x++)for(let z=z0;z<=z1;z++){
+        if(isSolidBlock(x,by,z)){ player.pos.y = by - h - 1e-3; player.vel.y=0; }
+      }
+    }
+  }
+  if(player.pos.x<WORLD_MIN) player.pos.x=WORLD_MIN;
+  if(player.pos.x>WORLD_MAX) player.pos.x=WORLD_MAX;
+  if(player.pos.z<WORLD_MIN) player.pos.z=WORLD_MIN;
+  if(player.pos.z>WORLD_MAX) player.pos.z=WORLD_MAX;
+  if(player.pos.y<-8){ player.pos.set(0,2,0); player.vel.set(0,0,0); }
+}
+
+// ==============================================================
+// Input state
+// ==============================================================
+const input = { joyX:0, joyY:0 };
+const JOY = { id:null, cx:0, cy:0, r:52 };
+const LOOK = { id:null, lastX:0, lastY:0 };
+const AI_DRAG = { id:null, startX:0, startY:0, startT:0, curX:0, curY:0, moved:0, active:false, listening:false, willTap:true, holdTimer:null };
+const AI_STATES = new Set(['idle','listen','sense','think','active']);
+let aiState = 'idle';
+let activeStateTimer = null;
+function setAIState(next){
+  if(!AI_STATES.has(next)) return;
+  if(activeStateTimer){ clearTimeout(activeStateTimer); activeStateTimer=null; }
+  aiState = next;
+  aiBall.dataset.state = next;
+  aiBall.setAttribute('aria-label', 'AI 助手：'+({idle:'待命',listen:'聆听',sense:'感知',think:'思考',active:'活跃'}[next]));
+  if(window.__updateMonitor) window.__updateMonitor();
+}
+function setAIActive(duration=2400){
+  setAIState('active');
+  activeStateTimer = setTimeout(()=>setAIState('idle'), duration);
+}
+
+function joyStart(t, rect){
+  JOY.id = t.identifier;
+  JOY.cx = rect.left + rect.width/2;
+  JOY.cy = rect.top + rect.height/2;
+  updateJoy(t.clientX, t.clientY);
+}
+function updateJoy(x,y){
+  let dx = x-JOY.cx, dy = y-JOY.cy;
+  const d = Math.hypot(dx,dy); const Rr = JOY.r;
+  if(d>Rr){ dx = dx/d*Rr; dy = dy/d*Rr; }
+  joyKnob.style.transform = `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px))`;
+  input.joyX = dx/Rr; input.joyY = dy/Rr;
+}
+function joyEnd(){ JOY.id=null; input.joyX=0; input.joyY=0; joyKnob.style.transform='translate(-50%,-50%)'; }
+
+function lookStart(t){ LOOK.id = t.identifier; LOOK.lastX=t.clientX; LOOK.lastY=t.clientY; }
+function lookMove(t){
+  const dx = t.clientX-LOOK.lastX, dy = t.clientY-LOOK.lastY;
+  LOOK.lastX=t.clientX; LOOK.lastY=t.clientY;
+  const S=0.0055;
+  player.yaw -= dx*S;
+  player.pitch -= dy*S;
+  const L = Math.PI/2 - 0.02;
+  player.pitch = Math.max(-L, Math.min(L, player.pitch));
+}
+function lookEnd(){ LOOK.id=null; }
+
+// ==============================================================
+// AI ball drag flow
+// ==============================================================
+const HOME = ()=> ({ x: window.innerWidth - 60 - 22, y: 22 });
+
+function aiStart(t){
+  AI_DRAG.id = t.identifier;
+  AI_DRAG.startX = t.clientX; AI_DRAG.startY = t.clientY;
+  AI_DRAG.curX   = t.clientX; AI_DRAG.curY   = t.clientY;
+  AI_DRAG.moved  = 0;
+  AI_DRAG.startT = performance.now();
+  AI_DRAG.active = false;
+  AI_DRAG.listening = false;
+  AI_DRAG.willTap= true;
+  setAIState('idle');
+  if(AI_DRAG.holdTimer){ clearTimeout(AI_DRAG.holdTimer); }
+  AI_DRAG.holdTimer = setTimeout(()=>{
+    AI_DRAG.holdTimer = null;
+    if(AI_DRAG.id !== null && !AI_DRAG.active){
+      AI_DRAG.listening = true;
+      setAIState('listen');
+      placeVoiceNearBall();
+      voiceBubble.style.display='block';
+      voiceTxt.textContent='正在聆听...';
+      CHAT.pendingVoice = '';
+      startVoice(text=>{ CHAT.pendingVoice = text; voiceTxt.textContent = text || '正在聆听...'; });
+      if(navigator.vibrate) navigator.vibrate(20);
+    }
+  }, 500);
+}
+function activateAIDrag(){
+  AI_DRAG.active = true;
+  AI_DRAG.listening = true;
+  AI_DRAG.willTap = false;
+  setAIState('sense');
+  if(navigator.vibrate) navigator.vibrate(30);
+  closeChat(false);
+  aiBall.style.transition='none';
+  moveAIBallTo(AI_DRAG.curX, AI_DRAG.curY);
+  dragCross.style.display='block';
+  moveCrossTo(AI_DRAG.curX, AI_DRAG.curY);
+  placeVoiceNearBall();
+  voiceBubble.style.display='block';
+  voiceTxt.textContent = CHAT.pendingVoice || '正在感知环境...';
+  if(!recActive){
+    CHAT.pendingVoice = '';
+    startVoice(text=>{ CHAT.pendingVoice = text; voiceTxt.textContent = text || '正在感知环境...'; });
+  }
+  if(hintEl) hintEl.classList.add('hidden');
+}
+function aiMove(t){
+  const dx = t.clientX-AI_DRAG.startX, dy = t.clientY-AI_DRAG.startY;
+  const d = Math.hypot(dx,dy);
+  if(d > AI_DRAG.moved) AI_DRAG.moved = d;
+  AI_DRAG.curX = t.clientX; AI_DRAG.curY = t.clientY;
+  if(!AI_DRAG.active){
+    // Hold enters listen; moving while listening enters sense.
+    if(AI_DRAG.listening && AI_DRAG.moved > 8){
+      activateAIDrag();
+    }
+    return;
+  }
+  moveAIBallTo(t.clientX, t.clientY);
+  moveCrossTo(t.clientX, t.clientY);
+  if(voiceBubble.style.display==='block') placeVoiceNearBall();
+}
+function aiEnd(){
+  const wasActive = AI_DRAG.active;
+  const wasListening = AI_DRAG.listening;
+  if(AI_DRAG.holdTimer){ clearTimeout(AI_DRAG.holdTimer); AI_DRAG.holdTimer=null; }
+  AI_DRAG.active=false; AI_DRAG.listening=false; AI_DRAG.id=null;
+  if(!wasActive){
+    if(wasListening){
+      voiceBubble.style.display='none';
+      stopVoice();
+      const heard = (CHAT.pendingVoice||'').trim();
+      if(heard){
+        openChat(false);
+        chatText.value = heard;
+        sendChatText();
+      } else {
+        setAIState('idle');
+      }
+    } else {
+      toggleChat();
+    }
+    return;
+  }
+  dragCross.style.display='none';
+  voiceBubble.style.display='none';
+  blockLabel.style.display='none';
+  highlightOutline.visible=false;
+  highlightFill.visible=false;
+  stopVoice();
+  resetAIBallHome();
+  setAIState('think');
+  // Drag ended → open chat with proper card type
+  const selType = CHAT.selectedType;
+  const selPos  = CHAT.selectedPos;
+  const voice   = (CHAT.pendingVoice||'').trim();
+  openChat(false);
+  if(!selType){
+    // no block hit — treat like typed text
+    if(voice){
+      addUserMsg(voice);
+      setAIState('think');
+      const tid = addThinkingMsg();
+      setTimeout(()=>{
+        removeMsg(tid);
+        setAIActive();
+        // try guide match then fallback
+        let done = false;
+        for(const g of GUIDE_TEMPLATES){ if(g.re.test(voice)){ addAIMsg(buildGuideCardFromTemplate(g)); done=true; break; } }
+        if(!done) addAIMsg(buildTextCard('我没识别到方块。你可以再拖到方块上，或直接输入问题。'));
+        shakeYaw.length=0; shakePitch.length=0;
+      }, 700+Math.random()*300);
+    } else {
+      setAIState('idle');
+    }
+    return;
+  }
+  const info = BLOCK_INFO[selType] || {name:selType};
+  if(!voice){
+    // Choice card
+    addUserMsg('[选中 '+info.name+']');
+    setChip(selType);
+    CHAT.pendingBlockPos = selPos;
+    setAIState('think');
+    const tid = addThinkingMsg();
+    setTimeout(()=>{
+      removeMsg(tid);
+      setAIActive(); aiBall.classList.add('has-history');
+      addAIMsg(buildChoiceCard(selType));
+      CHAT.state = 'output';
+      shakeYaw.length=0; shakePitch.length=0;
+    }, 700+Math.random()*300);
+    return;
+  }
+  // Has both block + voice → route by intent
+  addUserMsg('['+info.name+'] '+voice);
+  setAIState('think');
+  const thinkingId = addThinkingMsg();
+  setTimeout(()=>{
+    removeMsg(thinkingId);
+    setAIActive();
+    aiBall.classList.add('has-history');
+    // guide template match
+    let done = false;
+    for(const g of GUIDE_TEMPLATES){ if(g.re.test(voice)){ addAIMsg(buildGuideCardFromTemplate(g)); done=true; break; } }
+    if(!done){
+      if(GUIDE_RE.test(voice) && !INFO_RE.test(voice)){
+        addAIMsg(buildCollectGuideCard(selType));
+      } else {
+        addAIMsg(buildInfoCard(selType));
+      }
+    }
+    CHAT.state = 'output';
+    shakeYaw.length=0; shakePitch.length=0;
+  }, 900 + Math.random()*300);
+}
+function moveAIBallTo(x,y){
+  const s = 60;
+  aiBall.style.left = (x - s/2) + 'px';
+  aiBall.style.top  = (y - s/2) + 'px';
+  aiBall.style.right='auto';
+}
+function resetAIBallHome(){
+  const h = HOME();
+  aiBall.style.transition = 'left .35s cubic-bezier(.2,.9,.2,1.1), top .35s cubic-bezier(.2,.9,.2,1.1)';
+  aiBall.style.left = h.x + 'px';
+  aiBall.style.top  = h.y + 'px';
+  aiBall.style.right='auto';
+  setTimeout(()=>{ aiBall.style.transition=''; }, 380);
+}
+function moveCrossTo(x,y){
+  const off = Math.min(98, Math.max(56, window.innerHeight*0.126));
+  dragCross.style.left = x + 'px';
+  dragCross.style.top  = (y - off) + 'px';
+}
+
+// ==============================================================
+// Chat / AI logic
+// ==============================================================
+const CHAT = {
+  state: 'idle',
+  selectedType: null,
+  selectedPos: null,
+  pendingVoice: '',
+  pendingBlock: null,     // block bound to current input context (chip)
+  pendingBlockPos: null,
+  hasHistory: false,
+};
+
+// SVG icons
+const ICON_Q = '<svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 100 20 10 10 0 000-20zm.7 15.2h-1.5v-1.5h1.5v1.5zm1.3-5.7c-.8.8-1 1.3-1 2.1h-1.6c0-1.3.4-2 1.2-2.8.7-.7 1.1-1.1 1.1-1.9 0-.8-.6-1.4-1.4-1.4-.9 0-1.4.7-1.4 1.6H9.7c0-1.9 1.4-3.2 3.3-3.2 1.9 0 3.2 1.2 3.2 3-.1 1.1-.6 1.8-1.2 2.6z" fill="currentColor"/></svg>';
+const ICON_FLAG = '<svg viewBox="0 0 24 24"><path d="M6 3v18h1.5v-8h9l-1.5-3 1.5-3H7.5V3H6z" fill="currentColor"/></svg>';
+const ICON_PIN = '<svg viewBox="0 0 24 24"><path d="M12 2a7 7 0 00-7 7c0 5 7 13 7 13s7-8 7-13a7 7 0 00-7-7zm0 9.5A2.5 2.5 0 1112 6a2.5 2.5 0 010 5.5z"/></svg>';
+const ICON_HEART = '<svg viewBox="0 0 24 24"><path d="M12 21s-7-4.35-9.5-8.5C.86 9.62 2.6 6 6 6c2 0 3.5 1 4 2 .5-1 2-2 4-2 3.4 0 5.14 3.62 3.5 6.5C19 16.65 12 21 12 21z" fill="#ff4d4f"/></svg>';
+
+// Avatar canvases (pixel art)
+function makeAIAvatar(){
+  const c = document.createElement('canvas'); c.width=16; c.height=16;
+  const x = c.getContext('2d'); x.imageSmoothingEnabled=false;
+  // orange book (MC enchanted-book style)
+  x.fillStyle='#e08040'; x.fillRect(2,3,12,11);
+  x.fillStyle='#a85820'; x.fillRect(2,3,12,1); x.fillRect(2,13,12,1); x.fillRect(2,3,1,11); x.fillRect(13,3,1,11);
+  x.fillStyle='#f0f0d8'; x.fillRect(3,4,10,9);
+  x.fillStyle='#c8b878'; x.fillRect(7,4,2,9); // spine
+  x.fillStyle='#7ed957'; x.fillRect(4,6,3,1); x.fillRect(10,6,3,1); x.fillRect(4,9,3,1); x.fillRect(10,9,3,1);
+  return c.toDataURL();
+}
+function makeUserAvatar(){
+  const c = document.createElement('canvas'); c.width=16; c.height=16;
+  const x = c.getContext('2d'); x.imageSmoothingEnabled=false;
+  // Steve head front face
+  x.fillStyle='#382418'; x.fillRect(0,0,16,4); // hair top
+  x.fillStyle='#c68e63'; x.fillRect(0,4,16,12); // face
+  x.fillStyle='#382418'; x.fillRect(0,4,3,4); x.fillRect(13,4,3,4); // hair sides
+  x.fillStyle='#382418'; x.fillRect(0,12,4,4); x.fillRect(12,12,4,4); // beard sides
+  x.fillStyle='#ffffff'; x.fillRect(4,7,2,2); x.fillRect(10,7,2,2); // eyes white
+  x.fillStyle='#5a7ec8'; x.fillRect(5,7,1,2); x.fillRect(11,7,1,2); // eye pupils
+  x.fillStyle='#5a3a24'; x.fillRect(6,11,4,1); // mouth
+  return c.toDataURL();
+}
+const AVATAR_AI_URL = makeAIAvatar();
+const AVATAR_USER_URL = makeUserAvatar();
+
+// Block thumbnail from existing texture canvas
+function makeThumb(type){
+  let src = null;
+  if(type==='grass') src = T.grassSide.image;
+  else if(type==='log') src = T.logSide.image;
+  else if(T[type] && T[type].image) src = T[type].image;
+  else if(type==='dirt') src = T.dirt.image;
+  const c = document.createElement('canvas'); c.width=64; c.height=64;
+  const x = c.getContext('2d'); x.imageSmoothingEnabled=false;
+  if(src){ x.drawImage(src, 0, 0, 64, 64); }
+  else { x.fillStyle='#555'; x.fillRect(0,0,64,64); }
+  return c;
+}
+
+// Rich block card data
+const BLOCK_CARDS = {
+  grass:       {tag:'方块',   desc:'MC 中最常见的地表方块，顶部长着草。用铲子挖最快。', kw:['地表','草','铲子'], hardness:1, drops:[{type:'dirt', name:'泥土', count:1}], loc:'几乎所有 陆地生物群系 的表面。', locKw:['陆地生物群系','表面']},
+  dirt:        {tag:'方块',   desc:'普通泥土。用锄头翻耕后可种植作物。', kw:['泥土','锄头','作物'], hardness:1, drops:[{type:'dirt', name:'泥土', count:1}], loc:'草方块 下方与 地表 附近。', locKw:['草方块','地表']},
+  stone:       {tag:'方块',   desc:'构成地下的主要方块。用 木镐 及以上开采，掉落 圆石。', kw:['木镐','圆石'], hardness:3, drops:[{type:'cobble', name:'圆石', count:1}], loc:'Y=0 至 Y=60 大量分布。', locKw:['Y=0','Y=60']},
+  cobble:      {tag:'方块',   desc:'开采石头得到的产物，是 熔炉、石制工具 的基础材料。', kw:['熔炉','石制工具'], hardness:3, drops:[{type:'cobble', name:'圆石', count:1}], loc:'开采 石头 获得。', locKw:['石头']},
+  log:         {tag:'原木',   desc:'橡树砍下的原木。合成 4 个 木板，是所有建筑与工具的起点。', kw:['木板','建筑','工具'], hardness:2, drops:[{type:'log', name:'橡木原木', count:1}], loc:'橡树平原、森林 生物群系的树上。', locKw:['橡树平原','森林']},
+  leaves:      {tag:'装饰',   desc:'橡树叶，会自然腐烂。少量掉 树苗 与 苹果。', kw:['树苗','苹果','腐烂'], hardness:1, drops:[{type:'log', name:'树苗', count:1}], loc:'各种 树木 顶部。', locKw:['树木']},
+  planks:      {tag:'建材',   desc:'橡木板。由 原木 合成，是 工作台、门、船 的原料。', kw:['原木','工作台','门'], hardness:2, drops:[{type:'planks', name:'橡木板', count:1}], loc:'需 合成台 用 原木 合成。', locKw:['合成台','原木']},
+  glass:       {tag:'装饰',   desc:'沙子 熔炼得到。透明，被打破不会掉落。', kw:['沙子','熔炼','透明'], hardness:1, drops:[], loc:'熔炉中熔炼 沙子 得到。', locKw:['熔炉','沙子']},
+  diamond_ore: {tag:'矿石',   desc:'珍稀的钻石矿。必须使用 铁镐 及以上工具开采。', kw:['铁镐','珍稀'], hardness:5, drops:[{type:'diamond_ore', name:'钻石', count:1}], loc:'Y=-58 附近最密集，主世界地下深处。', locKw:['Y=-58','地下']},
+  iron_ore:    {tag:'矿石',   desc:'常见的铁矿。用 石镐 开采，熔炼后得到 铁锭。', kw:['石镐','铁锭','熔炼'], hardness:3, drops:[{type:'iron_ore', name:'铁矿', count:1}], loc:'Y=-24 至 Y=56 均有分布。', locKw:['Y=-24','Y=56']},
+  coal_ore:    {tag:'矿石',   desc:'随处可见的煤矿，用 木镐 即可开采。', kw:['木镐','煤炭','燃料'], hardness:3, drops:[{type:'coal_ore', name:'煤炭', count:1}], loc:'山地、地下 各高度均可找到。', locKw:['山地','地下']},
+  gold_ore:    {tag:'矿石',   desc:'金光闪闪的金矿。只能用 铁镐 开采。', kw:['铁镐','金锭'], hardness:3, drops:[{type:'gold_ore', name:'金锭', count:1}], loc:'Y=-16 以下地下 与 恶地 生物群系。', locKw:['Y=-16','恶地']},
+  redstone_ore:{tag:'矿石',   desc:'红石矿。用 铁镐 开采，掉落 红石粉。', kw:['铁镐','红石粉','机关'], hardness:3, drops:[{type:'redstone_ore', name:'红石', count:4}], loc:'Y=-64 至 Y=15 地下深层。', locKw:['Y=-64','Y=15']},
+  sand:        {tag:'方块',   desc:'受重力影响会自然掉落的方块，熔炼后得到 玻璃。', kw:['重力','玻璃','熔炼'], hardness:1, drops:[{type:'sand', name:'沙子', count:1}], loc:'沙漠、河岸、海滩 生物群系。', locKw:['沙漠','海滩']},
+  bedrock:     {tag:'方块',   desc:'世界的边界方块，任何工具都无法破坏。', kw:['边界','无法破坏'], hardness:99, drops:[], loc:'主世界 Y=-64 最底层。', locKw:['Y=-64','最底层']},
+  water:       {tag:'流体',   desc:'水源方块。可以游泳，落地不掉血，能扑灭火焰。', kw:['游泳','扑灭','火焰'], hardness:0, drops:[], loc:'海洋、湖泊、河流 到处都是。', locKw:['海洋','湖泊']},
+};
+
+// Guide templates (regex → guide card)
+const GUIDE_TEMPLATES = [
+  {re:/(为什么|怎么|如何).*(挖不动|挖不了|挖不掉)/, title:'挖不动方块',
+   reason:'不同 方块 需要相应等级的 镐 才能开采成功。例如 铁矿 需要 石镐 以上，钻石 需要 铁镐 以上。',
+   reasonKw:['方块','镐','铁矿','石镐','钻石','铁镐'],
+   suggest:'先 收集 圆石 合成 石镐，再去挖 铁矿；有了 铁镐 就能挖 钻石 和 金矿。',
+   suggestKw:['收集','圆石','石镐','铁矿','铁镐','钻石','金矿'],
+   action:'帮我升级工具', actionType:null},
+  {re:/(为什么|怎么|如何).*(晚上|夜里|夜晚).*(危险|怪|刷)/, title:'夜晚很危险',
+   reason:'MC 的 夜晚 会大量刷新 僵尸、骷髅、苦力怕 等敌对生物。',
+   reasonKw:['夜晚','僵尸','骷髅','苦力怕'],
+   suggest:'先造一个 小屋 或挖一个 洞，摆放 火把 照亮周围，然后 睡觉 跳过黑夜。',
+   suggestKw:['小屋','洞','火把','睡觉'],
+   action:'帮我盖房子', actionType:null},
+  {re:/(怎么|如何).*(合成|做|制作).*(工作台|台)/, title:'合成工作台',
+   reason:'工作台 是所有中级合成的基础，需要 4 个 木板 才能合成。',
+   reasonKw:['工作台','木板'],
+   suggest:'先 收集 木头，1 木头 = 4 木板，把 4 个木板放进 2x2 合成栏 就得到工作台。',
+   suggestKw:['收集','木头','木板','合成栏'],
+   action:'帮我收集木头', actionType:'log'},
+];
+
+// Highlight keywords in text
+function highlight(text, kws){
+  if(!kws || !kws.length) return escapeHtml(text);
+  let s = escapeHtml(text);
+  for(const k of kws){
+    const ek = escapeHtml(k);
+    const re = new RegExp(ek.replace(/[-/\\^$*+?.()|[\]{}]/g,'\\$&'), 'g');
+    s = s.replace(re, '<span class="k">'+ek+'</span>');
+  }
+  return s;
+}
+function escapeHtml(s){ return String(s||'').replace(/[&<>"']/g, c=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c])); }
+
+// Chat DOM helpers
+let msgCount = 0;
+function ensureChatHasMessages(){
+  if(emptyState && emptyState.parentNode){ emptyState.remove(); }
+}
+function scrollChat(){ chatBody.scrollTop = chatBody.scrollHeight; }
+function removeMsg(id){ const e = document.getElementById(id); if(e) e.remove(); }
+
+function addUserMsg(text){
+  ensureChatHasMessages();
+  const el = document.createElement('div');
+  el.className = 'msg user';
+  el.innerHTML = `<div class="bubble">${escapeHtml(text)}</div><div class="avatar" style="background-image:url(${AVATAR_USER_URL})"></div>`;
+  chatBody.appendChild(el);
+  scrollChat();
+  CHAT.hasHistory = true;
+  aiBall.classList.add('has-history');
+}
+function addAIMsg(cardEl){
+  ensureChatHasMessages();
+  const el = document.createElement('div');
+  el.className = 'msg ai';
+  const av = document.createElement('div');
+  av.className = 'avatar'; av.style.backgroundImage = 'url('+AVATAR_AI_URL+')';
+  const bubble = document.createElement('div');
+  bubble.className = 'bubble';
+  bubble.appendChild(cardEl);
+  el.appendChild(av);
+  el.appendChild(bubble);
+  chatBody.appendChild(el);
+  scrollChat();
+  CHAT.hasHistory = true;
+  aiBall.classList.add('has-history');
+}
+function addThinkingMsg(){
+  ensureChatHasMessages();
+  const id = 'thk-' + (++msgCount);
+  const el = document.createElement('div');
+  el.className='msg ai'; el.id = id;
+  el.innerHTML = `<div class="avatar" style="background-image:url(${AVATAR_AI_URL})"></div><div class="bubble thinking">思考中<span class="dots"><span></span><span></span><span></span></span></div>`;
+  chatBody.appendChild(el);
+  scrollChat();
+  return id;
+}
+
+// Card builders
+function buildTextCard(text){
+  const c = document.createElement('div'); c.className = 'card';
+  c.innerHTML = `<div style="padding:4px 2px;">${escapeHtml(text)}</div>`;
+  return c;
+}
+
+function buildChoiceCard(type){
+  const info = BLOCK_INFO[type] || {name:type};
+  const bc = BLOCK_CARDS[type] || {tag:'方块'};
+  const c = document.createElement('div'); c.className = 'card';
+  c.innerHTML = `
+    <div class="card-head">
+      <span class="name">${escapeHtml(info.name)}</span>
+      <span class="tag">${escapeHtml(bc.tag)}</span>
+    </div>
+    <button class="opt" data-act="what"><span class="oi">${ICON_Q}</span>这是什么</button>
+    <button class="opt" data-act="collect"><span class="oi">${ICON_FLAG}</span>帮我收集</button>
+  `;
+  c.querySelector('[data-act="what"]').addEventListener('click', ()=>{
+    addUserMsg('这是什么');
+    thinkThen(()=> addAIMsg(buildInfoCard(type)));
+  });
+  c.querySelector('[data-act="collect"]').addEventListener('click', ()=>{
+    addUserMsg('帮我收集');
+    thinkThen(()=> addAIMsg(buildCollectGuideCard(type)));
+  });
+  return c;
+}
+
+function buildInfoCard(type){
+  const info = BLOCK_INFO[type] || {name:type, desc:''};
+  const bc = BLOCK_CARDS[type] || {tag:'方块', desc:info.desc, kw:[], hardness:1, drops:[], loc:'未知位置', locKw:[]};
+  const c = document.createElement('div'); c.className = 'card';
+  const thumb = makeThumb(type);
+  const heartsN = Math.max(1, Math.min(5, Math.round(bc.hardness/2)+1));
+  let hearts = '';
+  for(let i=0;i<heartsN;i++) hearts += ICON_HEART;
+  const dropsHtml = (bc.drops && bc.drops.length)
+    ? bc.drops.map(d=>{
+        const tc = makeThumb(d.type);
+        return `<div class="drop"><div class="icon-wrap" data-t="${d.type}"><span class="count">×${d.count}</span></div><div class="lbl">${escapeHtml(d.name)}</div></div>`;
+      }).join('')
+    : '<div style="color:#78909c;font-size:11px;">无掉落物</div>';
+
+  c.innerHTML = `
+    <div class="card-head">
+      <span class="name">${escapeHtml(info.name)}</span>
+      <span class="tag">${escapeHtml(bc.tag)}</span>
+    </div>
+    <div class="info-body">
+      <div class="thumb" data-t="${type}"></div>
+      <div class="desc">${highlight(bc.desc, bc.kw)}</div>
+    </div>
+    <div class="stats-row">
+      <span class="label">生命值</span>
+      <span class="val"><span class="hearts">${hearts}</span><span class="num">${bc.hardness}</span></span>
+    </div>
+    <div class="drops-row">
+      <div class="label">掉落物</div>
+      <div class="drops-list">${dropsHtml}</div>
+    </div>
+    <div class="loc-row">
+      <div class="title">${ICON_PIN}<span>在哪里</span></div>
+      <div class="text">${highlight(bc.loc, bc.locKw)}</div>
+    </div>
+  `;
+  // Fill thumbnail canvases
+  c.querySelectorAll('.thumb, .icon-wrap').forEach(w=>{
+    const t = w.getAttribute('data-t'); if(!t) return;
+    const cv = makeThumb(t);
+    const first = w.firstChild;
+    if(first && first.nodeType===1 && first.classList.contains('count')){
+      w.insertBefore(cv, first);
+    } else {
+      w.appendChild(cv);
+    }
+  });
+  return c;
+}
+
+function buildGuideCardFromTemplate(g){
+  const c = document.createElement('div'); c.className = 'card';
+  c.innerHTML = `
+    <div class="card-head">
+      <span class="name">${escapeHtml(g.title)}</span>
+      <span class="tag">指引</span>
+    </div>
+    <div class="guide-sec">
+      <div class="sec-title">原因</div>
+      <div class="sec-text">${highlight(g.reason, g.reasonKw)}</div>
+    </div>
+    <div class="guide-sec">
+      <div class="sec-title">建议</div>
+      <div class="sec-text">${highlight(g.suggest, g.suggestKw)}</div>
+    </div>
+    <div class="guide-action"><button>${escapeHtml(g.action)}</button></div>
+  `;
+  c.querySelector('.guide-action button').addEventListener('click', ()=>{
+    addUserMsg(g.action);
+    if(g.actionType){
+      thinkThen(()=> addAIMsg(buildCollectGuideCard(g.actionType)));
+    } else {
+      thinkThen(()=> addAIMsg(buildTextCard('好的，我会为你指引这个任务。请跟着屏幕上的高亮走。')));
+    }
+  });
+  return c;
+}
+
+function buildCollectGuideCard(type){
+  const info = BLOCK_INFO[type] || {name:type};
+  const bc = BLOCK_CARDS[type] || {};
+  const c = document.createElement('div'); c.className = 'card';
+  const tool = (type==='diamond_ore'||type==='gold_ore'||type==='redstone_ore') ? '铁镐'
+             : (type==='iron_ore') ? '石镐'
+             : (type==='stone'||type==='cobble'||type==='coal_ore') ? '木镐'
+             : '徒手或斧';
+  const reason = `想要收集 ${info.name}，需要至少 ${tool} 才能开采。`;
+  const reasonKw = [info.name, tool];
+  const suggest = bc.loc ? `${bc.loc} 里可以找到 ${info.name}，靠近后使用 ${tool} 挖掘即可。` : `使用 ${tool} 挖掘即可。`;
+  const suggestKw = [info.name, tool].concat(bc.locKw||[]);
+  c.innerHTML = `
+    <div class="card-head">
+      <span class="name">${escapeHtml(info.name)}</span>
+      <span class="tag">收集指引</span>
+    </div>
+    <div class="guide-sec">
+      <div class="sec-title">原因</div>
+      <div class="sec-text">${highlight(reason, reasonKw)}</div>
+    </div>
+    <div class="guide-sec">
+      <div class="sec-title">建议</div>
+      <div class="sec-text">${highlight(suggest, suggestKw)}</div>
+    </div>
+    <div class="guide-action"><button>帮我收集${escapeHtml(info.name)}</button></div>
+  `;
+  c.querySelector('.guide-action button').addEventListener('click', ()=>{
+    addUserMsg('帮我收集'+info.name);
+    thinkThen(()=> addAIMsg(buildTextCard('好的！已为你标记 '+info.name+' 附近的方块，靠近后拿着 '+tool+' 长按即可采集。')));
+  });
+  return c;
+}
+
+function thinkThen(fn){
+  const id = addThinkingMsg();
+  setAIState('think');
+  setTimeout(()=>{
+    removeMsg(id);
+    fn();
+    setAIActive();
+    shakeYaw.length=0; shakePitch.length=0;
+  }, 700 + Math.random()*300);
+}
+
+// Chip management
+function setChip(type){
+  if(!type){ clearChip(); return; }
+  const info = BLOCK_INFO[type] || {name:type};
+  selChip.textContent = '选中【'+info.name+'】';
+  selChip.classList.add('on');
+  CHAT.pendingBlock = type;
+}
+function clearChip(){
+  selChip.classList.remove('on');
+  CHAT.pendingBlock = null;
+  CHAT.pendingBlockPos = null;
+}
+
+// Intent detection
+const INFO_RE = /(是什么|什么东西|介绍|说说|是啥|干嘛|干什么|用来做什么|用途|作用|哪里找|在哪|哪里)/;
+const GUIDE_RE = /(为什么|怎么|如何|帮我|教我|怎样)/;
+
+// Open/close panel
+function openChat(markActive=true){ if(window.__hideOverlays) window.__hideOverlays(); chatPanel.classList.add('open'); scrollChat(); if(markActive) setAIState('active'); }
+function closeChat(resetState=true){ chatPanel.classList.remove('open'); if(resetState && !AI_DRAG.active && !chatMicActive) setAIState('idle'); }
+function toggleChat(){ if(chatPanel.classList.contains('open')) closeChat(); else openChat(); }
+
+chatText.addEventListener('keydown', e=>{
+  if(e.key==='Enter'){ e.preventDefault(); sendChatText(); }
+});
+chatText.addEventListener('focus', ()=>{
+  // ensure chip visible when user starts typing
+});
+
+function sendChatText(){
+  const txt = chatText.value.trim();
+  if(!txt && !CHAT.pendingBlock) return;
+  chatText.value='';
+  const boundType = CHAT.pendingBlock;
+  const userLine = (boundType ? '['+((BLOCK_INFO[boundType]||{}).name||boundType)+'] ' : '') + (txt || '这是什么');
+  addUserMsg(userLine);
+  // route
+  thinkThen(()=>{
+    // 1. guidance match
+    for(const g of GUIDE_TEMPLATES){
+      if(g.re.test(txt)) { addAIMsg(buildGuideCardFromTemplate(g)); return; }
+    }
+    // 2. text has block reference or bound block
+    let type = boundType;
+    if(!type){
+      // try match by name
+      for(const k of Object.keys(BLOCK_INFO)){
+        if(txt.indexOf(BLOCK_INFO[k].name) !== -1){ type = k; break; }
+      }
+    }
+    if(type){
+      // guide question about the block?
+      if(GUIDE_RE.test(txt) && !INFO_RE.test(txt)){
+        addAIMsg(buildCollectGuideCard(type));
+      } else {
+        addAIMsg(buildInfoCard(type));
+      }
+      return;
+    }
+    // 3. generic guide match
+    if(GUIDE_RE.test(txt)){
+      addAIMsg(buildTextCard('请具体说说你想做什么，比如"怎么合成工作台"或"晚上怪太多怎么办"。'));
+      return;
+    }
+    // 4. fallback text
+    addAIMsg(buildTextCard('我懂了。你可以拖我到任意方块上放开，我就能识别它；也可以直接问我 MC 相关的问题。'));
+  });
+  // keep chip until user clears it manually? clear after send
+  clearChip();
+}
+
+// Mic in chat foot
+micBtn.addEventListener('touchstart', e=>{ e.preventDefault(); e.stopPropagation(); chatMicStart(); }, {passive:false});
+micBtn.addEventListener('touchend',   e=>{ e.preventDefault(); e.stopPropagation(); chatMicStop(); }, {passive:false});
+micBtn.addEventListener('mousedown',  e=>{ e.preventDefault(); chatMicStart(); });
+micBtn.addEventListener('mouseup',    e=>{ e.preventDefault(); chatMicStop(); });
+function chatMicStart(){
+  if(chatMicActive) return;
+  chatMicActive = true;
+  setAIState('listen');
+  micBtn.classList.add('rec');
+  chatText.placeholder = '正在聆听...';
+  startVoice(text=>{ chatText.value = text; });
+}
+function chatMicStop(){
+  if(!chatMicActive) return;
+  chatMicActive = false;
+  micBtn.classList.remove('rec');
+  chatText.placeholder = '进行补充提问...';
+  stopVoice();
+  if(chatText.value.trim() || CHAT.pendingBlock){
+    setAIState('think');
+    setTimeout(()=>sendChatText(), 250);
+  } else {
+    setAIState(chatPanel.classList.contains('open') ? 'active' : 'idle');
+  }
+}
+
+
+// ==============================================================
+// Voice recognition (shared)
+// ==============================================================
+let rec = null;
+let recActive = false;
+let recCallback = null;
+let recStateContext = null;
+let chatMicActive = false;
+const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+if(SR){
+  try{
+    rec = new SR();
+    rec.lang = 'zh-CN';
+    rec.continuous = true;
+    rec.interimResults = true;
+    rec.onresult = e=>{
+      let t='';
+      for(let i=0;i<e.results.length;i++) t += e.results[i][0].transcript;
+      if(recCallback) recCallback(t.trim());
+    };
+    rec.onerror = ()=>{};
+    rec.onend = ()=>{
+      recActive=false;
+      if(recStateContext==='listen' && !AI_DRAG.listening && !chatMicActive){
+        setAIState(chatPanel.classList.contains('open') ? 'active' : 'idle');
+      }
+    };
+  }catch(e){ rec=null; }
+}
+function startVoice(cb){
+  recCallback = cb || null;
+  recStateContext = AI_DRAG.active ? 'sense' : 'listen';
+  setAIState(recStateContext);
+  if(!rec){ if(cb) cb(''); return; }
+  if(recActive) return;
+  try{ rec.start(); recActive=true; }catch(e){}
+}
+function stopVoice(){
+  recCallback = null;
+  recStateContext = null;
+  if(!rec || !recActive) return;
+  try{ rec.stop(); }catch(e){}
+  recActive=false;
+}
+
+// ==============================================================
+// Touch routing
+// ==============================================================
+function pointInside(el, x, y){
+  if(!el || el.style.display==='none' && !el.classList.contains('open')) return false;
+  const r = el.getBoundingClientRect();
+  return x>=r.left && x<=r.right && y>=r.top && y<=r.bottom;
+}
+
+document.addEventListener('touchstart', e=>{
+  for(const t of e.changedTouches){
+    const target = t.target;
+    if(target===joystick || joystick.contains(target)){
+      if(JOY.id===null) joyStart(t, joystick.getBoundingClientRect());
+    } else if(target===aiBall || aiBall.contains(target)){
+      if(AI_DRAG.id===null && aiState!=='think') aiStart(t);
+    } else if(target===jumpBtn){
+      if(player.onGround){ player.vel.y = 8.4; player.onGround=false; }
+    } else if(chatPanel.contains(target)){
+      // Panel — let native scroll / input work. Do not preventDefault.
+    } else if(loadingEl && loadingEl.contains(target)){
+      // Loading overlay — let button click work.
+    } else if(isDemoUI(target)){
+      // 演示层 UI（模拟面板/气泡/卡片/菜单）— 放行原生点击
+    } else {
+      if(LOOK.id===null) lookStart(t);
+    }
+  }
+  if(chatPanel.contains(e.target)) return;
+  if(loadingEl && loadingEl.contains(e.target)) return;
+  if(isDemoUI(e.target)) return;
+  e.preventDefault();
+},{passive:false});
+
+// 演示层可点 UI：这些元素上的触摸交给浏览器原生点击，不当作转视角
+function isDemoUI(target){
+  return !!(target && target.closest && target.closest(
+    '#sim-toggle,#sim-panel,#proactive-bubble,#float-card,#ctx-menu'
+  ));
+}
+
+document.addEventListener('touchmove', e=>{
+  for(const t of e.changedTouches){
+    if(t.identifier===JOY.id) updateJoy(t.clientX,t.clientY);
+    else if(t.identifier===AI_DRAG.id) aiMove(t);
+    else if(t.identifier===LOOK.id) lookMove(t);
+  }
+  if(chatPanel.contains(e.target)) return;
+  if(isDemoUI(e.target)) return;
+  e.preventDefault();
+},{passive:false});
+
+function endTouch(t){
+  if(t.identifier===JOY.id) joyEnd();
+  else if(t.identifier===AI_DRAG.id) aiEnd();
+  else if(t.identifier===LOOK.id) lookEnd();
+}
+document.addEventListener('touchend',    e=>{ for(const t of e.changedTouches) endTouch(t); },{passive:false});
+document.addEventListener('touchcancel', e=>{ for(const t of e.changedTouches) endTouch(t); },{passive:false});
+
+document.addEventListener('gesturestart', e=>e.preventDefault());
+document.addEventListener('contextmenu', e=>e.preventDefault());
+
+// Desktop mouse for testing
+let mouseLook=false, mLX=0, mLY=0, mouseTargetIsChat=false;
+renderer.domElement.addEventListener('mousedown', e=>{
+  if(e.button===0){ mouseLook=true; mLX=e.clientX; mLY=e.clientY; }
+});
+window.addEventListener('mouseup', ()=>{ mouseLook=false; });
+window.addEventListener('mousemove', e=>{
+  if(!mouseLook) return;
+  const dx=e.clientX-mLX, dy=e.clientY-mLY;
+  mLX=e.clientX; mLY=e.clientY;
+  const S=0.0035;
+  player.yaw-=dx*S; player.pitch-=dy*S;
+  const L=Math.PI/2-0.02;
+  player.pitch=Math.max(-L,Math.min(L,player.pitch));
+});
+window.addEventListener('keydown', e=>{
+  if(document.activeElement===chatText) return;
+  if(e.code==='Space' && player.onGround){ player.vel.y=8.4; player.onGround=false; }
+  const s = e.code==='KeyW'?[0,-1]:e.code==='KeyS'?[0,1]:e.code==='KeyA'?[-1,0]:e.code==='KeyD'?[1,0]:null;
+  if(s){ input.joyX=s[0]; input.joyY=s[1]; }
+});
+window.addEventListener('keyup', e=>{
+  if(['KeyW','KeyS','KeyA','KeyD'].includes(e.code)){ input.joyX=0; input.joyY=0; }
+});
+
+// ==============================================================
+// Raycast
+// ==============================================================
+const raycaster = new THREE.Raycaster();
+raycaster.far = 16;
+const ndc = new THREE.Vector2();
+
+function raycastCrosshair(){
+  const cx = parseFloat(dragCross.style.left);
+  const cy = parseFloat(dragCross.style.top);
+  ndc.x = (cx / window.innerWidth) * 2 - 1;
+  ndc.y = -(cy / window.innerHeight) * 2 + 1;
+  raycaster.setFromCamera(ndc, camera);
+  const hits = raycaster.intersectObjects(blockMeshes, false);
+  if(hits.length===0){
+    CHAT.selectedType=null; CHAT.selectedPos=null;
+    highlightOutline.visible=false; highlightFill.visible=false;
+    blockLabel.style.display='none';
+    return;
+  }
+  setAIState('sense');
+  const h = hits[0];
+  const type = h.object.userData.type;
+  if(!type) return;
+  const positions = h.object.userData.positions;
+  const idx = h.instanceId;
+  if(idx==null || !positions[idx]) return;
+  const [x,y,z] = positions[idx];
+  CHAT.selectedType = type;
+  CHAT.selectedPos  = [x,y,z];
+  highlightOutline.position.set(x+0.5, y+0.5, z+0.5);
+  highlightFill.position.set(x+0.5, y+0.5, z+0.5);
+  highlightOutline.visible=true; highlightFill.visible=true;
+  const info = BLOCK_INFO[type];
+  if(info){ blockLabel.textContent = info.name; blockLabel.style.display='block'; }
+}
+
+// ==============================================================
+// Shake detection — used to close chat panel
+// ==============================================================
+const shakeYaw = [];
+const shakePitch = [];
+function pushShake(){
+  const now = performance.now();
+  shakeYaw.push({t:now, v:player.yaw});
+  shakePitch.push({t:now, v:player.pitch});
+  const cutoff = now - 700;
+  while(shakeYaw.length   && shakeYaw[0].t   < cutoff) shakeYaw.shift();
+  while(shakePitch.length && shakePitch[0].t < cutoff) shakePitch.shift();
+}
+function detectShake(arr){
+  if(arr.length<4) return false;
+  let crossings=0, totalAbs=0;
+  for(let i=2;i<arr.length;i++){
+    const d1 = arr[i-1].v - arr[i-2].v;
+    const d2 = arr[i].v   - arr[i-1].v;
+    if(d1*d2 < 0 && Math.abs(d1)>0.03 && Math.abs(d2)>0.03) crossings++;
+    totalAbs += Math.abs(d2);
+  }
+  return crossings>=2 && totalAbs>0.5;
+}
+
+// ==============================================================
+// Resize
+// ==============================================================
+function onResize(){
+  camera.aspect = window.innerWidth/window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio||1, 2));
+  if(!AI_DRAG.active) resetAIBallHome();
+}
+window.addEventListener('resize', onResize);
+window.addEventListener('orientationchange', ()=> setTimeout(onResize,200));
+
+// ==============================================================
+// Main loop
+// ==============================================================
+const clock = new THREE.Clock();
+let frames=0, fpsAcc=0;
+function loop(){
+  const dt = Math.min(0.05, clock.getDelta());
+  const speed = 4.8;
+  const forward = new THREE.Vector3(-Math.sin(player.yaw), 0, -Math.cos(player.yaw));
+  const right   = new THREE.Vector3( Math.cos(player.yaw), 0, -Math.sin(player.yaw));
+  const wish = new THREE.Vector3();
+  wish.addScaledVector(forward, -input.joyY);
+  wish.addScaledVector(right,    input.joyX);
+  if(wish.lengthSq()>1) wish.normalize();
+  const vx = wish.x*speed, vz = wish.z*speed;
+  player.vel.y -= 22*dt;
+  if(player.vel.y<-30) player.vel.y=-30;
+  moveAndCollide(vx*dt, player.vel.y*dt, vz*dt);
+  camera.position.set(player.pos.x, player.pos.y+player.eye, player.pos.z);
+  camera.rotation.y = player.yaw;
+  camera.rotation.x = player.pitch;
+  sky.position.copy(camera.position);
+  const sunDir = sun.position.clone().normalize();
+  sunDisc.position.copy(camera.position).addScaledVector(sunDir, 140);
+  sunGlow.position.copy(sunDisc.position);
+  cloudGroup.position.x += dt*0.5;
+  if(cloudGroup.position.x>60) cloudGroup.position.x -= 120;
+
+  if(AI_DRAG.active) raycastCrosshair();
+
+  pushShake();
+  if(chatPanel.classList.contains('open') && !AI_DRAG.active && document.activeElement!==chatText){
+    if(detectShake(shakeYaw) || detectShake(shakePitch)){
+      closeChat();
+      shakeYaw.length=0; shakePitch.length=0;
+    }
+  }
+
+  renderer.render(scene, camera);
+  frames++; fpsAcc+=dt;
+  if(fpsAcc>0.5){ fpsEl.textContent = Math.round(frames/fpsAcc)+' fps'; frames=0; fpsAcc=0; }
+  requestAnimationFrame(loop);
+}
+
+// ==============================================================
+// Init
+// ==============================================================
+setLoad(1.0,'准备就绪');
+setupEnterFlow();
+enterBtn.classList.add('ready');
+loadTip.textContent = '点击下方按钮进入';
+
+// Start the render loop regardless (so scene is ready when user enters)
+onResize();
+resetAIBallHome();
+requestAnimationFrame(loop);
+
+// ==============================================================
+// 12态 × 13操作 演示层
+// ==============================================================
+(function demoLayer(){
+  const pb        = document.getElementById('proactive-bubble');
+  const pbTxt     = pb.querySelector('.pb-txt');
+  const pbActs    = pb.querySelector('.pb-acts');
+  const fc        = document.getElementById('float-card');
+  const fcName    = fc.querySelector('.fc-name');
+  const fcBody    = fc.querySelector('.fc-body');
+  const fcBtn     = fc.querySelector('.fc-btn');
+  const fcThumb   = fc.querySelector('.fc-thumb');
+  const ctxMenu   = document.getElementById('ctx-menu');
+  const hoverTip  = document.getElementById('hover-tip');
+  const banner    = document.getElementById('suppress-banner');
+  const simToggle = document.getElementById('sim-toggle');
+  const simPanel  = document.getElementById('sim-panel');
+
+  let suppressed = false;
+
+  // ---- 认知色 ----
+  const COG_COLOR = { idle:'#aeb6bf', active:'#7cff65', sense:'#9b7cff', listen:'#ffad4d', think:'#67b7ff' };
+
+  function currentCarrier(){
+    if(chatPanel.classList.contains('open')) return 'panel';
+    if(fc.style.display==='block') return 'card';
+    if(pb.style.display==='block') return 'bubble';
+    return 'orb';
+  }
+  function currentCog(){ return aiBall.dataset.state || 'idle'; }
+
+  function updateMonitor(){ /* 状态监视器已移除 */ }
+  window.__updateMonitor = updateMonitor;
+
+  function logOp(op, desc){ /* 监视器已移除，保留调用位不做事 */ }
+
+  // ---- 悬浮球定位辅助 ----
+  function ballRect(){ return aiBall.getBoundingClientRect(); }
+  // 气泡出现在悬浮球【左侧】，顶部对齐
+  function placeLeftOfBall(el){
+    const r = ballRect();
+    el.style.left = 'auto';
+    el.style.right = (window.innerWidth - r.left + 10) + 'px';
+    el.style.top = (r.top) + 'px';
+  }
+  // 卡片出现在悬浮球下方
+  function placeBelowBall(el){
+    const r = ballRect();
+    el.style.left = 'auto';
+    el.style.right = (window.innerWidth - r.right) + 'px';
+    el.style.top = (r.bottom + 10) + 'px';
+  }
+
+  // ---- 主动气泡 (S-03 / S-07) ----
+  let bubbleKind = 'active';   // active | sense
+  let bubbleExpand = null;     // 气泡展开后要变成的卡片数据 (OP-04)
+  function resetAnim(el){ el.classList.remove('leaving','settling'); el.style.transform=''; el.style.opacity=''; }
+  function showBubble(text, opts={}){
+    hideCard();
+    if(chatPanel.classList.contains('open')) closeChat(false);   // 面板与气泡互斥
+    bubbleExpand = opts.expand || null;
+    pbTxt.textContent = text;
+    pb.className = opts.sense ? 'sense' : '';
+    bubbleKind = opts.sense ? 'sense' : 'active';
+    pbActs.innerHTML = '';
+    if(opts.actions){
+      opts.actions.forEach(a=>{
+        const b=document.createElement('button');
+        b.className='pb-btn '+(a.primary?'pb-yes':'pb-no');
+        b.textContent=a.label;
+        b.addEventListener('click', e=>{ e.stopPropagation(); a.fn(); });
+        pbActs.appendChild(b);
+      });
+    }
+    placeLeftOfBall(pb);
+    resetAnim(pb);
+    pb.style.display='block';
+    setAIState(opts.sense ? 'sense' : 'active');
+    updateMonitor();
+  }
+  function hideBubble(){ if(pb.style.display==='block'){ pb.style.display='none'; resetAnim(pb); updateMonitor(); } }
+  // 带动效收起
+  function animateOut(el, done){
+    if(el.style.display!=='block'){ done&&done(); return; }
+    el.classList.remove('settling');
+    el.classList.add('leaving'); el.style.transform=''; el.style.opacity='';
+    setTimeout(()=>{ el.classList.remove('leaving'); done&&done(); }, 280);
+  }
+  function closeBubble(nextState){ animateOut(pb, ()=>{ hideBubble(); if(nextState) setAIState(nextState); }); }
+  function closeCard(nextState){ animateOut(fc, ()=>{ hideCard(); if(nextState) setAIState(nextState); }); }
+  // 打开对话面板时，清掉一切主动浮层（气泡/卡片/菜单），保证载体互斥
+  window.__hideOverlays = ()=>{ hideBubble(); hideCard(); closeCtxMenu(); };
+
+  // OP-04 单击气泡 → 展开为卡片（气泡自带展开数据，没有则用默认）
+  pbTxt.addEventListener('click', ()=>{ logOp('OP-04','单击气泡→展开卡片'); showCard(bubbleExpand || DEFAULT_CARD); });
+  // OP-06 划走气泡 → 驳回（动效已在 bindSwipeAway 内完成）
+  bindSwipeAway(pb, ()=>{ logOp('OP-06','划走气泡→驳回本条'); hideBubble(); setAIState('idle'); });
+  // OP-05 长按气泡 → 次级菜单
+  bindLongPress(pb, (x,y)=> openCtxMenu(x,y,[
+    {label:'稍后提醒', fn:()=>{ closeBubble('idle'); }},
+    {label:'永久拒绝这类', danger:true, fn:()=>{ closeBubble('idle'); }},
+  ]));
+
+  // ---- 浮动卡片 (S-04) — 由气泡展开而来 ----
+  const DEFAULT_CARD = { name:'橡树叶', color:'#3a8a30',
+    body:'破坏橡树叶有 <b>5%</b> 概率掉落 <b>树苗</b>，种在<b>泥土/草方块</b>上可长成树。',
+    btn:'帮我去收集树苗' };
+  const DIAMOND_CARD = { name:'钻石矿', color:'#5de3eb',
+    body:'常见于 <b>Y=-58</b> 附近，需 <b>铁镐</b>以上开采，可合成钻石装备与附魔台。',
+    btn:'规划最近路线',
+    onBtn:()=>{ closeCard(); showBubble('已生成路线，跟着蓝色路标走。'); setTimeout(()=>closeBubble('idle'),1600); } };
+  function showCard(data){
+    hideBubble();
+    if(chatPanel.classList.contains('open')) closeChat(false);
+    fcName.textContent = data.name || '信息卡片';
+    fcBody.innerHTML = data.body || '';
+    fcThumb.style.background = data.color || '#2a3340';
+    if(data.btn){
+      fcBtn.style.display='block'; fcBtn.textContent=data.btn;
+      fcBtn.onclick=(e)=>{ e.stopPropagation(); logOp('OP-07','点击卡片按钮→执行代劳');
+        if(data.onBtn) data.onBtn();
+        else { closeCard(); showBubble('好的，正在前往最近的橡树…'); setTimeout(()=>closeBubble('idle'),1800); } };
+    } else fcBtn.style.display='none';
+    placeLeftOfBall(fc);           // 与气泡一致，从悬浮球左侧展开
+    resetAnim(fc);
+    fc.style.display='block';
+    setAIState('active');
+    updateMonitor();
+  }
+  function hideCard(){ if(fc.style.display==='block'){ fc.style.display='none'; resetAnim(fc); updateMonitor(); } }
+  // OP-09 划走卡片 → 收起
+  bindSwipeAway(fc, ()=>{ logOp('OP-09','划走卡片→收起'); hideCard(); setAIState('idle'); });
+  // OP-08 长按卡片 → 次级菜单
+  bindLongPress(fc, (x,y)=> openCtxMenu(x,y,[
+    {label:'关闭这类卡片', danger:true, fn:()=>{ closeCard('idle'); }},
+  ]));
+
+  // ---- 次级菜单 (OP-05/08/12) ----
+  function openCtxMenu(x,y,items){
+    ctxMenu.innerHTML='';
+    items.forEach(it=>{
+      const d=document.createElement('div');
+      d.className='cm-item'+(it.danger?' danger':'');
+      d.textContent=it.label;
+      d.addEventListener('click', e=>{ e.stopPropagation(); closeCtxMenu(); it.fn(); });
+      ctxMenu.appendChild(d);
+    });
+    ctxMenu.style.display='block';
+    const mw=170, mh=items.length*40+10;
+    ctxMenu.style.left = Math.min(x, window.innerWidth-mw)+'px';
+    ctxMenu.style.top  = Math.min(y, window.innerHeight-mh)+'px';
+  }
+  function closeCtxMenu(){ ctxMenu.style.display='none'; }
+
+  // ---- 抑制态 (S-12) ----
+  function setSuppressed(on){
+    suppressed=on;
+    document.body.classList.toggle('ai-suppressed', on);
+    banner.style.display = on?'block':'none';
+    if(on){ hideBubble(); hideCard(); closeCtxMenu(); }
+    updateMonitor();
+  }
+
+  // ==============================================================
+  // 通用手势工具
+  // ==============================================================
+  function bindSwipeAway(el, onDismiss){
+    let sx=0, sy=0, id=null, dragging=false;
+    const move=(x,y)=>{
+      const dx=x-sx, dy=y-sy;
+      if(!dragging && (Math.abs(dx)>6 || Math.abs(dy)>6)) dragging=true;
+      if(dragging){
+        const tx=Math.max(0, dx);                 // 只跟随向右
+        el.classList.remove('settling','leaving');
+        el.style.transform=`translateX(${tx}px)`;
+        el.style.opacity=String(Math.max(.12, 1 - tx/260));
+      }
+    };
+    const release=(x)=>{
+      if(!dragging){ return; }
+      dragging=false;
+      const dx=x-sx;
+      if(dx>70){                                   // 滑过阈值 → 飞出去
+        el.classList.add('leaving'); el.style.transform=''; el.style.opacity='';
+        setTimeout(()=>{ el.classList.remove('leaving'); onDismiss(); }, 280);
+      } else {                                     // 没滑够 → 弹回
+        el.classList.add('settling'); el.style.transform=''; el.style.opacity='';
+        setTimeout(()=> el.classList.remove('settling'), 200);
+      }
+    };
+    el.addEventListener('touchstart', e=>{ const t=e.changedTouches[0]; id=t.identifier; sx=t.clientX; sy=t.clientY; dragging=false; }, {passive:true});
+    el.addEventListener('touchmove',  e=>{ for(const t of e.changedTouches){ if(t.identifier===id) move(t.clientX,t.clientY); } }, {passive:true});
+    el.addEventListener('touchend',   e=>{ for(const t of e.changedTouches){ if(t.identifier===id) release(t.clientX); } id=null; }, {passive:true});
+    // 鼠标
+    let mdown=false;
+    el.addEventListener('mousedown', e=>{ mdown=true; sx=e.clientX; sy=e.clientY; dragging=false; });
+    window.addEventListener('mousemove', e=>{ if(mdown) move(e.clientX,e.clientY); });
+    window.addEventListener('mouseup',   e=>{ if(mdown){ mdown=false; release(e.clientX); } });
+  }
+  function bindLongPress(el, cb){
+    let timer=null, sx=0, sy=0;
+    const start=(x,y)=>{ sx=x; sy=y; timer=setTimeout(()=>{ timer=null; cb(x,y); }, 480); };
+    const cancel=()=>{ if(timer){ clearTimeout(timer); timer=null; } };
+    el.addEventListener('touchstart', e=>{ const t=e.changedTouches[0]; start(t.clientX,t.clientY); }, {passive:true});
+    el.addEventListener('touchmove', e=>{ const t=e.changedTouches[0]; if(Math.hypot(t.clientX-sx,t.clientY-sy)>12) cancel(); }, {passive:true});
+    el.addEventListener('touchend', cancel, {passive:true});
+    // OP-12 右键 = 次级菜单
+    el.addEventListener('contextmenu', e=>{ e.preventDefault(); cb(e.clientX, e.clientY); });
+  }
+
+  // 点击外部 (OP-10) 收起浮层 / 菜单 / 对话面板
+  document.addEventListener('pointerdown', e=>{
+    if(!ctxMenu.contains(e.target) && ctxMenu.style.display==='block'){ closeCtxMenu(); }
+    // 面板打开时，点击对话框以外的任意空白处即关闭（球本身用于toggle，排除）
+    if(chatPanel.classList.contains('open') && !chatPanel.contains(e.target) && !aiBall.contains(e.target)){
+      closeChat();
+    }
+    if(pb.style.display==='block' && !pb.contains(e.target) && !aiBall.contains(e.target)){ /* 保留气泡, 外点不强关, 交给划走 */ }
+  }, true);
+
+  // OP-11 悬停预览 (PC) — 悬浮球
+  aiBall.addEventListener('mouseenter', ()=>{
+    if('ontouchstart' in window) return;
+    const r=ballRect();
+    hoverTip.textContent = '单击召唤 · 长按语音 · 拖到方块识别';
+    hoverTip.style.display='block';
+    hoverTip.style.right=(window.innerWidth-r.right)+'px';
+    hoverTip.style.left='auto';
+    hoverTip.style.top=(r.bottom+8)+'px';
+    logOp('OP-11','悬停→预览提示');
+  });
+  aiBall.addEventListener('mouseleave', ()=> hoverTip.style.display='none');
+
+  // OP-13 快捷键 (PC) — 空格召唤/收起, V 快捷语音
+  window.addEventListener('keydown', e=>{
+    if(document.activeElement===chatText) return;
+    if(e.code==='KeyH'){ logOp('OP-13','快捷键 H→召唤/收起面板'); toggleChat(); }
+    if(e.code==='KeyV'){ logOp('OP-13','快捷键 V→快捷语音'); }
+  });
+
+  // ==============================================================
+  // 模拟事件场景
+  // ==============================================================
+  const SCENARIOS = {
+    stuck(){
+      logOp('SIM','玩家卡关');
+      showBubble('看你在这卡了一会儿，需要我看看吗？', { sense:true });
+      setTimeout(()=>{
+        setAIState('think');           // S-10 后台思考
+        updateMonitor();
+        setTimeout(()=>{
+          showBubble('前面的铁门需要红石信号，试试旁边的拉杆。', {
+            actions:[
+              {label:'带我去', primary:true, fn:()=>{ showCard(DEFAULT_CARD); }},
+              {label:'知道了', fn:()=>{ closeBubble('idle'); }},
+            ]
+          });
+        }, 1100);
+      }, 1400);
+    },
+    death(){
+      logOp('SIM','连续死亡→情绪陪伴 (E组)');
+      showBubble('又倒下了…别急，这波我陪你一起找回装备，先深呼吸。', {
+        sense:true,
+        actions:[ {label:'谢谢', primary:true, fn:()=>{ closeBubble('idle'); }} ]
+      });
+    },
+    rare(){
+      logOp('SIM','发现稀有资源');
+      setAIState('sense');
+      setTimeout(()=> showBubble('你脚下 3 格是钻石矿脉，要标记吗？', {
+        expand: DIAMOND_CARD,
+        actions:[
+          {label:'标记', primary:true, fn:()=>{ showBubble('已标记 ⛏ 记得带铁镐'); setTimeout(()=>closeBubble('idle'),1600); }},
+          {label:'忽略', fn:()=>{ closeBubble('idle'); }},
+        ]
+      }), 700);
+    },
+    card(){
+      logOp('SIM','气泡→展开图文卡片 (S-04)');
+      // 按矩阵定义：卡片是气泡「响应用户展开」的形态，先冒气泡，点它展开为卡片
+      showBubble('发现钻石矿脉，点我查看详情 ▸', { sense:true, expand: DIAMOND_CARD });
+    },
+    think(){
+      logOp('SIM','后台思考 (S-10)');
+      hideBubble(); hideCard();
+      setAIState('think');
+    },
+    combat(){
+      setSuppressed(!suppressed);
+      logOp('SIM', suppressed?'进入战斗→抑制 (S-12)':'退出战斗→恢复');
+    },
+    // ---- 玩家主动态直达 ----
+    activeOrb(){                                  // S-02 活跃·悬浮球（无浮层）
+      hideBubble(); hideCard(); closeChat(false);
+      setAIActive(2600);
+    },
+    panel(){                                      // S-05 活跃·面板
+      hideBubble(); hideCard();
+      openChat(true);
+    },
+    listenOrb(){                                  // S-08 聆听·悬浮球
+      hideBubble(); hideCard(); closeChat(false);
+      setAIState('listen');
+      voiceTxt.textContent = '正在聆听…（快捷语音）';
+      placeVoiceNearBall();
+      voiceBubble.style.display = 'block';
+      clearTimeout(listenTimer);
+      listenTimer = setTimeout(()=>{ voiceBubble.style.display='none'; setAIState('idle'); }, 2600);
+    },
+    listenPanel(){                                // S-09 聆听·面板
+      hideBubble(); hideCard();
+      openChat(false);
+      setAIState('listen');
+      clearTimeout(listenTimer);
+      listenTimer = setTimeout(()=> setAIState('active'), 2600);
+    },
+    thinkPanel(){                                 // S-11 思考·面板（loading）
+      hideBubble(); hideCard();
+      openChat(false);
+      setAIState('think');
+      const tid = addThinkingMsg();
+      setTimeout(()=>{ removeMsg(tid); setAIState('active'); }, 1800);
+    },
+  };
+  let listenTimer = null;
+
+  document.querySelectorAll('.sp-btn').forEach(b=>{
+    b.addEventListener('click', ()=>{ const fn=SCENARIOS[b.dataset.sim]; if(fn) fn(); });
+  });
+
+  // ---- 演示模式 ----
+  let mode='manual', autoTimer=null, autoIdx=0;
+  const autoSeq=['rare','stuck','death','card','think','combat','combat'];
+  function setMode(m){
+    mode=m;
+    document.querySelectorAll('.sp-mode button').forEach(x=> x.classList.toggle('on', x.dataset.mode===m));
+    if(autoTimer){ clearInterval(autoTimer); autoTimer=null; }
+    if(m==='auto'){
+      autoIdx=0;
+      const step=()=>{ const key=autoSeq[autoIdx%autoSeq.length]; autoIdx++; SCENARIOS[key] && SCENARIOS[key](); };
+      step();
+      autoTimer=setInterval(step, 4200);
+    }
+  }
+  document.querySelectorAll('.sp-mode button').forEach(b=>{
+    b.addEventListener('click', ()=> setMode(b.dataset.mode));
+  });
+
+  // ---- 面板开关 ----
+  simToggle.addEventListener('click', ()=>{
+    const open=simPanel.classList.toggle('open');
+    simToggle.textContent = open ? '模拟事件 ▼' : '模拟事件 ▲';
+  });
+
+  // ==============================================================
+  // 真实交互触发：让 AI 在真玩的时候【主动】发气泡
+  //   气泡是 AI 主动行为(S-03/S-07)，不由玩家点出来，而由检测到的事件触发。
+  //   demo 里接了两类真实可检测的事件：① 长时间原地不动(卡住) ② 靠近稀有矿脉
+  // ==============================================================
+  let lastPos = null, lastYaw = 0, idleSec = 0, proactiveCooldown = 0;
+  function busy(){ return suppressed || pb.style.display==='block' || fc.style.display==='block'
+                     || chatPanel.classList.contains('open') || AI_DRAG.active; }
+
+  setInterval(()=>{
+    if(mode!=='manual') return;            // 自动演示模式下不叠加
+    if(proactiveCooldown>0){ proactiveCooldown--; }
+
+    // 计算是否在移动/转视角
+    const p = player.pos;
+    let moved = false;
+    if(lastPos){
+      const d = Math.hypot(p.x-lastPos.x, p.z-lastPos.z);
+      if(d > 0.15 || Math.abs(player.yaw-lastYaw) > 0.12) moved = true;
+    }
+    lastPos = { x:p.x, z:p.z };
+    lastYaw = player.yaw;
+
+    if(busy() || proactiveCooldown>0){ idleSec = 0; return; }
+
+    // ① 靠近稀有矿脉 → 感知气泡（优先级高）
+    const ore = nearestOre();
+    if(ore){
+      proactiveCooldown = 18;   // 约18秒内不重复
+      idleSec = 0;
+      showBubble('你附近有'+ore.name+'矿脉，要我帮你标记吗？', {
+        sense:true,
+        expand: DIAMOND_CARD,
+        actions:[
+          {label:'标记', primary:true, fn:()=>{ showBubble('已标记 ⛏ 记得带对应等级的镐'); setTimeout(()=>closeBubble('idle'),1600); }},
+          {label:'忽略', fn:()=>{ closeBubble('idle'); }},
+        ]
+      });
+      return;
+    }
+
+    // ② 原地不动累计 → 卡住？主动搭话
+    if(moved){ idleSec = 0; }
+    else {
+      idleSec++;
+      if(idleSec >= 7){
+        idleSec = 0; proactiveCooldown = 15;
+        showBubble('在这待了一会儿了，需要我帮你看看接下来做什么吗？', {
+          sense:true,
+          actions:[
+            {label:'好啊', primary:true, fn:()=>{
+              setAIState('think');
+              setTimeout(()=> showBubble('先补点食物，然后往东边找橡树砍木头做工具。', {
+                actions:[{label:'知道了', primary:true, fn:()=>{ hideBubble(); setAIState('idle'); }}]
+              }), 1100);
+            }},
+            {label:'不用', fn:()=>{ hideBubble(); setAIState('idle'); }},
+          ]
+        });
+      }
+    }
+  }, 1000);
+
+  // 找最近稀有矿（钻石/铁/煤），范围内才返回
+  function nearestOre(){
+    const RARE = { diamond:'钻石', iron:'铁', coal:'煤' };
+    let best=null, bestD=6;   // 6格内
+    for(const m of blockMeshes){
+      const type = m.userData && m.userData.type;
+      if(!RARE[type]) continue;
+      const positions = m.userData.positions || [];
+      for(const pos of positions){
+        const d = Math.hypot(pos[0]-player.pos.x, pos[2]-player.pos.z);
+        if(d < bestD){ bestD=d; best={ name:RARE[type], type }; }
+      }
+    }
+    return best;
+  }
+
+  updateMonitor();
+})();
+
+
+</script>
+<script src="./mixed-output-strategy.js"></script>
+<script>
+(function strategyConsole(){
+  const API = window.MixedOutputStrategy;
+  const CLOUD_API_BASE = 'https://vercel-proxy-five-beta.vercel.app';
+  const strategyEndpoint = CLOUD_API_BASE.includes('REPLACE-WITH') ? '/api/strategy' : CLOUD_API_BASE.replace(/\/$/,'') + '/api/strategy';
+  const toggle = document.getElementById('strategy-toggle');
+  const panel = document.getElementById('strategy-panel');
+  const input = document.getElementById('strategy-query');
+  const runBtn = document.getElementById('strategy-run');
+  const output = document.getElementById('strategy-output');
+  const layers = [1,2,3,4,5,6].map(n=>document.getElementById('st-l'+n));
+  const manager = API.createContextManager();
+
+  const SHEEP={id:'minecraft:sheep',name:'羊',type:'friendly_mob',wiki:{summary:'这是羊，剪了能获得羊毛。',intro:'羊是被动生物。',stats:{health:8},drops:['羊毛','生羊肉'],uses:['提供羊毛','繁殖'],recipe:null,source:'平原和森林等生物群系自然生成'}};
+  const SWORD={id:'minecraft:iron_sword',name:'铁剑',type:'tool',wiki:{summary:'铁剑是近战武器。',intro:'铁剑造成 6 点攻击伤害。',stats:{maxDurability:250,damage:6},drops:[],uses:['近战攻击'],recipe:['铁锭×2','木棍×1'],source:'由铁锭和木棍合成'}};
+  const base={selectedObjects:[SHEEP],playerState:{position:{x:12,y:64,z:-8},inventory:{food:6,wheat:3,iron_ingot:0},equipment:{mainHand:'铁剑'},stats:{treesCutToday:17,playMinutes:620}},worldState:{nearby:[{type:'sheep',distance:18}]}};
+  const scenes={
+    'pure-c':{q:'这只羊掉什么？',ctx:base},
+    'c-g':{q:'这把剑还能用多久？',ctx:{...base,selectedObjects:[SWORD],playerState:{...base.playerState,currentDurability:47}}},
+    'pure-g':{q:'我今天砍了多少树？',ctx:{...base,selectedObjects:[]}},
+    'g-c':{q:'我下一步该干嘛？',ctx:{...base,selectedObjects:[],playerState:{...base.playerState,currentDurability:0,inventory:{food:0,iron_ingot:0}}}},
+    'follow-up':{q:'铁锭哪来？',ctx:{...base,selectedObjects:[]},follow:true},
+    'action':{q:'帮我砍掉周围的树',ctx:{...base,selectedObjects:[]}},
+  };
+
+  const value=(n,html,state='on')=>{const el=layers[n-1];el.classList.remove('on','fail');if(state)el.classList.add(state);el.querySelector('.st-value').innerHTML=html;};
+  const reset=()=>layers.forEach(el=>{el.classList.remove('on','fail');});
+  const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const compText=components=>(components||[]).map(c=>`<span class="st-component">${esc(c.id)}</span>`).join('')||'无组件调用';
+  const routeReason=r=>`<span class="st-route">${esc(r.path)}</span> Wiki作为输出：${r.wikiAsOutput?'是':'否'} · 读取动态状态：${r.dynamicStateRequired?'是':'否'} · C数据：${esc(r.cDataUsage||'NONE')}`;
+
+  async function run(scene){
+    reset();
+    const query=input.value.trim()||scene.q;
+    input.value=query;
+    const context=scene.ctx;
+    const cached=manager.resolveFollowUp(query);
+    if(cached.hit){
+      value(1,'FOLLOW_UP · 置信度 1.00');
+      value(2,'命中上轮上下文，跳过重新路由');
+      value(3,compText([cached.component]));
+      const merged=API.integrateResults({path:'PURE_C',intent:'FOLLOW_UP',components:[cached.component]});
+      value(4,'直接读取缓存 C7 → assemble');
+      value(5,'缓存命中：上一轮 G→C 的材料来源');
+      value(6,'未触发');
+      output.innerHTML=merged.lines.map(esc).join('<br>');
+      return;
+    }
+    const result=await API.processRequestWithAI({query,context,contextManager:manager},{endpoint:strategyEndpoint});
+    value(1,`${esc(result.intent.label)} · 置信度 ${result.intent.confidence.toFixed(2)}${result.aiEnhanced?' · AI增强':' · 本地降级'}<br>${esc((result.intent.evidence||[]).join('；'))}`,result.intent.confidence<.7?'fail':'on');
+    value(2,routeReason(result.route),result.route.path==='CLARIFY'?'fail':'on');
+    value(3,compText(result.components));
+    value(4,result.components?.length?`提取 ${result.components.length} 个组件核心 → ${esc(result.route.path)} fuse → ${result.output.lines.length} 行输出`:'无数据融合');
+    value(5,result.cacheHit?'命中缓存':'已缓存本轮路径与组件，追问可直接复用');
+    value(6,result.failure?`${esc(result.failure.code)} · ${esc(result.failure.message||'已降级')}`:'未触发',result.failure?'fail':'on');
+    output.innerHTML=result.output.lines.map(esc).join('<br>')+(result.action?`<div class="st-action">${esc(result.action.label)}</div>`:'');
+  }
+
+  toggle.addEventListener('click',()=>{panel.classList.toggle('open');const sim=document.getElementById('sim-panel');if(sim)sim.classList.remove('open');});
+  runBtn.addEventListener('click',()=>run({q:input.value,ctx:base}));
+  input.addEventListener('keydown',e=>{if(e.key==='Enter')run({q:input.value,ctx:base});});
+  panel.querySelectorAll('[data-strategy-scene]').forEach(btn=>btn.addEventListener('click',async()=>{
+    const scene=scenes[btn.dataset.strategyScene];
+    if(scene.follow && !manager.getLast()) await run(scenes['g-c']);
+    await run(scene);
+  }));
+})();
+</script>
+<script>
+(function(){
+  var done=false;
+  window.addEventListener('error',function(e){
+    var tip=document.getElementById('load-tip');
+    if(tip && !done) tip.textContent='加载出错，点按钮重试进入';
+    revealEnter(true);
+  });
+  function revealEnter(forced){
+    var b=document.getElementById('enter-btn');
+    var loading=document.getElementById('loading');
+    if(!b||!loading) return;
+    if(!b.classList.contains('ready')){
+      b.classList.add('ready');
+      if(forced) b.textContent='强制进入';
+    }
+    if(!b.__safebound){
+      b.__safebound=true;
+      var go=function(){ loading.style.opacity='0'; setTimeout(function(){loading.style.display='none';},400); };
+      b.addEventListener('click',go);
+      b.addEventListener('touchend',go,{passive:false});
+    }
+  }
+  setTimeout(function(){
+    var b=document.getElementById('enter-btn');
+    var loading=document.getElementById('loading');
+    if(loading && loading.style.display!=='none' && b && !b.classList.contains('ready')){
+      var tip=document.getElementById('load-tip');
+      if(tip) tip.textContent='资源加载较慢，可点按钮进入';
+      revealEnter(true);
+    } else { done=true; }
+  }, 7000);
+})();
+</script>
+</body>
+</html>
