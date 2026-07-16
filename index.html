@@ -64,7 +64,7 @@ canvas{display:block;width:100%;height:100%;touch-action:none;}
 #center-cross::after{left:0;top:50%;width:100%;height:2px;transform:translateY(-50%);}
 
 /* AI Ball — five-state glass orb */
-#ai-ball{--orb:#79838e;--orb-soft:rgba(121,131,142,.34);position:fixed;top:22px;right:22px;width:60px;height:60px;border-radius:50%;z-index:70;background:radial-gradient(circle at 30% 22%,rgba(255,255,255,.42),transparent 28%),radial-gradient(circle at 50% 62%,var(--orb),#121820 76%);border:1px solid rgba(255,255,255,.36);box-shadow:0 10px 28px rgba(0,0,0,.34),0 0 22px var(--orb-soft),inset 0 1px 1px rgba(255,255,255,.42),inset 0 -10px 20px rgba(0,0,0,.3);display:flex;align-items:center;justify-content:center;transition:transform .28s cubic-bezier(.2,.8,.2,1),box-shadow .4s ease,background .4s ease;touch-action:none;isolation:isolate;}
+#ai-ball{--orb:#79838e;--orb-soft:rgba(121,131,142,.34);position:fixed;top:22px;right:22px;width:60px;height:60px;border-radius:50%;z-index:120;background:radial-gradient(circle at 30% 22%,rgba(255,255,255,.42),transparent 28%),radial-gradient(circle at 50% 62%,var(--orb),#121820 76%);border:1px solid rgba(255,255,255,.36);box-shadow:0 10px 28px rgba(0,0,0,.34),0 0 22px var(--orb-soft),inset 0 1px 1px rgba(255,255,255,.42),inset 0 -10px 20px rgba(0,0,0,.3);display:flex;align-items:center;justify-content:center;transition:transform .28s cubic-bezier(.2,.8,.2,1),box-shadow .4s ease,background .4s ease;touch-action:none;isolation:isolate;}
 #ai-ball::before{content:"";position:absolute;inset:9px;border-radius:50%;background:radial-gradient(circle at 38% 30%,rgba(255,255,255,.42),rgba(255,255,255,.06) 36%,rgba(0,0,0,.18) 72%);border:1px solid rgba(255,255,255,.18);box-shadow:inset 0 0 12px rgba(255,255,255,.08),0 0 13px var(--orb-soft);z-index:1;}
 #ai-ball::after{content:"";position:absolute;left:17px;top:11px;width:19px;height:8px;border-radius:50%;background:linear-gradient(180deg,rgba(255,255,255,.62),rgba(255,255,255,0));filter:blur(.4px);transform:rotate(-18deg);z-index:3;opacity:.72;}
 #ai-ball .core{position:relative;z-index:2;width:12px;height:12px;border-radius:50%;background:#e5ebef;box-shadow:0 0 7px rgba(255,255,255,.82),0 0 18px var(--orb);transition:transform .35s ease,background .35s ease,box-shadow .35s ease;}
@@ -93,7 +93,7 @@ canvas{display:block;width:100%;height:100%;touch-action:none;}
 @keyframes badgeBreath{0%,100%{transform:scale(.88);opacity:.75;}50%{transform:scale(1.08);opacity:1;}}
 
 /* Drag crosshair (above finger) */
-#drag-cross{position:fixed;width:60px;height:60px;pointer-events:none;z-index:58;display:none;transform:translate(-50%,-50%);}
+#drag-cross{position:fixed;width:60px;height:60px;pointer-events:none;z-index:119;display:none;transform:translate(-50%,-50%);}
 #drag-cross svg{width:100%;height:100%;filter:drop-shadow(0 0 8px rgba(255,220,80,1));}
 
 /* Voice bubble */
@@ -325,7 +325,8 @@ body.ai-suppressed #chat-panel{opacity:.32 !important;filter:saturate(.4);transi
 .hot-slot.active{outline:3px solid #fff;z-index:1;}.hot-slot .count{position:absolute;right:2px;bottom:0;text-shadow:1px 1px #000;}
 #inventory-btn{position:fixed;right:16px;bottom:16px;z-index:42;width:42px;height:42px;background:#777;border:2px solid #222;color:#fff;font:bold 16px monospace;box-shadow:inset 2px 2px #aaa,inset -2px -2px #444;}
 #inventory-panel{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);z-index:96;width:min(420px,78vw);padding:14px;background:#c6c6c6;border:4px solid #222;box-shadow:inset 2px 2px #fff,inset -2px -2px #555;display:none;color:#222;}
-#inventory-panel.open{display:block}.inv-title{font:bold 14px monospace;margin-bottom:9px}.inv-grid{display:grid;grid-template-columns:repeat(9,1fr);gap:3px}.inv-slot{aspect-ratio:1;background:#8b8b8b;border:2px solid;border-color:#555 #fff #fff #555;display:flex;align-items:center;justify-content:center;font:bold 9px monospace;text-align:center;}
+#inventory-panel.open,#furnace-panel.open{display:block}.inv-title{font:bold 14px monospace;margin-bottom:9px;text-shadow:1px 1px #fff}.inv-grid{display:grid;grid-template-columns:repeat(9,1fr);gap:3px}.inv-slot{aspect-ratio:1;background:#8b8b8b;border:2px solid;border-color:#555 #fff #fff #555;display:flex;align-items:center;justify-content:center;font:bold 9px monospace;text-align:center;position:relative;image-rendering:pixelated}.inv-slot img{width:76%;height:76%;object-fit:contain;image-rendering:pixelated}.inv-slot .slot-count{position:absolute;right:2px;bottom:0;color:#fff;text-shadow:1px 1px #111;font:bold 11px monospace}.inv-slot.ai-slot-selected{outline:3px solid #7ed957;z-index:1;box-shadow:0 0 12px #7ed957}
+#furnace-panel{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);z-index:96;width:min(390px,72vw);padding:14px;background:#c6c6c6;border:4px solid #222;box-shadow:inset 2px 2px #fff,inset -2px -2px #555;display:none;color:#222}.furnace-layout{display:grid;grid-template-columns:52px 66px 52px;grid-template-rows:52px 52px;gap:6px;justify-content:center;align-items:center;margin:14px}.furnace-layout .fuel{grid-column:1;grid-row:2}.furnace-icons{grid-column:2;grid-row:1/3;text-align:center;font-size:24px}.mc-ui-btn{margin-top:10px;padding:7px 12px;background:#777;border:2px solid;border-color:#fff #333 #333 #fff;color:#fff;text-shadow:1px 1px #111;font-family:monospace}
 .wiki-link{color:#7ed957;text-decoration:underline;text-decoration-style:dotted;cursor:pointer;font-weight:700;}
 </style>
 </head>
@@ -353,16 +354,23 @@ body.ai-suppressed #chat-panel{opacity:.32 !important;filter:saturate(.4);transi
   <div id="joystick"><div class="knob" id="joy-knob"></div></div>
   <button id="jump-btn">JUMP</button>
   <div id="hotbar">
-    <div class="hot-slot active">剑</div><div class="hot-slot">镐</div><div class="hot-slot">斧</div><div class="hot-slot">火把<span class="count">16</span></div><div class="hot-slot">面包<span class="count">5</span></div><div class="hot-slot">木</div><div class="hot-slot">石<span class="count">32</span></div><div class="hot-slot">书</div><div class="hot-slot"></div>
+    <div class="hot-slot active" data-item-id="iron_sword"></div><div class="hot-slot" data-item-id="iron_pickaxe"></div><div class="hot-slot" data-item-id="iron_axe"></div><div class="hot-slot" data-item-id="torch" data-count="16"></div><div class="hot-slot" data-item-id="bread" data-count="5"></div><div class="hot-slot" data-item-id="log" data-count="12"></div><div class="hot-slot" data-item-id="cobble" data-count="32"></div><div class="hot-slot" data-item-id="book"></div><div class="hot-slot"></div>
   </div>
   <button id="inventory-btn">B</button>
   <div id="inventory-panel">
     <div class="inv-title">物品栏</div>
     <div class="inv-grid">
-      <div class="inv-slot">铁剑</div><div class="inv-slot">铁镐</div><div class="inv-slot">斧</div><div class="inv-slot">火把</div><div class="inv-slot">面包</div><div class="inv-slot">原木</div><div class="inv-slot">圆石</div><div class="inv-slot">书</div><div class="inv-slot"></div>
-      <div class="inv-slot">铁锭</div><div class="inv-slot">煤</div><div class="inv-slot">小麦</div><div class="inv-slot">羊毛</div><div class="inv-slot">皮革</div><div class="inv-slot"></div><div class="inv-slot"></div><div class="inv-slot"></div><div class="inv-slot"></div>
+      <div class="inv-slot" data-item-id="iron_sword"></div><div class="inv-slot" data-item-id="iron_pickaxe"></div><div class="inv-slot" data-item-id="iron_axe"></div><div class="inv-slot" data-item-id="torch" data-count="16"></div><div class="inv-slot" data-item-id="bread" data-count="5"></div><div class="inv-slot" data-item-id="log" data-count="12"></div><div class="inv-slot" data-item-id="cobble" data-count="32"></div><div class="inv-slot" data-item-id="book"></div><div class="inv-slot" data-item-id="furnace"></div>
+      <div class="inv-slot" data-item-id="iron_ingot" data-count="3"></div><div class="inv-slot" data-item-id="coal" data-count="8"></div><div class="inv-slot" data-item-id="wheat" data-count="6"></div><div class="inv-slot" data-item-id="white_wool" data-count="4"></div><div class="inv-slot" data-item-id="leather" data-count="2"></div><div class="inv-slot"></div><div class="inv-slot"></div><div class="inv-slot"></div><div class="inv-slot"></div>
       <div class="inv-slot"></div><div class="inv-slot"></div><div class="inv-slot"></div><div class="inv-slot"></div><div class="inv-slot"></div><div class="inv-slot"></div><div class="inv-slot"></div><div class="inv-slot"></div><div class="inv-slot"></div>
     </div>
+    <button class="mc-ui-btn" onclick="openFurnace()">打开熔炉</button>
+  </div>
+  <div id="furnace-panel">
+    <div class="inv-title">熔炉</div>
+    <div class="furnace-layout"><div class="inv-slot" data-item-id="iron_ore"></div><div class="furnace-icons">🔥<br>→</div><div class="inv-slot" data-item-id="iron_ingot"></div><div class="inv-slot fuel" data-item-id="coal"></div></div>
+    <div class="inv-grid furnace-inventory"></div>
+    <button class="mc-ui-btn" onclick="closeFurnace()">返回背包</button>
   </div>
 
   <div id="ai-ball" data-state="idle" aria-label="AI 助手：待命">
@@ -493,6 +501,26 @@ const joyKnob    = document.getElementById('joy-knob');
 const hotbar     = document.getElementById('hotbar');
 const inventoryBtn = document.getElementById('inventory-btn');
 const inventoryPanel = document.getElementById('inventory-panel');
+const furnacePanel = document.getElementById('furnace-panel');
+let WIKI_SNAPSHOT={records:{}};
+async function loadWikiSnapshot(){
+  try{WIKI_SNAPSHOT=await fetch('./wiki-snapshot.json',{cache:'no-store'}).then(r=>{if(!r.ok)throw new Error(r.status);return r.json();});renderItemSlots();}
+  catch(e){console.warn('Wiki snapshot unavailable',e);}
+}
+function renderItemSlots(){
+  document.querySelectorAll('[data-item-id]').forEach(slot=>{
+    const r=WIKI_SNAPSHOT.records[slot.dataset.itemId];if(!r)return;
+    slot.innerHTML=`<img class="mc-icon" src="${r.icon}" alt="${escapeHtml(r.C1.name)}">${slot.dataset.count?`<span class="slot-count">${slot.dataset.count}</span>`:''}`;
+    slot.title=r.C1.name;
+  });
+  const finv=document.querySelector('.furnace-inventory');if(finv&&!finv.children.length){
+    ['iron_sword','iron_pickaxe','iron_axe','torch','bread','log','cobble','book','furnace'].forEach(id=>{const s=document.createElement('div');s.className='inv-slot';s.dataset.itemId=id;const r=WIKI_SNAPSHOT.records[id];if(r)s.innerHTML=`<img class="mc-icon" src="${r.icon}" alt="${escapeHtml(r.C1.name)}">`;finv.appendChild(s);});
+  }
+}
+function openFurnace(){inventoryPanel.classList.remove('open');furnacePanel.classList.add('open');}
+function closeFurnace(){furnacePanel.classList.remove('open');inventoryPanel.classList.add('open');}
+function closeSecondaryUI(){inventoryPanel.classList.remove('open');furnacePanel.classList.remove('open');}
+window.openFurnace=openFurnace;window.closeFurnace=closeFurnace;
 const jumpBtn    = document.getElementById('jump-btn');
 const aiBall     = document.getElementById('ai-ball');
 const dragCross  = document.getElementById('drag-cross');
@@ -1323,8 +1351,8 @@ function moveAndCollide(dx,dy,dz){
 // Input state
 // ==============================================================
 const input = { joyX:0, joyY:0 };
-inventoryBtn.addEventListener('click',e=>{e.stopPropagation();inventoryPanel.classList.toggle('open');});
-const toggleInventory=()=>inventoryPanel.classList.toggle('open');
+inventoryBtn.addEventListener('click',e=>{e.stopPropagation();furnacePanel.classList.remove('open');inventoryPanel.classList.toggle('open');});
+const toggleInventory=()=>{furnacePanel.classList.remove('open');inventoryPanel.classList.toggle('open');};
 const JOY = { id:null, cx:0, cy:0, r:52 };
 const LOOK = { id:null, lastX:0, lastY:0 };
 const AI_DRAG = { id:null, startX:0, startY:0, startT:0, curX:0, curY:0, moved:0, active:false, listening:false, willTap:true, holdTimer:null };
@@ -1421,6 +1449,17 @@ function activateAIDrag(){
   }
   if(hintEl) hintEl.classList.add('hidden');
 }
+function selectUISlotAt(x,y){
+  const el=document.elementFromPoint(x,y);const slot=el&&el.closest&&el.closest('[data-item-id]');
+  document.querySelectorAll('.ai-slot-selected').forEach(s=>s.classList.remove('ai-slot-selected'));
+  if(!slot)return false;
+  slot.classList.add('ai-slot-selected');
+  const id=slot.dataset.itemId,record=WIKI_SNAPSHOT.records[id];
+  CHAT.selectedType=id;CHAT.selectedPos=null;
+  blockLabel.textContent=record?.C1?.name||id;blockLabel.style.display='block';
+  return true;
+}
+
 function aiMove(t){
   const dx = t.clientX-AI_DRAG.startX, dy = t.clientY-AI_DRAG.startY;
   const d = Math.hypot(dx,dy);
@@ -1435,6 +1474,7 @@ function aiMove(t){
   }
   moveAIBallTo(t.clientX, t.clientY);
   moveCrossTo(t.clientX, t.clientY);
+  if(inventoryPanel.classList.contains('open')||furnacePanel.classList.contains('open')) selectUISlotAt(t.clientX,t.clientY);
   if(voiceBubble.style.display==='block') placeVoiceNearBall();
 }
 function aiEnd(){
@@ -1471,6 +1511,8 @@ function aiEnd(){
   const selType = CHAT.selectedType;
   const selPos  = CHAT.selectedPos;
   const voice   = (CHAT.pendingVoice||'').trim();
+  const selectedFromUI=!!document.querySelector('.ai-slot-selected');
+  if(selectedFromUI) closeSecondaryUI();
   openChat(false);
   if(!selType){
     // no block hit — treat like typed text
@@ -1518,8 +1560,9 @@ function resetAIBallHome(){
   aiBall.style.right='auto';
   setTimeout(()=>{ aiBall.style.transition=''; }, 380);
 }
+const DRAG_POINTER_SCALE=.7;
 function moveCrossTo(x,y){
-  const off = Math.min(98, Math.max(56, window.innerHeight*0.126));
+  const off = Math.min(98, Math.max(56, window.innerHeight*0.126))*DRAG_POINTER_SCALE;
   dragCross.style.left = x + 'px';
   dragCross.style.top  = (y - off) + 'px';
 }
@@ -1721,6 +1764,8 @@ const COMPACT_ITEMS={
 };
 
 function compactWikiFor(type){
+  const snap=WIKI_SNAPSHOT.records[type];
+  if(snap) return {C1:snap.C1,C2:{intro:snap.C2.intro,keywords:[]},C3:{label:'关键数值',value:Object.values(snap.C3||{}).join(' / ')||null},C4:{drops:(snap.C4||[]).map(name=>({name,count:1}))},C5:{uses:snap.C5||''},C6:{recipe:snap.C6},C7:{source:snap.C7||'',keywords:[]},icon:snap.icon};
   const special=COMPACT_ITEMS[type];
   if(special) return {
     C1:{name:special.name,tag:special.tag},C2:{intro:special.intro,keywords:special.keywords},
@@ -1758,14 +1803,14 @@ function buildPureCWikiCard(result,type){
   const ids=new Set((result.componentPlan&&result.componentPlan.components)||['C1','C2']);
   const c=document.createElement('div');c.className='card cmp-card pure-c-card';
   let html=`<div class="card-head" data-component="C1"><span class="name">${escapeHtml(C.C1.name)}</span><span class="tag">${escapeHtml(C.C1.tag)}</span><span class="cmp-id">C1</span></div>`;
-  if(ids.has('C2')) html+=`<div class="info-body" data-component="C2"><div class="thumb" data-t="${type}"></div><div class="desc">${wikiLinks(C.C2.intro)}</div></div>`;
+  if(ids.has('C2')) html+=`<div class="info-body" data-component="C2"><div class="thumb" data-t="${type}">${C.icon?`<img class="mc-icon" src="${C.icon}" alt="${escapeHtml(C.C1.name)}">`:''}</div><div class="desc">${wikiLinks(C.C2.intro)}</div></div>`;
   if(ids.has('C3')&&C.C3.value!=null) html+=sectionHtml('C3',C.C3.label,`<b class="k">${escapeHtml(C.C3.value)}</b>`);
   if(ids.has('C4')&&C.C4.drops.length) html+=sectionHtml('C4','掉落物',C.C4.drops.map(d=>`<span class="cmp-chip">${escapeHtml(d.name)} ×${escapeHtml(d.count)}</span>`).join(' '));
   if(ids.has('C5')) html+=sectionHtml('C5','能做什么',wikiLinks(C.C5.uses));
   if(ids.has('C6')&&C.C6.recipe) html+=sectionHtml('C6','合成配方',`<div class="cmp-recipe">${C.C6.recipe.map((x,i)=>`${i?'<span>→</span>':''}<span class="cmp-chip">${wikiLinks(x)}</span>`).join('')}</div>`);
   if(ids.has('C7')) html+=sectionHtml('C7','在哪里',wikiLinks(C.C7.source));
   c.innerHTML=html;
-  c.querySelectorAll('.thumb').forEach(w=>w.appendChild(makeThumb(w.dataset.t)));
+  c.querySelectorAll('.thumb').forEach(w=>{if(!w.querySelector('img'))w.appendChild(makeThumb(w.dataset.t));});
   bindWikiLinks(c);
   return c;
 }
@@ -2357,6 +2402,7 @@ function loop(){
 // ==============================================================
 setLoad(1.0,'准备就绪');
 setupEnterFlow();
+loadWikiSnapshot();
 enterBtn.classList.add('ready');
 loadTip.textContent = '点击下方按钮进入';
 
@@ -2578,7 +2624,7 @@ requestAnimationFrame(loop);
   function isChatSafeTarget(target){
     return !!(target && (
       chatPanel.contains(target) || aiBall.contains(target) || joystick.contains(target) || hotbar.contains(target) ||
-      inventoryBtn.contains(target) || inventoryPanel.contains(target) || simToggle.contains(target) || simPanel.contains(target) ||
+      inventoryBtn.contains(target) || inventoryPanel.contains(target) || furnacePanel.contains(target) || simToggle.contains(target) || simPanel.contains(target) ||
       document.getElementById('strategy-toggle').contains(target) || document.getElementById('strategy-panel').contains(target)
     ));
   }

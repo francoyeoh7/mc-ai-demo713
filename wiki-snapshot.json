@@ -1,0 +1,444 @@
+{
+  "generatedAt": "2026-07-16T03:56:54.029Z",
+  "source": {
+    "site": "Minecraft Wiki",
+    "url": "https://minecraft.wiki/",
+    "notice": "Selected build-time snapshot. Minecraft assets and wiki content retain their respective source terms.",
+    "assets": [
+      {
+        "id": "zombie",
+        "url": "https://minecraft.wiki/images/EntitySprite_zombie.png?ce11f",
+        "page": "https://minecraft.wiki/w/File:EntitySprite_zombie.png"
+      },
+      {
+        "id": "sheep",
+        "url": "https://minecraft.wiki/images/EntitySprite_sheep.png?bd14e",
+        "page": "https://minecraft.wiki/w/File:EntitySprite_sheep.png"
+      },
+      {
+        "id": "bookshelf",
+        "url": "https://minecraft.wiki/images/Invicon_Bookshelf.png?e0311",
+        "page": "https://minecraft.wiki/w/File:Invicon_Bookshelf.png"
+      },
+      {
+        "id": "book",
+        "url": "https://minecraft.wiki/images/Invicon_Book.png?243d1",
+        "page": "https://minecraft.wiki/w/File:Invicon_Book.png"
+      },
+      {
+        "id": "furnace",
+        "url": "https://minecraft.wiki/images/Invicon_Furnace.png?b2881",
+        "page": "https://minecraft.wiki/w/File:Invicon_Furnace.png"
+      },
+      {
+        "id": "iron_sword",
+        "url": "https://minecraft.wiki/images/Invicon_Iron_Sword.png?563c5",
+        "page": "https://minecraft.wiki/w/File:Invicon_Iron_Sword.png"
+      },
+      {
+        "id": "iron_pickaxe",
+        "url": "https://minecraft.wiki/images/Invicon_Iron_Pickaxe.png?64d21",
+        "page": "https://minecraft.wiki/w/File:Invicon_Iron_Pickaxe.png"
+      },
+      {
+        "id": "iron_axe",
+        "url": "https://minecraft.wiki/images/Invicon_Iron_Axe.png?93eb1",
+        "page": "https://minecraft.wiki/w/File:Invicon_Iron_Axe.png"
+      },
+      {
+        "id": "torch",
+        "url": "https://minecraft.wiki/images/Invicon_Torch.png?8fc2f",
+        "page": "https://minecraft.wiki/w/File:Invicon_Torch.png"
+      },
+      {
+        "id": "bread",
+        "url": "https://minecraft.wiki/images/Invicon_Bread.png?a36a0",
+        "page": "https://minecraft.wiki/w/File:Invicon_Bread.png"
+      },
+      {
+        "id": "log",
+        "url": "https://minecraft.wiki/images/Invicon_Oak_Log.png?08160",
+        "page": "https://minecraft.wiki/w/File:Invicon_Oak_Log.png"
+      },
+      {
+        "id": "cobble",
+        "url": "https://minecraft.wiki/images/Invicon_Cobblestone.png?4c9fc",
+        "page": "https://minecraft.wiki/w/File:Invicon_Cobblestone.png"
+      },
+      {
+        "id": "iron_ingot",
+        "url": "https://minecraft.wiki/images/Invicon_Iron_Ingot.png?ea489",
+        "page": "https://minecraft.wiki/w/File:Invicon_Iron_Ingot.png"
+      },
+      {
+        "id": "coal",
+        "url": "https://minecraft.wiki/images/Invicon_Coal.png?a5e47",
+        "page": "https://minecraft.wiki/w/File:Invicon_Coal.png"
+      },
+      {
+        "id": "wheat",
+        "url": "https://minecraft.wiki/images/Invicon_Wheat.png?09002",
+        "page": "https://minecraft.wiki/w/File:Invicon_Wheat.png"
+      },
+      {
+        "id": "white_wool",
+        "url": "https://minecraft.wiki/images/Invicon_White_Wool.png?be7e1",
+        "page": "https://minecraft.wiki/w/File:Invicon_White_Wool.png"
+      },
+      {
+        "id": "leather",
+        "url": "https://minecraft.wiki/images/Invicon_Leather.png?ba77d",
+        "page": "https://minecraft.wiki/w/File:Invicon_Leather.png"
+      }
+    ]
+  },
+  "records": {
+    "zombie": {
+      "id": "zombie",
+      "icon": "./assets/mc/zombie.png",
+      "C1": {
+        "name": "僵尸",
+        "tag": "敌对生物"
+      },
+      "C2": {
+        "intro": "常见的亡灵敌对生物，会近战攻击玩家。"
+      },
+      "C3": {
+        "生命值": 20,
+        "攻击力": "2.5–4.5"
+      },
+      "C4": [
+        "腐肉",
+        "铁锭（稀有）",
+        "胡萝卜（稀有）",
+        "马铃薯（稀有）"
+      ],
+      "C5": "可作为腐肉与少量稀有物品的来源。",
+      "C6": null,
+      "C7": "主世界亮度较低的区域生成。"
+    },
+    "sheep": {
+      "id": "sheep",
+      "icon": "./assets/mc/sheep.png",
+      "C1": {
+        "name": "羊",
+        "tag": "友好生物"
+      },
+      "C2": {
+        "intro": "常见的友好生物，是羊毛和生羊肉的来源。"
+      },
+      "C3": {
+        "生命值": 8
+      },
+      "C4": [
+        "羊毛",
+        "生羊肉"
+      ],
+      "C5": "可剪取羊毛，用小麦吸引和繁殖。",
+      "C6": null,
+      "C7": "主世界多数草地生物群系生成。"
+    },
+    "bookshelf": {
+      "id": "bookshelf",
+      "icon": "./assets/mc/bookshelf.png",
+      "C1": {
+        "name": "书架",
+        "tag": "功能方块"
+      },
+      "C2": {
+        "intro": "可增强附近附魔台的可用附魔等级。"
+      },
+      "C3": {
+        "硬度": 1.5
+      },
+      "C4": [
+        "书（无精准采集时）"
+      ],
+      "C5": "围绕附魔台摆放，最多15个书架生效。",
+      "C6": [
+        "木板 ×6",
+        "书 ×3"
+      ],
+      "C7": "合成获得，也可在村庄图书馆等结构找到。"
+    },
+    "book": {
+      "id": "book",
+      "icon": "./assets/mc/book.png",
+      "C1": {
+        "name": "书",
+        "tag": "材料"
+      },
+      "C2": {
+        "intro": "用于附魔和多种合成的基础材料。"
+      },
+      "C3": {},
+      "C4": [],
+      "C5": "可制作书与笔、书架和附魔台。",
+      "C6": [
+        "纸 ×3",
+        "皮革 ×1"
+      ],
+      "C7": "纸和皮革合成。"
+    },
+    "furnace": {
+      "id": "furnace",
+      "icon": "./assets/mc/furnace.png",
+      "C1": {
+        "name": "熔炉",
+        "tag": "功能方块"
+      },
+      "C2": {
+        "intro": "可消耗燃料熔炼矿物或烹饪食物。"
+      },
+      "C3": {
+        "硬度": 3.5
+      },
+      "C4": [
+        "熔炉"
+      ],
+      "C5": "用于熔炼铁矿、烧制食物和加工方块。",
+      "C6": [
+        "圆石 ×8"
+      ],
+      "C7": "使用圆石合成。"
+    },
+    "iron_sword": {
+      "id": "iron_sword",
+      "icon": "./assets/mc/iron_sword.png",
+      "C1": {
+        "name": "铁剑",
+        "tag": "工具/武器"
+      },
+      "C2": {
+        "intro": "铁制近战武器。"
+      },
+      "C3": {
+        "攻击伤害": 6,
+        "耐久": 250
+      },
+      "C4": [],
+      "C5": "用于近战攻击与防身。",
+      "C6": [
+        "铁锭 ×2",
+        "木棍 ×1"
+      ],
+      "C7": "合成获得。"
+    },
+    "iron_pickaxe": {
+      "id": "iron_pickaxe",
+      "icon": "./assets/mc/iron_pickaxe.png",
+      "C1": {
+        "name": "铁镐",
+        "tag": "工具"
+      },
+      "C2": {
+        "intro": "可开采钻石矿等高等级方块。"
+      },
+      "C3": {
+        "攻击伤害": 4,
+        "耐久": 250
+      },
+      "C4": [],
+      "C5": "用于开采石质方块与矿石。",
+      "C6": [
+        "铁锭 ×3",
+        "木棍 ×2"
+      ],
+      "C7": "合成获得。"
+    },
+    "iron_axe": {
+      "id": "iron_axe",
+      "icon": "./assets/mc/iron_axe.png",
+      "C1": {
+        "name": "铁斧",
+        "tag": "工具"
+      },
+      "C2": {
+        "intro": "适合砍伐原木和木质方块。"
+      },
+      "C3": {
+        "攻击伤害": 9,
+        "耐久": 250
+      },
+      "C4": [],
+      "C5": "快速破坏木质方块。",
+      "C6": [
+        "铁锭 ×3",
+        "木棍 ×2"
+      ],
+      "C7": "合成获得。"
+    },
+    "torch": {
+      "id": "torch",
+      "icon": "./assets/mc/torch.png",
+      "C1": {
+        "name": "火把",
+        "tag": "光源"
+      },
+      "C2": {
+        "intro": "常用光源，可防止多数敌对生物生成。"
+      },
+      "C3": {
+        "亮度": 14
+      },
+      "C4": [
+        "火把"
+      ],
+      "C5": "照明和标记路线。",
+      "C6": [
+        "煤炭 ×1",
+        "木棍 ×1"
+      ],
+      "C7": "合成获得。"
+    },
+    "bread": {
+      "id": "bread",
+      "icon": "./assets/mc/bread.png",
+      "C1": {
+        "name": "面包",
+        "tag": "食物"
+      },
+      "C2": {
+        "intro": "由小麦制成的常用食物。"
+      },
+      "C3": {
+        "饱食度": 5
+      },
+      "C4": [],
+      "C5": "恢复饥饿值。",
+      "C6": [
+        "小麦 ×3"
+      ],
+      "C7": "合成获得。"
+    },
+    "log": {
+      "id": "log",
+      "icon": "./assets/mc/log.png",
+      "C1": {
+        "name": "橡木原木",
+        "tag": "材料"
+      },
+      "C2": {
+        "intro": "橡树的原木，是基础建筑和工具材料。"
+      },
+      "C3": {
+        "硬度": 2
+      },
+      "C4": [
+        "橡木原木"
+      ],
+      "C5": "可制作木板、木炭和多种木制物品。",
+      "C6": null,
+      "C7": "砍伐橡树获得。"
+    },
+    "cobble": {
+      "id": "cobble",
+      "icon": "./assets/mc/cobble.png",
+      "C1": {
+        "name": "圆石",
+        "tag": "方块"
+      },
+      "C2": {
+        "intro": "开采石头常见掉落的基础方块。"
+      },
+      "C3": {
+        "硬度": 2
+      },
+      "C4": [
+        "圆石"
+      ],
+      "C5": "可制作熔炉和石制工具。",
+      "C6": null,
+      "C7": "使用镐开采石头获得。"
+    },
+    "iron_ingot": {
+      "id": "iron_ingot",
+      "icon": "./assets/mc/iron_ingot.png",
+      "C1": {
+        "name": "铁锭",
+        "tag": "材料"
+      },
+      "C2": {
+        "intro": "用途广泛的金属材料。"
+      },
+      "C3": {},
+      "C4": [],
+      "C5": "可制作铁制工具、护甲、水桶和铁砧。",
+      "C6": [
+        "粗铁 ×1",
+        "燃料"
+      ],
+      "C7": "熔炼粗铁或铁矿相关物获得。"
+    },
+    "coal": {
+      "id": "coal",
+      "icon": "./assets/mc/coal.png",
+      "C1": {
+        "name": "煤炭",
+        "tag": "材料"
+      },
+      "C2": {
+        "intro": "常见燃料和火把材料。"
+      },
+      "C3": {
+        "燃烧时间": "80秒"
+      },
+      "C4": [],
+      "C5": "作为熔炉燃料或制作火把。",
+      "C6": null,
+      "C7": "开采煤矿石获得。"
+    },
+    "wheat": {
+      "id": "wheat",
+      "icon": "./assets/mc/wheat.png",
+      "C1": {
+        "name": "小麦",
+        "tag": "作物"
+      },
+      "C2": {
+        "intro": "基础农作物，可制作食物并繁殖部分动物。"
+      },
+      "C3": {},
+      "C4": [],
+      "C5": "制作面包，吸引和繁殖羊、牛。",
+      "C6": null,
+      "C7": "成熟小麦作物收获。"
+    },
+    "white_wool": {
+      "id": "white_wool",
+      "icon": "./assets/mc/white_wool.png",
+      "C1": {
+        "name": "白色羊毛",
+        "tag": "材料"
+      },
+      "C2": {
+        "intro": "来自白色羊的柔软方块。"
+      },
+      "C3": {},
+      "C4": [
+        "白色羊毛"
+      ],
+      "C5": "制作床、地毯、旗帜与装饰。",
+      "C6": [
+        "线 ×4"
+      ],
+      "C7": "剪羊毛或合成获得。"
+    },
+    "leather": {
+      "id": "leather",
+      "icon": "./assets/mc/leather.png",
+      "C1": {
+        "name": "皮革",
+        "tag": "材料"
+      },
+      "C2": {
+        "intro": "常见动物材料。"
+      },
+      "C3": {},
+      "C4": [],
+      "C5": "制作书、皮革护甲和物品展示框。",
+      "C6": null,
+      "C7": "主要由牛、马等生物掉落。"
+    }
+  }
+}
