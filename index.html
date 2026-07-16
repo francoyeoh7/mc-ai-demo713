@@ -517,7 +517,7 @@ const PLAYER_RUNTIME_STATE = {
   health:20,hunger:20,armor:['iron_helmet','iron_chestplate','iron_leggings','iron_boots'],
   mainHand:'iron_sword',offHand:'shield',position:{x:0,y:2,z:0},
   hotbar:[{id:'iron_sword'},{id:'iron_pickaxe'},{id:'iron_axe'},{id:'torch',count:16},{id:'bread',count:5},{id:'log',count:12},{id:'cobble',count:32},{id:'book'},{id:null}],
-  inventory:{food:5,iron_ingot:3,coal:8,wheat:6,white_wool:4,leather:2},
+  inventory:{food:5,iron_ingot:3,coal:8,raw_iron:4,raw_gold:2,sand:6,wheat:6,white_wool:4,leather:2},
   stats:{playMinutes:620,treesCutToday:17,treesCutTotal:327,minedBlocks:1842,deaths:3},
   worldState:{nearby:[{type:'sheep',distance:18}],time:'day'},activeShowcase:null,
 };
@@ -1082,6 +1082,8 @@ function house(x0,z0){
   setB(x0+1,1,z0+1,'bookshelf'); setB(x0+1,2,z0+1,'bookshelf');
   setB(x0+2,1,z0+1,'bookshelf'); setB(x0+2,2,z0+1,'bookshelf');
   setB(x0+w-2,1,z0+d-2,'bookshelf');
+  setB(x0+4,1,z0+3,'cobble'); // house furnace prop
+  setB(x0+5,1,z0+3,'planks'); // storage chest prop
   // path
   for(let i=1;i<=5;i++) setB(x0+3,-1,z0-i,'cobble');
   // chimney
@@ -1329,28 +1331,51 @@ function showAgentNotice(text,opts={}){
   if(typeof window.__showBubble==='function')window.__showBubble(text,opts);
   ensureChatHasMessages();addAIMsg(buildTextCard(text));
 }
-function collectWolfDrop(drop){scene.remove(drop);wolfCarry.visible=true;setWolfState('follow');setTimeout(()=>{PLAYER_RUNTIME_STATE.inventory[drop.userData.type]=(PLAYER_RUNTIME_STATE.inventory[drop.userData.type]||0)+1;wolfCarry.visible=false;syncRuntimeUI();showAgentNotice('已带回 1 个橡木原木，背包数量 +1。');},1200);}
-function breakTreeBlock(pos){
-  const key=keyOf(...pos);if(!world.has(key))return;
+function collectWolfDrop(drop){scene.remove(drop);wolfCarry.visible=true;setWolfState('follow');setTimeout(()=>{const id=drop.userData.type;PLAYER_RUNTIME_STATE.inventory[id]=(PLAYER_RUNTIME_STATE.inventory[id]||0)+1;const hot=PLAYER_RUNTIME_STATE.hotbar.find(x=>x.id===id);if(hot)hot.count=(hot.count||0)+1;wolfCarry.visible=false;syncRuntimeUI();showAgentNotice(`已带回 1 个${WIKI_SNAPSHOT.records[id]?.C1?.name||id}，数量 +1。`);},1200);}
+function removeWorldBlock(pos,dropType){
+  const key=keyOf(...pos);if(!world.has(key))return false;
   const type=world.get(key),mesh=blockMeshByType.get(type);world.delete(key);
   if(mesh){const idx=mesh.userData.positions.findIndex(p=>p[0]===pos[0]&&p[1]===pos[1]&&p[2]===pos[2]);if(idx>=0){const dummy=new THREE.Object3D();dummy.position.set(0,-999,0);dummy.scale.set(0,0,0);dummy.updateMatrix();mesh.setMatrixAt(idx,dummy.matrix);mesh.instanceMatrix.needsUpdate=true;}}
-  const d=spawnItemDrop('log',new THREE.Vector3(pos[0]+.5,pos[1]+.5,pos[2]+.5));setTimeout(()=>collectWolfDrop(d),700);
+  const d=spawnItemDrop(dropType||type,new THREE.Vector3(pos[0]+.5,pos[1]+.5,pos[2]+.5));setTimeout(()=>collectWolfDrop(d),700);return true;
 }
-function findNextLogTarget(){
-  let best=null,bestD=Infinity;
-  for(const [key,type] of world){if(type!=='log')continue;const [x,y,z]=key.split(',').map(Number);const d=Math.hypot(x-aiWolf.position.x,z-aiWolf.position.z);if(d<bestD){bestD=d;best=[x,y,z];}}
-  return best;
+function breakTreeBlock(pos,dropType='log'){return removeWorldBlock(pos,dropType);}
+const COLLECTION_RULES={
+ grass:{collectible:true,drop:'dirt',tool:'shovel'},dirt:{collectible:true,drop:'dirt',tool:'shovel'},stone:{collectible:true,drop:'cobble',tool:'wood_pickaxe'},cobble:{collectible:true,drop:'cobble',tool:'wood_pickaxe'},
+ log:{collectible:true,drop:'log',tool:'axe'},leaves:{collectible:true,drop:'sapling',tool:'shears'},planks:{collectible:true,drop:'planks',tool:'axe'},glass:{collectible:true,drop:'glass',tool:'silk_touch'},bookshelf:{collectible:true,drop:'bookshelf',tool:'silk_touch'},
+ diamond_ore:{collectible:true,drop:'diamond',tool:'iron_pickaxe'},iron_ore:{collectible:true,drop:'raw_iron',tool:'stone_pickaxe',smelt:{input:'raw_iron',output:'iron_ingot'}},coal_ore:{collectible:true,drop:'coal',tool:'wood_pickaxe'},gold_ore:{collectible:true,drop:'raw_gold',tool:'iron_pickaxe',smelt:{input:'raw_gold',output:'gold_ingot'}},redstone_ore:{collectible:true,drop:'redstone',tool:'iron_pickaxe'},sand:{collectible:true,drop:'sand',tool:'shovel',smelt:{input:'sand',output:'glass'}},
+ bedrock:{collectible:false},water:{collectible:false}
+};
+const TOOL_LEVEL={wood_pickaxe:1,stone_pickaxe:2,iron_pickaxe:3,diamond_pickaxe:4,axe:1,shovel:1,shears:1,silk_touch:5};
+const HOUSE_CHEST={raw_iron:4,raw_gold:2,sand:6,coal:8};
+const HOUSE_FURNACE_POSITION=new THREE.Vector3(9,0,7);
+function hasRequiredTool(tool){if(!tool)return true;const ids=PLAYER_RUNTIME_STATE.hotbar.map(x=>x.id).concat([PLAYER_RUNTIME_STATE.mainHand]);if(tool==='axe')return ids.some(x=>/axe/.test(x||''));if(tool==='shovel')return ids.some(x=>/shovel/.test(x||''));if(tool==='shears')return ids.includes('shears');if(tool==='silk_touch')return !!PLAYER_RUNTIME_STATE.silkTouch;return ids.some(x=>TOOL_LEVEL[x]>=TOOL_LEVEL[tool]);}
+function findNearestCollectible(selectedType){
+  let best=null,bestD=Infinity;for(const [key,type] of world){if(type!==selectedType)continue;const [x,y,z]=key.split(',').map(Number);const d=Math.hypot(x-aiWolf.position.x,z-aiWolf.position.z);if(d<bestD){bestD=d;best=[x,y,z];}}return best;
 }
-function startWolfTreeTask(){
-  const target=findNextLogTarget();if(!target){showAgentNotice('附近已没有可收集的原木。');return;}
-  setWolfState('work',new THREE.Vector3(target[0],0,target[2]));setTimeout(()=>breakTreeBlock(target),1800);
+function takeMaterialFromInventoryOrChest(id){let source='inventory';if((PLAYER_RUNTIME_STATE.inventory[id]||0)>0)PLAYER_RUNTIME_STATE.inventory[id]--;else if((HOUSE_CHEST[id]||0)>0){HOUSE_CHEST[id]--;source='chest';}else return null;return source;}
+function startWolfCollectionTask(selectedType){
+  const rule=COLLECTION_RULES[selectedType];if(!rule?.collectible){showAgentNotice('这个方块无法被正常采集。');return;}
+  if(!hasRequiredTool(rule.tool)){showAgentNotice('缺少符合MC开采等级的工具，任务已停止。');return;}
+  const target=findNearestCollectible(selectedType);if(!target){showAgentNotice('附近没有剩余的同类方块。');return;}
+  setWolfState('work',new THREE.Vector3(target[0],0,target[2]));showAgentNotice('小狼已找到目标，正在挖掘（3秒）。');setTimeout(()=>{removeWorldBlock(target,rule.drop);},3000);
 }
-function buildExecutionChoiceCard(){
-  const c=document.createElement('div');c.className='card';c.innerHTML='<div class="card-head"><span class="name">橡木原木</span><span class="tag">执行目标</span></div><button class="opt" data-exec-collect>⚑ 帮我收集</button>';
-  c.querySelector('[data-exec-collect]').addEventListener('click',()=>{addUserMsg('帮我收集');startWolfTreeTask();});return c;
+function startWolfSmeltingTask(selectedType){
+  const rule=COLLECTION_RULES[selectedType],recipe=rule?.smelt;if(!recipe){showAgentNotice('该目标没有熔炼流程。');return;}
+  const materialSource=takeMaterialFromInventoryOrChest(recipe.input);if(!materialSource){showAgentNotice('背包和宝箱都没有可熔炼的原料。');return;}
+  const fuelSource=takeMaterialFromInventoryOrChest('coal');if(!fuelSource){PLAYER_RUNTIME_STATE.inventory[recipe.input]=(PLAYER_RUNTIME_STATE.inventory[recipe.input]||0)+1;showAgentNotice('背包和宝箱都没有燃料。');return;}
+  setWolfState('work',HOUSE_FURNACE_POSITION);showAgentNotice(`小狼从${materialSource==='inventory'?'背包':'宝箱'}取出原料，正在前往熔炉。`);setTimeout(()=>{PLAYER_RUNTIME_STATE.inventory[recipe.output]=(PLAYER_RUNTIME_STATE.inventory[recipe.output]||0)+1;syncRuntimeUI();setWolfState('follow');showAgentNotice(`熔炼完成：${recipe.output} +1。`);},3000);
 }
-function startExecutionShowcase(){
-  closeChat(false);CHAT.selectedType='log';showAgentNotice('我识别到附近的橡木原木。', {expand:{}});openChat(false);addAIMsg(buildExecutionChoiceCard());
+
+function startWolfTreeTask(){startWolfCollectionTask('log');}
+function buildExecutionChoiceCard(selectedType=CHAT.selectedType||'log'){
+  const rule=COLLECTION_RULES[selectedType]||{};const label=rule.smelt?'帮我熔炼':'帮我收集';
+  const name=WIKI_SNAPSHOT.records[selectedType]?.C1?.name||BLOCK_INFO[selectedType]?.name||selectedType;
+  const c=document.createElement('div');c.className='card';c.innerHTML=`<div class="card-head"><span class="name">${escapeHtml(name)}</span><span class="tag">执行目标</span></div><button class="opt" data-exec-action>⚑ ${label}</button>`;
+  c.querySelector('[data-exec-action]').addEventListener('click',()=>{addUserMsg(label);rule.smelt?startWolfSmeltingTask(selectedType):startWolfCollectionTask(selectedType);});return c;
+}
+function startExecutionShowcase(selectedType=CHAT.selectedType||'log'){
+  const rule=COLLECTION_RULES[selectedType];if(!rule?.collectible){showAgentNotice('该对象不能作为采集任务。');return;}
+  closeChat(false);CHAT.selectedType=selectedType;const label=rule.smelt?'熔炼':'收集';showAgentNotice(`我已识别目标，是否需要我帮你${label}？`, {expand:{}});openChat(false);addAIMsg(buildExecutionChoiceCard(selectedType));
 }
 const modPortalBlocks=[];let modPortalActive=false;
 function activateModPortal(){modPortalActive=true;showAgentNotice('MOD传送门已激活：进入可体验「机械探险」推荐内容。');}
