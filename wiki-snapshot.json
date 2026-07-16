@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-16T05:53:21.404Z",
+  "generatedAt": "2026-07-16T06:27:38.719Z",
   "source": {
     "site": "Minecraft Wiki",
     "url": "https://minecraft.wiki/",
@@ -164,6 +164,7 @@
       "C6": null,
       "C7": "主世界多数草地生物群系生成。",
       "links": {
+        "羊": "sheep",
         "羊毛": "white_wool",
         "生羊肉": "raw_mutton",
         "小麦": "wheat"
@@ -476,6 +477,7 @@
       "C6": null,
       "C7": "成熟小麦作物收获。",
       "links": {
+        "羊": "sheep",
         "小麦": "wheat"
       }
     },
@@ -499,6 +501,7 @@
       ],
       "C7": "剪羊毛或合成获得。",
       "links": {
+        "羊": "sheep",
         "羊毛": "white_wool",
         "白色羊毛": "white_wool"
       }
@@ -540,7 +543,9 @@
       "C5": "可烹饪成熟羊肉以提高恢复效果。",
       "C6": null,
       "C7": "未着火的成年羊死亡时掉落。",
-      "links": {}
+      "links": {
+        "羊": "sheep"
+      }
     },
     "rotten_flesh": {
       "id": "rotten_flesh",
@@ -559,7 +564,9 @@
       "C5": "紧急食用或与牧师村民交易。",
       "C6": null,
       "C7": "僵尸等亡灵生物掉落。",
-      "links": {}
+      "links": {
+        "僵尸": "zombie"
+      }
     },
     "carrot": {
       "id": "carrot",
@@ -578,7 +585,9 @@
       "C5": "食用、种植，或繁殖猪和兔子。",
       "C6": null,
       "C7": "村庄农田、僵尸稀有掉落等。",
-      "links": {}
+      "links": {
+        "僵尸": "zombie"
+      }
     },
     "potato": {
       "id": "potato",
@@ -598,6 +607,7 @@
       "C6": null,
       "C7": "村庄农田、僵尸稀有掉落等。",
       "links": {
+        "僵尸": "zombie",
         "马铃薯": "potato"
       }
     }

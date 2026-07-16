@@ -306,6 +306,7 @@
   async function processRequestWithAI(request, options = {}) {
     const fetchImpl = options.fetchImpl || (typeof fetch === 'function' ? fetch.bind(globalThis) : null);
     const endpoint = options.endpoint || '/api/strategy';
+    const timeoutMs = options.timeoutMs || 8000;
     const localIntent = classifyIntent(request.query, request.context || {});
     const localRoute = resolveRoute({ query: request.query, intent: localIntent, context: request.context || {} });
     if (localRoute.path === 'PURE_C') {
@@ -316,12 +317,18 @@
       const local = await processRequest(request);
       return { ...local, aiEnhanced: false, failure: local.failure || { code: 'AI_PROXY_UNAVAILABLE', message: '浏览器不支持网络请求' } };
     }
+    let controller;
+    let timeoutId;
     try {
+      controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
+      timeoutId = controller ? setTimeout(() => controller.abort(), timeoutMs) : null;
       const response = await fetchImpl(endpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ query: request.query, context: request.context || {} }),
+        ...(controller ? { signal: controller.signal } : {}),
       });
+      if (timeoutId) clearTimeout(timeoutId);
       if (!response.ok) throw new Error(`HTTP ${response.status || 500}`);
       const payload = await response.json();
       if (!payload.ok || !payload.data?.intent || !payload.data?.route) throw new Error(payload.error || 'AI返回格式错误');
@@ -336,11 +343,22 @@
       request.contextManager?.remember({ query: request.query, path: route.path, components });
       return { intent: ai.intent, route, components, componentPlan: ai.componentPlan || buildComponentPlan(route, ai.intent.label, components), output, action: null, failure: null, aiEnhanced: true };
     } catch (error) {
+      if (timeoutId) clearTimeout(timeoutId);
       const local = await processRequest(request);
+      const timedOut = error?.name === 'AbortError';
+      if (local.route.path === 'C_TO_G' && !local.output.text) {
+        const selected = request.context?.selectedObjects?.[0];
+        const subject = selected?.name || '这个对象';
+        local.output = {
+          ...local.output,
+          lines: [`已读取${subject}的资料。当前云端解释超时，请稍后重试。`],
+          text: `已读取${subject}的资料。当前云端解释超时，请稍后重试。`,
+        };
+      }
       return {
         ...local,
         aiEnhanced: false,
-        failure: local.failure || { code: 'AI_PROXY_UNAVAILABLE', message: error.message },
+        failure: local.failure || { code: timedOut ? 'AI_TIMEOUT' : 'AI_PROXY_UNAVAILABLE', message: error.message },
       };
     }
   }
