@@ -1325,7 +1325,11 @@ function updateAIWolf(dt,now){
 }
 const wolfDrops=[];
 function spawnItemDrop(type,pos){const m=new THREE.Mesh(new THREE.BoxGeometry(.22,.22,.22),new THREE.MeshLambertMaterial({color:0x9b6a3d}));m.position.copy(pos);m.userData.type=type;scene.add(m);wolfDrops.push(m);return m;}
-function collectWolfDrop(drop){scene.remove(drop);wolfCarry.visible=true;setWolfState('follow');setTimeout(()=>{PLAYER_RUNTIME_STATE.inventory[drop.userData.type]=(PLAYER_RUNTIME_STATE.inventory[drop.userData.type]||0)+1;wolfCarry.visible=false;syncRuntimeUI();showBubble('已带回 1 个橡木原木，背包数量 +1。');},1200);}
+function showAgentNotice(text,opts={}){
+  if(typeof window.__showBubble==='function')window.__showBubble(text,opts);
+  else{openChat(false);addAIMsg(buildTextCard(text));}
+}
+function collectWolfDrop(drop){scene.remove(drop);wolfCarry.visible=true;setWolfState('follow');setTimeout(()=>{PLAYER_RUNTIME_STATE.inventory[drop.userData.type]=(PLAYER_RUNTIME_STATE.inventory[drop.userData.type]||0)+1;wolfCarry.visible=false;syncRuntimeUI();showAgentNotice('已带回 1 个橡木原木，背包数量 +1。');},1200);}
 function breakTreeBlock(pos){
   const key=keyOf(...pos);if(!world.has(key))return;
   const type=world.get(key),mesh=blockMeshByType.get(type);world.delete(key);
@@ -1338,15 +1342,15 @@ function buildExecutionChoiceCard(){
   c.querySelector('[data-exec-collect]').addEventListener('click',()=>{addUserMsg('帮我收集');startWolfTreeTask();});return c;
 }
 function startExecutionShowcase(){
-  closeChat(false);CHAT.selectedType='log';showBubble('我识别到附近的橡木原木。', {expand:{}});openChat(false);addAIMsg(buildExecutionChoiceCard());
+  closeChat(false);CHAT.selectedType='log';showAgentNotice('我识别到附近的橡木原木。', {expand:{}});openChat(false);addAIMsg(buildExecutionChoiceCard());
 }
 const modPortalBlocks=[];let modPortalActive=false;
-function activateModPortal(){modPortalActive=true;showBubble('MOD传送门已激活：进入可体验「机械探险」推荐内容。');}
+function activateModPortal(){modPortalActive=true;showAgentNotice('MOD传送门已激活：进入可体验「机械探险」推荐内容。');}
 function startModPortalBuild(){
   setWolfState('build',new THREE.Vector3(3,0,-3));const frame=[];for(let y=0;y<5;y++){frame.push([2,y,-3],[5,y,-3]);}for(let x=3;x<5;x++){frame.push([x,0,-3],[x,4,-3]);}
   frame.forEach((p,i)=>setTimeout(()=>{const m=new THREE.Mesh(new THREE.BoxGeometry(1,1,1),new THREE.MeshLambertMaterial({color:0x4a226b}));m.position.set(p[0]+.5,p[1]+.5,p[2]+.5);scene.add(m);modPortalBlocks.push(m);if(i===frame.length-1){activateModPortal();setWolfState('follow');}},i*180));
 }
-function checkModPortalEntry(){if(modPortalActive&&Math.hypot(player.pos.x-3.5,player.pos.z+3)<1.2)showBubble('已进入MOD体验：机械方块、自动采矿与新配方已解锁。');}
+function checkModPortalEntry(){if(modPortalActive&&Math.hypot(player.pos.x-3.5,player.pos.z+3)<1.2)showAgentNotice('已进入MOD体验：机械方块、自动采矿与新配方已解锁。');}
 const MEMORY_MILESTONES=[];
 const MEMORY_COMBAT={active:false,playerHits:0,zombieHits:0,zombie:null,diamondArmored:true,lastTap:null};
 const COMBAT_TAP_MAX_MOVE=10;
@@ -1355,11 +1359,11 @@ function resolveMemoryCombat(outcome){
   MEMORY_COMBAT.active=false;
   if(outcome==='death'){
     recordMemoryMilestone('combat-death','因过度贴身攻击且防御不足阵亡');
-    showBubble('别灰心，你这次倒下主要因为太莽且防御不足。先打造一套铁甲，再挑战高护甲僵尸。');
+    showAgentNotice('别灰心，你这次倒下主要因为太莽且防御不足。先打造一套铁甲，再挑战高护甲僵尸。');
   }else{
     const total=(PLAYER_RUNTIME_STATE.stats.zombieKills||48)+1,history=[2,4,1,3,5,2],rank=history.filter(x=>x>3).length+1;
     PLAYER_RUNTIME_STATE.stats.zombieKills=total;recordMemoryMilestone('combat-win','击败钻石甲僵尸');
-    showBubble(`漂亮！你已累计击杀 ${total} 只僵尸。本次3次命中完成击杀，在最近历史击杀记录中排名第 ${rank}，老玩家的节奏还在。`);
+    showAgentNotice(`漂亮！你已累计击杀 ${total} 只僵尸。本次3次命中完成击杀，在最近历史击杀记录中排名第 ${rank}，老玩家的节奏还在。`);
   }
 }
 function attackMemoryZombie(){
@@ -1376,7 +1380,7 @@ function startMemoryCombat(){
   closeChat(false);PLAYER_RUNTIME_STATE.health=20;PLAYER_RUNTIME_STATE.mainHand='iron_sword';PLAYER_RUNTIME_STATE.hotbar[0]={id:'iron_sword'};syncRuntimeUI();
   const z=createZombie(player.pos.x,player.pos.z-4);z.userData.diamondArmored=true;z.traverse(o=>{if(o.material)o.material.color.setHex(0x48cfe0);});
   MEMORY_COMBAT.active=true;MEMORY_COMBAT.playerHits=0;MEMORY_COMBAT.zombieHits=0;MEMORY_COMBAT.zombie=z;
-  showBubble('记忆挑战：轻触僵尸挥剑，拖动仍可转向。双方3次命中决定胜负。');
+  showAgentNotice('记忆挑战：轻触僵尸挥剑，拖动仍可转向。双方3次命中决定胜负。');
 }
 function playMemoryCompanionDemo(){startMemoryCombat();}
 
@@ -2667,6 +2671,7 @@ requestAnimationFrame(loop);
     setAIState(opts.sense ? 'sense' : 'active');
     updateMonitor();
   }
+  window.__showBubble=showBubble;
   function hideBubble(){ if(pb.style.display==='block'){ pb.style.display='none'; resetAnim(pb); updateMonitor(); } }
   // 带动效收起
   function animateOut(el, done){
