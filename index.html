@@ -3039,11 +3039,13 @@ window.MC_DEMO_BRIDGE={
   startModPortalBuild,
   playMemoryCompanionDemo,
 };
+window.MC_DEMO_READY=Promise.resolve(window.MC_DEMO_BRIDGE);
 
 
 </script>
 <script src="./mixed-output-strategy.js"></script>
 <script type="module" id="strategy-console-script">
+await window.MC_DEMO_READY;
 (function strategyConsole(){
   const API = window.MixedOutputStrategy;
   const CLOUD_API_BASE = window.MC_AI_API_BASE || 'https://vercel-proxy-five-beta.vercel.app';
