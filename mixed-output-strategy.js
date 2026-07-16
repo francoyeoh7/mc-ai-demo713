@@ -37,6 +37,7 @@
   }
 
   function needsDynamicState(label, query) {
+    if (label === 'OPERATION_QUERY' && /怎么|如何|驯服|种|激活|修|制作/.test(query)) return true;
     if (['DECISION_QUERY', 'DIAGNOSIS_QUERY', 'STATUS_QUERY', 'LOCATION_QUERY'].includes(label)) return true;
     return /当前|现在|附近|我有|还能用|打得过|适合我/.test(query);
   }
@@ -288,6 +289,20 @@
     return { intent, route, components, componentPlan, output, action, failure: null };
   }
 
+  function enforceDeterministicRoute(request, ai) {
+    const intent = classifyIntent(request.query, request.context || {});
+    const route = resolveRoute({ query: request.query, intent, context: request.context || {} });
+    const mustUseLocal = intent.confidence >= 0.7 && /怎么|如何|驯服|合成|制作|多少|多久|为什么|下一步|在哪/.test(request.query);
+    if (!mustUseLocal) return ai;
+    const { components } = executeComponents({ query: request.query, route: { ...route, intent: intent.label }, context: request.context || {} });
+    return {
+      ...ai,
+      intent,
+      route,
+      componentPlan: buildComponentPlan(route, intent.label, components),
+    };
+  }
+
   async function processRequestWithAI(request, options = {}) {
     const fetchImpl = options.fetchImpl || (typeof fetch === 'function' ? fetch.bind(globalThis) : null);
     const endpoint = options.endpoint || '/api/strategy';
@@ -310,7 +325,7 @@
       if (!response.ok) throw new Error(`HTTP ${response.status || 500}`);
       const payload = await response.json();
       if (!payload.ok || !payload.data?.intent || !payload.data?.route) throw new Error(payload.error || 'AI返回格式错误');
-      const ai = payload.data;
+      const ai = enforceDeterministicRoute(request, payload.data);
       const route = { ...ai.route, intent: ai.intent.label };
       const { components } = executeComponents({ query: request.query, route, context: request.context || {} });
       let output = integrateResults({ path: route.path, intent: ai.intent.label, components });
@@ -339,6 +354,7 @@
     assemble,
     integrateResults,
     buildComponentPlan,
+    enforceDeterministicRoute,
     resolveAction,
     processRequest,
     processRequestWithAI,

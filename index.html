@@ -320,7 +320,7 @@ body.ai-suppressed #chat-panel{opacity:.32 !important;filter:saturate(.4);transi
 @media(max-width:720px){#strategy-panel{width:calc(100vw - 24px);right:12px;}#strategy-toggle{left:112px;}}
 
 /* MC HUD */
-#hotbar{position:fixed;left:50%;bottom:8px;transform:translateX(-50%);z-index:40;display:flex;gap:2px;padding:3px;background:#2b2b2b;border:2px solid #111;box-shadow:0 0 0 2px #777;}
+#hotbar{position:fixed;left:50%;bottom:8px;transform:translateX(-50%);z-index:40;display:flex;gap:2px;padding:3px;background:#2b2b2b;border:2px solid #111;box-shadow:0 0 0 2px #777;overflow:visible;}
 .hot-slot{width:36px;height:36px;background:#777;border:2px solid #333;box-shadow:inset 2px 2px #aaa,inset -2px -2px #444;display:flex;align-items:center;justify-content:center;color:white;font:bold 10px monospace;position:relative;}
 .hot-slot.active{outline:3px solid #fff;z-index:1;}.hot-slot .count{position:absolute;right:2px;bottom:0;text-shadow:1px 1px #000;}
 #inventory-btn{position:fixed;right:16px;bottom:16px;z-index:42;width:42px;height:42px;background:#777;border:2px solid #222;color:#fff;font:bold 16px monospace;box-shadow:inset 2px 2px #aaa,inset -2px -2px #444;}
@@ -508,12 +508,20 @@ async function loadWikiSnapshot(){
   try{WIKI_SNAPSHOT=await fetch('./wiki-snapshot.json',{cache:'no-store'}).then(r=>{if(!r.ok)throw new Error(r.status);return r.json();});renderItemSlots();}
   catch(e){console.warn('Wiki snapshot unavailable',e);}
 }
+function renderHotbarSlots(){
+  hotbar.querySelectorAll('[data-item-id]').forEach(slot=>{
+    const r=WIKI_SNAPSHOT.records[slot.dataset.itemId];if(!r)return;
+    slot.innerHTML=`<img class="mc-icon" src="${r.icon}" alt="${escapeHtml(r.C1.name)}">`;
+    slot.title=r.C1.name;
+  });
+}
 function renderItemSlots(){
-  document.querySelectorAll('[data-item-id]').forEach(slot=>{
+  document.querySelectorAll('#inventory-panel [data-item-id],#furnace-panel [data-item-id]').forEach(slot=>{
     const r=WIKI_SNAPSHOT.records[slot.dataset.itemId];if(!r)return;
     slot.innerHTML=`<img class="mc-icon" src="${r.icon}" alt="${escapeHtml(r.C1.name)}">${slot.dataset.count?`<span class="slot-count">${slot.dataset.count}</span>`:''}`;
     slot.title=r.C1.name;
   });
+  renderHotbarSlots();
   const finv=document.querySelector('.furnace-inventory');if(finv&&!finv.children.length){
     ['iron_sword','iron_pickaxe','iron_axe','torch','bread','log','cobble','book','furnace'].forEach(id=>{const s=document.createElement('div');s.className='inv-slot';s.dataset.itemId=id;const r=WIKI_SNAPSHOT.records[id];if(r)s.innerHTML=`<img class="mc-icon" src="${r.icon}" alt="${escapeHtml(r.C1.name)}">`;finv.appendChild(s);});
   }
@@ -1408,6 +1416,10 @@ function lookEnd(){ LOOK.id=null; }
 const HOME = ()=> ({ x: window.innerWidth - 60 - 22, y: 22 });
 
 function aiStart(t){
+  document.querySelectorAll('.ai-slot-selected').forEach(s=>s.classList.remove('ai-slot-selected'));
+  CHAT.selectionSource=null;
+  CHAT.selectedType=null;
+  CHAT.selectedPos=null;
   AI_DRAG.id = t.identifier;
   AI_DRAG.startX = t.clientX; AI_DRAG.startY = t.clientY;
   AI_DRAG.curX   = t.clientX; AI_DRAG.curY   = t.clientY;
@@ -1459,7 +1471,7 @@ function selectUISlotAt(x,y){
   document.querySelectorAll('.ai-slot-selected').forEach(s=>s.classList.remove('ai-slot-selected'));
   slot.classList.add('ai-slot-selected');
   const id=slot.dataset.itemId,record=WIKI_SNAPSHOT.records[id];
-  CHAT.selectedType=id;CHAT.selectedPos=null;
+  CHAT.selectedType=id;CHAT.selectedPos=null;CHAT.selectionSource='ui';
   blockLabel.textContent=record?.C1?.name||id;blockLabel.style.display='block';
   return true;
 }
@@ -1519,7 +1531,7 @@ function aiEnd(){
   const selType = CHAT.selectedType;
   const selPos  = CHAT.selectedPos;
   const voice   = (CHAT.pendingVoice||'').trim();
-  const selectedFromUI=!!document.querySelector('.ai-slot-selected');
+  const selectedFromUI=CHAT.selectionSource==='ui';
   if(selectedFromUI) closeSecondaryUI();
   openChat(false);
   if(!selType){
@@ -1532,7 +1544,7 @@ function aiEnd(){
     }
     return;
   }
-  const info = BLOCK_INFO[selType] || {name:selType};
+  const info = WIKI_SNAPSHOT.records[selType]?.C1 || BLOCK_INFO[selType] || {name:selType};
   if(!voice){
     // Choice card
     addUserMsg('[选中 '+info.name+']');
@@ -1582,6 +1594,7 @@ const CHAT = {
   state: 'idle',
   selectedType: null,
   selectedPos: null,
+  selectionSource: null,
   pendingVoice: '',
   pendingBlock: null,     // block bound to current input context (chip)
   pendingBlockPos: null,
@@ -1744,14 +1757,15 @@ function buildTextCard(text){
   return c;
 }
 
-function wikiLinks(text){
-  const refs={书架:'bookshelf',附魔台:'enchanting_table',皮革:'leather',书与笔:'writable_book',木板:'planks',原木:'log',铁锭:'iron_ingot'};
+function linkedWikiText(text,links={}){
   let s=escapeHtml(text);
-  for(const [name,type] of Object.entries(refs)){
+  const merged={...Object.fromEntries(Object.entries({书架:'bookshelf',附魔台:'enchanting_table',皮革:'leather',书与笔:'writable_book',木板:'planks',原木:'log',铁锭:'iron_ingot',羊毛:'white_wool',生羊肉:'raw_mutton',腐肉:'rotten_flesh',胡萝卜:'carrot',马铃薯:'potato'})),...links};
+  for(const [name,type] of Object.entries(merged).sort((a,b)=>b[0].length-a[0].length)){
     s=s.replace(new RegExp(name,'g'),`<span class="wiki-link" data-wiki="${type}">${name}</span>`);
   }
   return s;
 }
+function wikiLinks(text){return linkedWikiText(text);}
 function bindWikiLinks(card){
   card.querySelectorAll('.wiki-link').forEach(link=>link.addEventListener('click',e=>{
     e.stopPropagation();openRelatedWiki(link.dataset.wiki);
@@ -1782,7 +1796,7 @@ function normalizeDrops(drops){
 
 function compactWikiFor(type){
   const snap=WIKI_SNAPSHOT.records[type];
-  if(snap) return {C1:snap.C1,C2:{intro:snap.C2.intro,keywords:[]},C3:{label:'关键数值',value:snap.C3||{}},C4:{drops:normalizeDrops(snap.C4)},C5:{uses:snap.C5||''},C6:{recipe:snap.C6},C7:{source:snap.C7||'',keywords:[]},icon:snap.icon};
+  if(snap) return {C1:snap.C1,C2:{intro:snap.C2.intro,keywords:[]},C3:{label:'关键数值',value:snap.C3||{}},C4:{drops:normalizeDrops(snap.C4)},C5:{uses:snap.C5||''},C6:{recipe:snap.C6},C7:{source:snap.C7||'',keywords:[]},icon:snap.icon,links:snap.links||{}};
   const special=COMPACT_ITEMS[type];
   if(special) return {
     C1:{name:special.name,tag:special.tag},C2:{intro:special.intro,keywords:special.keywords},
@@ -1831,12 +1845,12 @@ function buildPureCWikiCard(result,type){
   const ids=new Set([...requested,...requiredCComponents(type,record)]);
   const c=document.createElement('div');c.className='card cmp-card pure-c-card';
   let html=`<div class="card-head" data-component="C1"><span class="name">${escapeHtml(C.C1.name)}</span><span class="tag">${escapeHtml(C.C1.tag)}</span><span class="cmp-id">C1</span></div>`;
-  if(ids.has('C2')) html+=`<div class="info-body" data-component="C2"><div class="thumb" data-t="${type}">${C.icon?`<img class="mc-icon" src="${C.icon}" alt="${escapeHtml(C.C1.name)}">`:''}</div><div class="desc">${wikiLinks(C.C2.intro)}</div></div>`;
+  if(ids.has('C2')) html+=`<div class="info-body" data-component="C2"><div class="thumb" data-t="${type}">${C.icon?`<img class="mc-icon" src="${C.icon}" alt="${escapeHtml(C.C1.name)}">`:''}</div><div class="desc">${linkedWikiText(C.C2.intro,C.links)}</div></div>`;
   if(ids.has('C3')&&C.C3.value!=null&&Object.keys(C.C3.value).length) html+=sectionHtml('C3',C.C3.label,formatC3(C.C3.value));
-  if(ids.has('C4')&&C.C4.drops.length) html+=sectionHtml('C4','掉落物',C.C4.drops.map(d=>`<span class="cmp-chip">${escapeHtml(d.name)} ×${escapeHtml(d.count)}</span>`).join(' '));
-  if(ids.has('C5')) html+=sectionHtml('C5','能做什么',wikiLinks(C.C5.uses));
-  if(ids.has('C6')&&C.C6.recipe) html+=sectionHtml('C6','合成配方',`<div class="cmp-recipe">${C.C6.recipe.map((x,i)=>`${i?'<span>→</span>':''}<span class="cmp-chip">${wikiLinks(x)}</span>`).join('')}</div>`);
-  if(ids.has('C7')) html+=sectionHtml('C7','在哪里',wikiLinks(C.C7.source));
+  if(ids.has('C4')&&C.C4.drops.length) html+=sectionHtml('C4','掉落物',C.C4.drops.map(d=>`<span class="cmp-chip">${linkedWikiText(d.name,C.links)}${d.count>1?` ×${escapeHtml(d.count)}`:''}</span>`).join(' '));
+  if(ids.has('C5')) html+=sectionHtml('C5','能做什么',linkedWikiText(C.C5.uses,C.links));
+  if(ids.has('C6')&&C.C6.recipe) html+=sectionHtml('C6','合成配方',`<div class="cmp-recipe">${C.C6.recipe.map((x,i)=>`${i?'<span>→</span>':''}<span class="cmp-chip">${linkedWikiText(x,C.links)}</span>`).join('')}</div>`);
+  if(ids.has('C7')) html+=sectionHtml('C7','在哪里',linkedWikiText(C.C7.source,C.links));
   c.innerHTML=html;
   c.querySelectorAll('.thumb').forEach(w=>{if(!w.querySelector('img'))w.appendChild(makeThumb(w.dataset.t));});
   bindWikiLinks(c);
@@ -1888,14 +1902,17 @@ function buildStrategyCard(result,type){
 }
 
 function aiContextFor(type){
-  const info = type ? (BLOCK_INFO[type] || {name:type,desc:''}) : null;
+  const snap=type?WIKI_SNAPSHOT.records[type]:null;
+  const info = type ? (snap?.C1 || BLOCK_INFO[type] || {name:type,desc:''}) : null;
   const card = type ? (BLOCK_CARDS[type] || {}) : null;
   return {
     selectedObjects: info ? [{
       id:'minecraft:'+type,
       name:info.name,
       type:type,
-      wiki:{
+      wiki:snap?{
+        summary:snap.C2.intro,intro:snap.C2.intro,stats:snap.C3,drops:snap.C4,uses:snap.C5,recipe:snap.C6,source:snap.C7
+      }:{
         summary:info.desc || card.desc || '',
         intro:card.desc || info.desc || '',
         stats:{hardness:card.hardness},
@@ -2088,7 +2105,7 @@ function thinkThen(fn){
 // Chip management
 function setChip(type){
   if(!type){ clearChip(); return; }
-  const info = BLOCK_INFO[type] || {name:type};
+  const info = WIKI_SNAPSHOT.records[type]?.C1 || BLOCK_INFO[type] || {name:type};
   selChip.textContent = '选中【'+info.name+'】';
   selChip.classList.add('on');
   CHAT.pendingBlock = type;
@@ -2300,6 +2317,7 @@ raycaster.far = 16;
 const ndc = new THREE.Vector2();
 
 function raycastCrosshair(){
+  if(CHAT.selectionSource==='ui' && (inventoryPanel.classList.contains('open')||furnacePanel.classList.contains('open'))) return;
   const cx = parseFloat(dragCross.style.left);
   const cy = parseFloat(dragCross.style.top);
   ndc.x = (cx / window.innerWidth) * 2 - 1;
@@ -2313,6 +2331,7 @@ function raycastCrosshair(){
     const root=nearestEntity.object.userData.entityRoot;
     CHAT.selectedType=root.userData.type;
     CHAT.selectedPos=[root.position.x,root.position.y,root.position.z];
+    CHAT.selectionSource='world';
     highlightOutline.position.copy(root.position).add(new THREE.Vector3(0,1,0));
     highlightFill.position.copy(highlightOutline.position);
     highlightOutline.visible=true;highlightFill.visible=true;
@@ -2321,7 +2340,7 @@ function raycastCrosshair(){
   }
   const hits=blockHits;
   if(hits.length===0){
-    CHAT.selectedType=null; CHAT.selectedPos=null;
+    CHAT.selectedType=null; CHAT.selectedPos=null; CHAT.selectionSource=null;
     highlightOutline.visible=false; highlightFill.visible=false;
     blockLabel.style.display='none';
     return;
@@ -2336,6 +2355,7 @@ function raycastCrosshair(){
   const [x,y,z] = positions[idx];
   CHAT.selectedType = type;
   CHAT.selectedPos  = [x,y,z];
+  CHAT.selectionSource='world';
   highlightOutline.position.set(x+0.5, y+0.5, z+0.5);
   highlightFill.position.set(x+0.5, y+0.5, z+0.5);
   highlightOutline.visible=true; highlightFill.visible=true;
@@ -2410,7 +2430,7 @@ function loop(){
   if(cloudGroup.position.x>60) cloudGroup.position.x -= 120;
   updateRoamingEntities(dt,performance.now());
 
-  if(AI_DRAG.active) raycastCrosshair();
+  if(AI_DRAG.active && CHAT.selectionSource!=='ui') raycastCrosshair();
 
   pushShake();
   if(chatPanel.classList.contains('open') && !AI_DRAG.active && document.activeElement!==chatText){

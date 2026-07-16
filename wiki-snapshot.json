@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-16T03:56:54.029Z",
+  "generatedAt": "2026-07-16T05:53:21.404Z",
   "source": {
     "site": "Minecraft Wiki",
     "url": "https://minecraft.wiki/",
@@ -89,6 +89,26 @@
         "id": "leather",
         "url": "https://minecraft.wiki/images/Invicon_Leather.png?ba77d",
         "page": "https://minecraft.wiki/w/File:Invicon_Leather.png"
+      },
+      {
+        "id": "raw_mutton",
+        "url": "https://minecraft.wiki/images/Invicon_Raw_Mutton.png?2ab64",
+        "page": "https://minecraft.wiki/w/File:Invicon_Raw_Mutton.png"
+      },
+      {
+        "id": "rotten_flesh",
+        "url": "https://minecraft.wiki/images/Invicon_Rotten_Flesh.png?b5520",
+        "page": "https://minecraft.wiki/w/File:Invicon_Rotten_Flesh.png"
+      },
+      {
+        "id": "carrot",
+        "url": "https://minecraft.wiki/images/Invicon_Carrot.png?e87d5",
+        "page": "https://minecraft.wiki/w/File:Invicon_Carrot.png"
+      },
+      {
+        "id": "potato",
+        "url": "https://minecraft.wiki/images/Invicon_Potato.png?dca9d",
+        "page": "https://minecraft.wiki/w/File:Invicon_Potato.png"
       }
     ]
   },
@@ -115,7 +135,13 @@
       ],
       "C5": "可作为腐肉与少量稀有物品的来源。",
       "C6": null,
-      "C7": "主世界亮度较低的区域生成。"
+      "C7": "主世界亮度较低的区域生成。",
+      "links": {
+        "腐肉": "rotten_flesh",
+        "铁锭": "iron_ingot",
+        "胡萝卜": "carrot",
+        "马铃薯": "potato"
+      }
     },
     "sheep": {
       "id": "sheep",
@@ -136,7 +162,12 @@
       ],
       "C5": "可剪取羊毛，用小麦吸引和繁殖。",
       "C6": null,
-      "C7": "主世界多数草地生物群系生成。"
+      "C7": "主世界多数草地生物群系生成。",
+      "links": {
+        "羊毛": "white_wool",
+        "生羊肉": "raw_mutton",
+        "小麦": "wheat"
+      }
     },
     "bookshelf": {
       "id": "bookshelf",
@@ -159,7 +190,11 @@
         "木板 ×6",
         "书 ×3"
       ],
-      "C7": "合成获得，也可在村庄图书馆等结构找到。"
+      "C7": "合成获得，也可在村庄图书馆等结构找到。",
+      "links": {
+        "书": "book",
+        "书架": "bookshelf"
+      }
     },
     "book": {
       "id": "book",
@@ -178,7 +213,12 @@
         "纸 ×3",
         "皮革 ×1"
       ],
-      "C7": "纸和皮革合成。"
+      "C7": "纸和皮革合成。",
+      "links": {
+        "书": "book",
+        "书架": "bookshelf",
+        "皮革": "leather"
+      }
     },
     "furnace": {
       "id": "furnace",
@@ -200,7 +240,11 @@
       "C6": [
         "圆石 ×8"
       ],
-      "C7": "使用圆石合成。"
+      "C7": "使用圆石合成。",
+      "links": {
+        "圆石": "cobble",
+        "熔炉": "furnace"
+      }
     },
     "iron_sword": {
       "id": "iron_sword",
@@ -222,7 +266,10 @@
         "铁锭 ×2",
         "木棍 ×1"
       ],
-      "C7": "合成获得。"
+      "C7": "合成获得。",
+      "links": {
+        "铁锭": "iron_ingot"
+      }
     },
     "iron_pickaxe": {
       "id": "iron_pickaxe",
@@ -244,7 +291,10 @@
         "铁锭 ×3",
         "木棍 ×2"
       ],
-      "C7": "合成获得。"
+      "C7": "合成获得。",
+      "links": {
+        "铁锭": "iron_ingot"
+      }
     },
     "iron_axe": {
       "id": "iron_axe",
@@ -266,7 +316,10 @@
         "铁锭 ×3",
         "木棍 ×2"
       ],
-      "C7": "合成获得。"
+      "C7": "合成获得。",
+      "links": {
+        "铁锭": "iron_ingot"
+      }
     },
     "torch": {
       "id": "torch",
@@ -289,7 +342,11 @@
         "煤炭 ×1",
         "木棍 ×1"
       ],
-      "C7": "合成获得。"
+      "C7": "合成获得。",
+      "links": {
+        "煤炭": "coal",
+        "火把": "torch"
+      }
     },
     "bread": {
       "id": "bread",
@@ -309,7 +366,10 @@
       "C6": [
         "小麦 ×3"
       ],
-      "C7": "合成获得。"
+      "C7": "合成获得。",
+      "links": {
+        "小麦": "wheat"
+      }
     },
     "log": {
       "id": "log",
@@ -329,7 +389,10 @@
       ],
       "C5": "可制作木板、木炭和多种木制物品。",
       "C6": null,
-      "C7": "砍伐橡树获得。"
+      "C7": "砍伐橡树获得。",
+      "links": {
+        "橡木原木": "log"
+      }
     },
     "cobble": {
       "id": "cobble",
@@ -349,7 +412,11 @@
       ],
       "C5": "可制作熔炉和石制工具。",
       "C6": null,
-      "C7": "使用镐开采石头获得。"
+      "C7": "使用镐开采石头获得。",
+      "links": {
+        "圆石": "cobble",
+        "熔炉": "furnace"
+      }
     },
     "iron_ingot": {
       "id": "iron_ingot",
@@ -368,7 +435,8 @@
         "粗铁 ×1",
         "燃料"
       ],
-      "C7": "熔炼粗铁或铁矿相关物获得。"
+      "C7": "熔炼粗铁或铁矿相关物获得。",
+      "links": {}
     },
     "coal": {
       "id": "coal",
@@ -386,7 +454,11 @@
       "C4": [],
       "C5": "作为熔炉燃料或制作火把。",
       "C6": null,
-      "C7": "开采煤矿石获得。"
+      "C7": "开采煤矿石获得。",
+      "links": {
+        "熔炉": "furnace",
+        "火把": "torch"
+      }
     },
     "wheat": {
       "id": "wheat",
@@ -402,7 +474,10 @@
       "C4": [],
       "C5": "制作面包，吸引和繁殖羊、牛。",
       "C6": null,
-      "C7": "成熟小麦作物收获。"
+      "C7": "成熟小麦作物收获。",
+      "links": {
+        "小麦": "wheat"
+      }
     },
     "white_wool": {
       "id": "white_wool",
@@ -422,7 +497,11 @@
       "C6": [
         "线 ×4"
       ],
-      "C7": "剪羊毛或合成获得。"
+      "C7": "剪羊毛或合成获得。",
+      "links": {
+        "羊毛": "white_wool",
+        "白色羊毛": "white_wool"
+      }
     },
     "leather": {
       "id": "leather",
@@ -438,7 +517,89 @@
       "C4": [],
       "C5": "制作书、皮革护甲和物品展示框。",
       "C6": null,
-      "C7": "主要由牛、马等生物掉落。"
+      "C7": "主要由牛、马等生物掉落。",
+      "links": {
+        "书": "book",
+        "皮革": "leather"
+      }
+    },
+    "raw_mutton": {
+      "id": "raw_mutton",
+      "icon": "./assets/mc/raw_mutton.png",
+      "C1": {
+        "name": "生羊肉",
+        "tag": "食物"
+      },
+      "C2": {
+        "intro": "羊掉落的生肉，食用可恢复少量饥饿值。"
+      },
+      "C3": {
+        "饱食度": 2
+      },
+      "C4": [],
+      "C5": "可烹饪成熟羊肉以提高恢复效果。",
+      "C6": null,
+      "C7": "未着火的成年羊死亡时掉落。",
+      "links": {}
+    },
+    "rotten_flesh": {
+      "id": "rotten_flesh",
+      "icon": "./assets/mc/rotten_flesh.png",
+      "C1": {
+        "name": "腐肉",
+        "tag": "食物/材料"
+      },
+      "C2": {
+        "intro": "多数僵尸类生物掉落的食物。"
+      },
+      "C3": {
+        "饱食度": 4
+      },
+      "C4": [],
+      "C5": "紧急食用或与牧师村民交易。",
+      "C6": null,
+      "C7": "僵尸等亡灵生物掉落。",
+      "links": {}
+    },
+    "carrot": {
+      "id": "carrot",
+      "icon": "./assets/mc/carrot.png",
+      "C1": {
+        "name": "胡萝卜",
+        "tag": "食物/作物"
+      },
+      "C2": {
+        "intro": "可食用和种植的基础作物。"
+      },
+      "C3": {
+        "饱食度": 3
+      },
+      "C4": [],
+      "C5": "食用、种植，或繁殖猪和兔子。",
+      "C6": null,
+      "C7": "村庄农田、僵尸稀有掉落等。",
+      "links": {}
+    },
+    "potato": {
+      "id": "potato",
+      "icon": "./assets/mc/potato.png",
+      "C1": {
+        "name": "马铃薯",
+        "tag": "食物/作物"
+      },
+      "C2": {
+        "intro": "可种植并烘烤的基础作物。"
+      },
+      "C3": {
+        "饱食度": 1
+      },
+      "C4": [],
+      "C5": "种植或烘烤为烤马铃薯。",
+      "C6": null,
+      "C7": "村庄农田、僵尸稀有掉落等。",
+      "links": {
+        "马铃薯": "potato"
+      }
     }
   }
 }
