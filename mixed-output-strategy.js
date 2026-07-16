@@ -5,12 +5,12 @@
 })(typeof globalThis !== 'undefined' ? globalThis : this, function () {
   const LABELS = {
     IDENTITY_QUERY: /是什么|属性|掉什么|掉落|危险|怕什么|用途|能做什么/,
-    OPERATION_QUERY: /怎么做|怎么合成|怎么激活|怎么种|怎么驯服|能种|能驯服|能附魔/,
+    OPERATION_QUERY: /怎么做|怎么合成|怎么激活|怎么种|怎么驯服|怎么饲养|如何饲养|怎么摆|如何摆|能种|能驯服|能附魔/,
     COMPARISON_QUERY: /哪个好|哪个更|区别|比较/,
-    DECISION_QUERY: /要不要|该不该|值不值|应该|适合|下一步|干嘛/,
+    DECISION_QUERY: /要不要|该不该|值不值|应该|适合|下一步|干嘛|能不能|能打过|够不够|可以吗/,
     DIAGNOSIS_QUERY: /为什么|怎么不|没反应|不亮|不了/,
-    STATUS_QUERY: /多少|多久|进度|还能用|状态|今天|最近|统计/,
-    LOCATION_QUERY: /在哪|哪里|附近|位置|怎么去/,
+    STATUS_QUERY: /多少|多久|进度|还能用|状态|今天|统计|总结.*表现|存档.*表现/,
+    LOCATION_QUERY: /在哪|哪里|附近|位置|怎么去|最近的/,
     ACTION_REQUEST: /帮我|替我|给我去/,
     EMOTIONAL: /好累|难过|生气|害怕|开心/,
     OUT_OF_SCOPE: /开挂|作弊|外挂/,
@@ -43,7 +43,7 @@
   }
 
   function gDirectionNeedsC(query, context) {
-    if (/下一步|需要什么|缺什么|怎么办|材料|修|制作|来源/.test(query)) return true;
+    if (/下一步|需要什么|缺什么|怎么办|材料|修|制作|来源|能挖|工具等级|开采要求|熔炉|燃料|不工作/.test(query)) return true;
     const state = context.playerState || {};
     return state.currentDurability === 0 || state.inventory?.food === 0;
   }

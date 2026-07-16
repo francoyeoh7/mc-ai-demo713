@@ -454,13 +454,16 @@ body.ai-suppressed #chat-panel{opacity:.32 !important;filter:saturate(.4);transi
   <div id="strategy-panel">
     <div class="st-head"><b>多元意图混合识别</b><span>6-LAYER TRACE</span></div>
     <div class="st-scenes">
-      <button data-strategy-scene="pure-c">纯C · 羊掉什么</button>
-      <button data-strategy-scene="c-g">C→G · 剑还能用多久</button>
-      <button data-strategy-scene="pure-g">纯G · 今天砍了多少树</button>
-      <button data-strategy-scene="g-c">G→C · 下一步干嘛</button>
-      <button data-strategy-scene="follow-up">追问 · 铁锭哪来</button>
-      <button data-strategy-scene="action">边界 · 帮我砍树</button>
+      <button data-showcase-scene="zombie-fight">1 · 能打僵尸吗</button>
+      <button data-showcase-scene="diamond-tool">2 · 为什么挖不动钻石</button>
+      <button data-showcase-scene="next-step">3 · 下一步做什么</button>
+      <button data-showcase-scene="sheep-care">4 · 羊怎么饲养</button>
+      <button data-showcase-scene="iron-locate">5 · 铁矿在哪里</button>
+      <button data-showcase-scene="enchant-room">6 · 书架如何增强附魔</button>
+      <button data-showcase-scene="furnace-fail">7 · 熔炉为什么不工作</button>
+      <button data-showcase-scene="player-stats">8 · 玩家数据总结</button>
     </div>
+    <button id="showcase-return-lobby">返回大厅</button>
     <div class="st-input"><input id="strategy-query" placeholder="输入问题，如：这把剑还能用多久？"><button id="strategy-run">运行</button></div>
     <div class="st-layer" id="st-l1"><div class="st-name">层1 · 意图分类器</div><div class="st-value">等待输入</div></div>
     <div class="st-layer" id="st-l2"><div class="st-name">层2 · 路径决策器</div><div class="st-value">答案核心是否输出 Wiki？是否读取玩家/世界状态？</div></div>
@@ -508,9 +511,29 @@ async function loadWikiSnapshot(){
   try{WIKI_SNAPSHOT=await fetch('./wiki-snapshot.json',{cache:'no-store'}).then(r=>{if(!r.ok)throw new Error(r.status);return r.json();});renderItemSlots();}
   catch(e){console.warn('Wiki snapshot unavailable',e);}
 }
+const PLAYER_RUNTIME_STATE = {
+  health:20,hunger:20,armor:['iron_helmet','iron_chestplate','iron_leggings','iron_boots'],
+  mainHand:'iron_sword',offHand:'shield',position:{x:0,y:2,z:0},
+  hotbar:[{id:'iron_sword'},{id:'iron_pickaxe'},{id:'iron_axe'},{id:'torch',count:16},{id:'bread',count:5},{id:'log',count:12},{id:'cobble',count:32},{id:'book'},{id:null}],
+  inventory:{food:5,iron_ingot:3,coal:8,wheat:6,white_wool:4,leather:2},
+  stats:{playMinutes:620,treesCutToday:17,treesCutTotal:327,minedBlocks:1842,deaths:3},
+  worldState:{nearby:[{type:'sheep',distance:18}],time:'day'},activeShowcase:null,
+};
+const LOBBY_RUNTIME_SNAPSHOT=JSON.parse(JSON.stringify(PLAYER_RUNTIME_STATE));
+function patchRuntimeState(patch){
+  for(const [key,value] of Object.entries(patch||{})) PLAYER_RUNTIME_STATE[key]=value&&typeof value==='object'&&!Array.isArray(value)?{...(PLAYER_RUNTIME_STATE[key]||{}),...value}:value;
+  syncRuntimeUI();
+}
+function syncRuntimeUI(){
+  hotbar.querySelectorAll('.hot-slot').forEach((slot,index)=>{const item=PLAYER_RUNTIME_STATE.hotbar[index];slot.dataset.itemId=item?.id||'';slot.dataset.count=item?.count||'';});
+  renderHotbarSlots();renderItemSlots();
+}
+
 function renderHotbarSlots(){
-  hotbar.querySelectorAll('[data-item-id]').forEach(slot=>{
-    const r=WIKI_SNAPSHOT.records[slot.dataset.itemId];if(!r)return;
+  hotbar.querySelectorAll('.hot-slot').forEach((slot,index)=>{
+    const item=PLAYER_RUNTIME_STATE.hotbar[index]||{};
+    slot.dataset.itemId=item.id||'';
+    const r=WIKI_SNAPSHOT.records[item.id];if(!r){slot.innerHTML='';return;}
     slot.innerHTML=`<img class="mc-icon" src="${r.icon}" alt="${escapeHtml(r.C1.name)}">`;
     slot.title=r.C1.name;
   });
@@ -1932,11 +1955,13 @@ function aiContextFor(type){
       }
     }] : [],
     playerState:{
-      position:{x:Math.round(player.pos.x),y:Math.round(player.pos.y),z:Math.round(player.pos.z)},
-      equipment:{mainHand:'当前工具'},
-      stats:{playMinutes:Math.round(performance.now()/60000),treesCutToday:17,treesCutTotal:327,minedBlocks:1842},
+      position:{...PLAYER_RUNTIME_STATE.position,x:Math.round(player.pos.x),y:Math.round(player.pos.y),z:Math.round(player.pos.z)},
+      health:PLAYER_RUNTIME_STATE.health,hunger:PLAYER_RUNTIME_STATE.hunger,armor:[...PLAYER_RUNTIME_STATE.armor],
+      equipment:{mainHand:PLAYER_RUNTIME_STATE.mainHand,offHand:PLAYER_RUNTIME_STATE.offHand},
+      inventory:{...PLAYER_RUNTIME_STATE.inventory},hotbar:PLAYER_RUNTIME_STATE.hotbar.map(x=>({...x})),
+      stats:{...PLAYER_RUNTIME_STATE.stats},
     },
-    worldState:{referencePosition:CHAT.pendingBlockPos||CHAT.selectedPos||null},
+    worldState:{...PLAYER_RUNTIME_STATE.worldState,referencePosition:CHAT.pendingBlockPos||CHAT.selectedPos||null},
   };
 }
 
@@ -2937,17 +2962,39 @@ requestAnimationFrame(loop);
   const layers = [1,2,3,4,5,6].map(n=>document.getElementById('st-l'+n));
   const manager = API.createContextManager();
 
-  const SHEEP={id:'minecraft:sheep',name:'羊',type:'friendly_mob',wiki:{summary:'这是羊，剪了能获得羊毛。',intro:'羊是被动生物。',stats:{health:8},drops:['羊毛','生羊肉'],uses:['提供羊毛','繁殖'],recipe:null,source:'平原和森林等生物群系自然生成'}};
-  const SWORD={id:'minecraft:iron_sword',name:'铁剑',type:'tool',wiki:{summary:'铁剑是近战武器。',intro:'铁剑造成 6 点攻击伤害。',stats:{maxDurability:250,damage:6},drops:[],uses:['近战攻击'],recipe:['铁锭×2','木棍×1'],source:'由铁锭和木棍合成'}};
-  const base={selectedObjects:[SHEEP],playerState:{position:{x:12,y:64,z:-8},inventory:{food:6,wheat:3,iron_ingot:0},equipment:{mainHand:'铁剑'},stats:{treesCutToday:17,playMinutes:620}},worldState:{nearby:[{type:'sheep',distance:18}]}};
-  const scenes={
-    'pure-c':{q:'这只羊掉什么？',ctx:base},
-    'c-g':{q:'这把剑还能用多久？',ctx:{...base,selectedObjects:[SWORD],playerState:{...base.playerState,currentDurability:47}}},
-    'pure-g':{q:'我今天砍了多少树？',ctx:{...base,selectedObjects:[]}},
-    'g-c':{q:'我下一步该干嘛？',ctx:{...base,selectedObjects:[],playerState:{...base.playerState,currentDurability:0,inventory:{food:0,iron_ingot:0}}}},
-    'follow-up':{q:'铁锭哪来？',ctx:{...base,selectedObjects:[]},follow:true},
-    'action':{q:'帮我砍掉周围的树',ctx:{...base,selectedObjects:[]}},
+  const STRATEGY_SHOWCASES={
+    'zombie-fight':{title:'能打僵尸吗',query:'以我现在的装备能打过这个僵尸吗？',reference:'zombie',expectedPath:'C_TO_G',playerState:{health:20,hunger:18,mainHand:'iron_sword',armor:['iron_helmet','iron_chestplate','iron_leggings','iron_boots'],inventory:{food:5,iron_ingot:3}},worldState:{nearby:[{type:'zombie',distance:4}],time:'night'}},
+    'diamond-tool':{title:'为什么挖不动钻石',query:'为什么我挖不动这个钻石矿？',reference:'diamond_ore',expectedPath:'C_TO_G',playerState:{health:20,mainHand:'iron_pickaxe',toolTier:'stone'},worldState:{nearby:[{type:'diamond_ore',distance:2}]}},
+    'next-step':{title:'下一步做什么',query:'按我现在的状态，下一步该做什么？',reference:null,expectedPath:'G_TO_C',playerState:{health:12,hunger:5,mainHand:'wooden_sword',currentDurability:3,inventory:{food:0,iron_ingot:0}},worldState:{nearby:[{type:'village',distance:30}]}},
+    'sheep-care':{title:'羊怎么饲养',query:'我现在怎么饲养这只羊？',reference:'sheep',expectedPath:'C_TO_G',playerState:{health:20,mainHand:'wheat',inventory:{wheat:6}},worldState:{nearby:[{type:'sheep',distance:3}],penReady:true}},
+    'iron-locate':{title:'铁矿在哪里',query:'离我最近的铁矿在哪里，我能挖吗？',reference:'iron_ore',expectedPath:'G_TO_C',playerState:{health:20,mainHand:'stone_pickaxe',position:{x:12,y:64,z:-8}},worldState:{nearby:[{type:'iron_ore',distance:7,position:{x:17,y:61,z:-12}}]}},
+    'enchant-room':{title:'书架如何增强附魔',query:'这些书架怎么摆才能提高附魔等级？',reference:'bookshelf',expectedPath:'C_TO_G',playerState:{health:20,mainHand:'book',inventory:{bookshelf:8,book:12}},worldState:{nearby:[{type:'enchanting_table',distance:2}],bookshelfCount:8}},
+    'furnace-fail':{title:'熔炉为什么不工作',query:'我的熔炉为什么不工作？',reference:'furnace',expectedPath:'G_TO_C',playerState:{health:20,mainHand:'iron_ore',inventory:{iron_ore:3,coal:0}},worldState:{furnace:{input:'iron_ore',fuel:null,output:null}}},
+    'player-stats':{title:'玩家数据总结',query:'总结一下我当前存档的表现。',reference:null,expectedPath:'PURE_G',playerState:{health:20,stats:{playMinutes:620,treesCutTotal:327,minedBlocks:1842,deaths:3}},worldState:{}},
   };
+  const LOBBY_PLAYER_POSITION={x:player.pos.x,y:player.pos.y,z:player.pos.z,yaw:player.yaw,pitch:player.pitch};
+  function sceneContext(scene){
+    const record=scene.reference?WIKI_SNAPSHOT.records[scene.reference]:null;
+    return {selectedObjects:record?[{id:'minecraft:'+scene.reference,name:record.C1.name,type:scene.reference,wiki:{summary:record.C2.intro,intro:record.C2.intro,stats:record.C3,drops:record.C4,uses:record.C5,recipe:record.C6,source:record.C7}}]:[],playerState:JSON.parse(JSON.stringify(PLAYER_RUNTIME_STATE)),worldState:JSON.parse(JSON.stringify(PLAYER_RUNTIME_STATE.worldState))};
+  }
+  async function applyShowcase(id){
+    const scene=STRATEGY_SHOWCASES[id];if(!scene)return;
+    PLAYER_RUNTIME_STATE.activeShowcase=id;
+    patchRuntimeState({health:20,hunger:20,armor:[],mainHand:null,offHand:null,hotbar:JSON.parse(JSON.stringify(LOBBY_RUNTIME_SNAPSHOT.hotbar)),inventory:{},stats:JSON.parse(JSON.stringify(LOBBY_RUNTIME_SNAPSHOT.stats)),worldState:{},...scene.playerState});
+    patchRuntimeState({worldState:scene.worldState});
+    PLAYER_RUNTIME_STATE.hotbar[0]={id:PLAYER_RUNTIME_STATE.mainHand||null};
+    syncRuntimeUI();
+    CHAT.selectedType=scene.reference;CHAT.selectionSource=scene.reference?'showcase':null;
+    input.value=scene.query;
+    openChat(false);addUserMsg('【场景：'+scene.title+'】'+scene.query);
+    const result=await run({...scene,q:scene.query,ctx:sceneContext(scene)});
+    if(result&&result.route.path!==scene.expectedPath) value(2,routeReason(result.route)+'<br>预期：'+scene.expectedPath,'fail');
+  }
+  function returnToLobby(){
+    Object.assign(PLAYER_RUNTIME_STATE,JSON.parse(JSON.stringify(LOBBY_RUNTIME_SNAPSHOT)));syncRuntimeUI();
+    player.pos.set(LOBBY_PLAYER_POSITION.x,LOBBY_PLAYER_POSITION.y,LOBBY_PLAYER_POSITION.z);player.yaw=LOBBY_PLAYER_POSITION.yaw;player.pitch=LOBBY_PLAYER_POSITION.pitch;
+    CHAT.selectedType=null;CHAT.selectionSource=null;clearChip();closeChat(false);panel.classList.remove('open');
+  }
 
   const value=(n,html,state='on')=>{const el=layers[n-1];el.classList.remove('on','fail');if(state)el.classList.add(state);el.querySelector('.st-value').innerHTML=html;};
   const reset=()=>layers.forEach(el=>{el.classList.remove('on','fail');});
@@ -2957,9 +3004,9 @@ requestAnimationFrame(loop);
 
   async function run(scene){
     reset();
-    const query=input.value.trim()||scene.q;
+    const query=scene.q||input.value.trim();
     input.value=query;
-    const context=scene.ctx;
+    const context=scene.ctx||aiContextFor(CHAT.selectedType);
     const cached=manager.resolveFollowUp(query);
     if(cached.hit){
       value(1,'FOLLOW_UP · 置信度 1.00');
@@ -2980,16 +3027,14 @@ requestAnimationFrame(loop);
     value(5,result.cacheHit?'命中缓存':'已缓存本轮路径与组件，追问可直接复用');
     value(6,result.failure?`${esc(result.failure.code)} · ${esc(result.failure.message||'已降级')}`:'未触发',result.failure?'fail':'on');
     output.innerHTML=result.output.lines.map(esc).join('<br>')+(result.action?`<div class="st-action">${esc(result.action.label)}</div>`:'');
+    return result;
   }
 
   toggle.addEventListener('click',()=>{panel.classList.toggle('open');const sim=document.getElementById('sim-panel');if(sim)sim.classList.remove('open');});
-  runBtn.addEventListener('click',()=>run({q:input.value,ctx:base}));
-  input.addEventListener('keydown',e=>{if(e.key==='Enter')run({q:input.value,ctx:base});});
-  panel.querySelectorAll('[data-strategy-scene]').forEach(btn=>btn.addEventListener('click',async()=>{
-    const scene=scenes[btn.dataset.strategyScene];
-    if(scene.follow && !manager.getLast()) await run(scenes['g-c']);
-    await run(scene);
-  }));
+  runBtn.addEventListener('click',()=>run({q:input.value,ctx:aiContextFor(CHAT.selectedType)}));
+  input.addEventListener('keydown',e=>{if(e.key==='Enter')run({q:input.value,ctx:aiContextFor(CHAT.selectedType)});});
+  panel.querySelectorAll('[data-showcase-scene]').forEach(btn=>btn.addEventListener('click',()=>applyShowcase(btn.dataset.showcaseScene)));
+  document.getElementById('showcase-return-lobby').addEventListener('click',returnToLobby);
 })();
 </script>
 <script>
