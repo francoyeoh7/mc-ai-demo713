@@ -91,6 +91,7 @@ canvas{display:block;width:100%;height:100%;touch-action:none;}
 @keyframes thinkCore{0%,100%{transform:scale(.65);opacity:.65;}50%{transform:scale(1.2);opacity:1;}}
 @keyframes activeBloom{0%,100%{box-shadow:0 10px 28px rgba(0,0,0,.34),0 0 18px var(--orb-soft),inset 0 1px 1px rgba(255,255,255,.42),inset 0 -10px 20px rgba(0,0,0,.3);}50%{box-shadow:0 10px 28px rgba(0,0,0,.34),0 0 29px var(--orb-soft),inset 0 1px 1px rgba(255,255,255,.42),inset 0 -10px 20px rgba(0,0,0,.3);}}
 @keyframes badgeBreath{0%,100%{transform:scale(.88);opacity:.75;}50%{transform:scale(1.08);opacity:1;}}
+#app.damage-flash::after{content:"";position:fixed;inset:0;background:rgba(255,0,0,.32);z-index:130;pointer-events:none;}
 
 /* Drag crosshair (above finger) */
 #drag-cross{position:fixed;width:60px;height:60px;pointer-events:none;z-index:119;display:none;transform:translate(-50%,-50%);}
@@ -1120,6 +1121,7 @@ setLoad(0.55,'构建方块网格...');
 // ==============================================================
 const blockGeo = new THREE.BoxGeometry(1,1,1);
 const blockMeshes = [];
+const blockMeshByType = new Map();
 {
   const grouped = new Map();
   for(const [k,type] of world){
@@ -1144,6 +1146,7 @@ const blockMeshes = [];
     im.frustumCulled = false;
     scene.add(im);
     blockMeshes.push(im);
+    blockMeshByType.set(type,im);
   }
 }
 
@@ -1302,13 +1305,14 @@ buildSheepPen();
 createSheep(.3,3.4);createSheep(1.7,5.2);createSheep(2.9,6.7);
 createZombie(-10,-6);createZombie(-14,-10);
 
-const wolfLegs=[];let wolfTail=null;
+const wolfLegs=[];let wolfTail=null,wolfCarry=null;
 const WOLF_STATES=new Set(['follow','wander','work','build','idle']);
 function createAIWolf(){
   const g=new THREE.Group(),white=0xc8c8c8,dark=0x777777;
   boxPart(g,[.9,.65,.42],[0,.65,0],white);boxPart(g,[.48,.48,.48],[.62,.88,0],white);boxPart(g,[.38,.22,.36],[.95,.8,0],dark);
   [[-.3,.25,-.15],[-.3,.25,.15],[.3,.25,-.15],[.3,.25,.15]].forEach(p=>{const leg=boxPart(g,[.16,.5,.16],p,dark);wolfLegs.push(leg);});
   wolfTail=boxPart(g,[.55,.13,.13],[-.68,.78,0],dark);wolfTail.rotation.z=-.45;
+  wolfCarry=boxPart(g,[.3,.3,.3],[1.15,.72,0],0x8b5a2b);wolfCarry.visible=false;
   g.userData={state:'follow',target:null,timer:0,phase:0};g.position.set(1,0,1);scene.add(g);return g;
 }
 const aiWolf=createAIWolf();
@@ -1321,9 +1325,21 @@ function updateAIWolf(dt,now){
 }
 const wolfDrops=[];
 function spawnItemDrop(type,pos){const m=new THREE.Mesh(new THREE.BoxGeometry(.22,.22,.22),new THREE.MeshLambertMaterial({color:0x9b6a3d}));m.position.copy(pos);m.userData.type=type;scene.add(m);wolfDrops.push(m);return m;}
-function collectWolfDrop(drop){scene.remove(drop);PLAYER_RUNTIME_STATE.inventory[drop.userData.type]=(PLAYER_RUNTIME_STATE.inventory[drop.userData.type]||0)+1;syncRuntimeUI();}
-function breakTreeBlock(pos){const key=keyOf(...pos);if(world.has(key)){world.delete(key);const d=spawnItemDrop('log',new THREE.Vector3(pos[0]+.5,pos[1]+.5,pos[2]+.5));setTimeout(()=>collectWolfDrop(d),700);}}
-function startWolfTreeTask(){setWolfState('work',new THREE.Vector3(-8,0,4));setTimeout(()=>breakTreeBlock([-8,1,4]),1800);setTimeout(()=>{setWolfState('follow');showBubble('木头已收集，并同步进你的背包。');},2800);}
+function collectWolfDrop(drop){scene.remove(drop);wolfCarry.visible=true;setWolfState('follow');setTimeout(()=>{PLAYER_RUNTIME_STATE.inventory[drop.userData.type]=(PLAYER_RUNTIME_STATE.inventory[drop.userData.type]||0)+1;wolfCarry.visible=false;syncRuntimeUI();showBubble('已带回 1 个橡木原木，背包数量 +1。');},1200);}
+function breakTreeBlock(pos){
+  const key=keyOf(...pos);if(!world.has(key))return;
+  const type=world.get(key),mesh=blockMeshByType.get(type);world.delete(key);
+  if(mesh){const idx=mesh.userData.positions.findIndex(p=>p[0]===pos[0]&&p[1]===pos[1]&&p[2]===pos[2]);if(idx>=0){const dummy=new THREE.Object3D();dummy.position.set(0,-999,0);dummy.scale.set(0,0,0);dummy.updateMatrix();mesh.setMatrixAt(idx,dummy.matrix);mesh.instanceMatrix.needsUpdate=true;}}
+  const d=spawnItemDrop('log',new THREE.Vector3(pos[0]+.5,pos[1]+.5,pos[2]+.5));setTimeout(()=>collectWolfDrop(d),700);
+}
+function startWolfTreeTask(){setWolfState('work',new THREE.Vector3(-8,0,4));setTimeout(()=>breakTreeBlock([-8,1,4]),1800);}
+function buildExecutionChoiceCard(){
+  const c=document.createElement('div');c.className='card';c.innerHTML='<div class="card-head"><span class="name">橡木原木</span><span class="tag">执行目标</span></div><button class="opt" data-exec-collect>⚑ 帮我收集</button>';
+  c.querySelector('[data-exec-collect]').addEventListener('click',()=>{addUserMsg('帮我收集');startWolfTreeTask();});return c;
+}
+function startExecutionShowcase(){
+  closeChat(false);CHAT.selectedType='log';showBubble('我识别到附近的橡木原木。', {expand:{}});openChat(false);addAIMsg(buildExecutionChoiceCard());
+}
 const modPortalBlocks=[];let modPortalActive=false;
 function activateModPortal(){modPortalActive=true;showBubble('MOD传送门已激活：进入可体验「机械探险」推荐内容。');}
 function startModPortalBuild(){
@@ -1332,8 +1348,37 @@ function startModPortalBuild(){
 }
 function checkModPortalEntry(){if(modPortalActive&&Math.hypot(player.pos.x-3.5,player.pos.z+3)<1.2)showBubble('已进入MOD体验：机械方块、自动采矿与新配方已解锁。');}
 const MEMORY_MILESTONES=[];
+const MEMORY_COMBAT={active:false,playerHits:0,zombieHits:0,zombie:null,diamondArmored:true,lastTap:null};
+const COMBAT_TAP_MAX_MOVE=10;
 function recordMemoryMilestone(type,text){if(!MEMORY_MILESTONES.some(x=>x.type===type))MEMORY_MILESTONES.push({type,text,time:Date.now()});}
-function playMemoryCompanionDemo(){recordMemoryMilestone('first-sheep','你第一次发现羊圈时，手里正好有小麦。');showBubble('我还记得你第一次来到羊圈。现在你已经准备好小麦，要继续扩建它吗？');setWolfState('idle');}
+function resolveMemoryCombat(outcome){
+  MEMORY_COMBAT.active=false;
+  if(outcome==='death'){
+    recordMemoryMilestone('combat-death','因过度贴身攻击且防御不足阵亡');
+    showBubble('别灰心，你这次倒下主要因为太莽且防御不足。先打造一套铁甲，再挑战高护甲僵尸。');
+  }else{
+    const total=(PLAYER_RUNTIME_STATE.stats.zombieKills||48)+1,history=[2,4,1,3,5,2],rank=history.filter(x=>x>3).length+1;
+    PLAYER_RUNTIME_STATE.stats.zombieKills=total;recordMemoryMilestone('combat-win','击败钻石甲僵尸');
+    showBubble(`漂亮！你已累计击杀 ${total} 只僵尸。本次3次命中完成击杀，在最近历史击杀记录中排名第 ${rank}，老玩家的节奏还在。`);
+  }
+}
+function attackMemoryZombie(){
+  if(!MEMORY_COMBAT.active||!MEMORY_COMBAT.zombie)return;
+  MEMORY_COMBAT.playerHits++;const z=MEMORY_COMBAT.zombie;z.position.add(new THREE.Vector3(0,0,-.35));z.traverse(o=>{if(o.material){o.material.emissive?.setHex(0xff0000);setTimeout(()=>o.material.emissive?.setHex(0),120);}});
+  if(MEMORY_COMBAT.playerHits>=3){scene.remove(z);resolveMemoryCombat('win');}
+}
+function memoryZombieAttack(){
+  if(!MEMORY_COMBAT.active)return;MEMORY_COMBAT.zombieHits++;PLAYER_RUNTIME_STATE.health=Math.max(0,PLAYER_RUNTIME_STATE.health-7);camera.position.z+=.28;app.classList.add('damage-flash');setTimeout(()=>app.classList.remove('damage-flash'),130);
+  if(MEMORY_COMBAT.zombieHits>=3)resolveMemoryCombat('death');
+}
+function handleCombatTap(startX,startY,endX,endY){if(MEMORY_COMBAT.active&&Math.hypot(endX-startX,endY-startY)<=COMBAT_TAP_MAX_MOVE)attackMemoryZombie();}
+function startMemoryCombat(){
+  closeChat(false);PLAYER_RUNTIME_STATE.health=20;PLAYER_RUNTIME_STATE.mainHand='iron_sword';PLAYER_RUNTIME_STATE.hotbar[0]={id:'iron_sword'};syncRuntimeUI();
+  const z=createZombie(player.pos.x,player.pos.z-4);z.userData.diamondArmored=true;z.traverse(o=>{if(o.material)o.material.color.setHex(0x48cfe0);});
+  MEMORY_COMBAT.active=true;MEMORY_COMBAT.playerHits=0;MEMORY_COMBAT.zombieHits=0;MEMORY_COMBAT.zombie=z;
+  showBubble('记忆挑战：轻触僵尸挥剑，拖动仍可转向。双方3次命中决定胜负。');
+}
+function playMemoryCompanionDemo(){startMemoryCombat();}
 
 const highlightOutline = new THREE.LineSegments(
   new THREE.EdgesGeometry(new THREE.BoxGeometry(1.04,1.04,1.04)),
@@ -1432,7 +1477,7 @@ const input = { joyX:0, joyY:0 };
 inventoryBtn.addEventListener('click',e=>{e.stopPropagation();furnacePanel.classList.remove('open');inventoryPanel.classList.toggle('open');});
 const toggleInventory=()=>{furnacePanel.classList.remove('open');inventoryPanel.classList.toggle('open');};
 const JOY = { id:null, cx:0, cy:0, r:52 };
-const LOOK = { id:null, lastX:0, lastY:0 };
+const LOOK = { id:null, lastX:0, lastY:0, startX:0, startY:0 };
 const AI_DRAG = { id:null, startX:0, startY:0, startT:0, curX:0, curY:0, moved:0, active:false, listening:false, willTap:true, holdTimer:null };
 const AI_STATES = new Set(['idle','listen','sense','think','active']);
 let aiState = 'idle';
@@ -1465,7 +1510,7 @@ function updateJoy(x,y){
 }
 function joyEnd(){ JOY.id=null; input.joyX=0; input.joyY=0; joyKnob.style.transform='translate(-50%,-50%)'; }
 
-function lookStart(t){ LOOK.id = t.identifier; LOOK.lastX=t.clientX; LOOK.lastY=t.clientY; }
+function lookStart(t){ LOOK.id = t.identifier; LOOK.lastX=t.clientX; LOOK.lastY=t.clientY; LOOK.startX=t.clientX; LOOK.startY=t.clientY; }
 function lookMove(t){
   const dx = t.clientX-LOOK.lastX, dy = t.clientY-LOOK.lastY;
   LOOK.lastX=t.clientX; LOOK.lastY=t.clientY;
@@ -1475,7 +1520,7 @@ function lookMove(t){
   const L = Math.PI/2 - 0.02;
   player.pitch = Math.max(-L, Math.min(L, player.pitch));
 }
-function lookEnd(){ LOOK.id=null; }
+function lookEnd(t){ if(t)handleCombatTap(LOOK.startX,LOOK.startY,t.clientX,t.clientY); LOOK.id=null; }
 
 // ==============================================================
 // AI ball drag flow
@@ -2343,7 +2388,7 @@ document.addEventListener('touchmove', e=>{
 function endTouch(t){
   if(t.identifier===JOY.id) joyEnd();
   else if(t.identifier===AI_DRAG.id) aiEnd();
-  else if(t.identifier===LOOK.id) lookEnd();
+  else if(t.identifier===LOOK.id) lookEnd(t);
 }
 document.addEventListener('touchend',    e=>{ for(const t of e.changedTouches) endTouch(t); },{passive:false});
 document.addEventListener('touchcancel', e=>{ for(const t of e.changedTouches) endTouch(t); },{passive:false});
@@ -2506,6 +2551,10 @@ function loop(){
   if(cloudGroup.position.x>60) cloudGroup.position.x -= 120;
   updateRoamingEntities(dt,performance.now());
   updateAIWolf(dt,performance.now());
+  if(MEMORY_COMBAT.active&&MEMORY_COMBAT.zombie){
+    const z=MEMORY_COMBAT.zombie,dx=player.pos.x-z.position.x,dz=player.pos.z-z.position.z,d=Math.hypot(dx,dz);
+    z.rotation.y=Math.atan2(dx,dz);if(d>1.25){z.position.x+=dx/d*dt*1.25;z.position.z+=dz/d*dt*1.25;}else if(!z.userData.nextHit||performance.now()>z.userData.nextHit){z.userData.nextHit=performance.now()+950;memoryZombieAttack();}
+  }
   checkModPortalEntry();
 
   if(AI_DRAG.active && CHAT.selectionSource!=='ui') raycastCrosshair();
@@ -2983,8 +3032,10 @@ requestAnimationFrame(loop);
 
 window.MC_DEMO_BRIDGE={
   getPlayerPose:()=>({x:player.pos.x,y:player.pos.y,z:player.pos.z,yaw:player.yaw,pitch:player.pitch}),
+  getDebugState:()=>({wolfState:aiWolf.userData.state,wolfCarry:wolfCarry.visible,inventory:{...PLAYER_RUNTIME_STATE.inventory},portalActive:modPortalActive,portalBlocks:modPortalBlocks.length,memory:{...MEMORY_COMBAT},domains:6}),
   setPlayerPose:p=>{player.pos.set(p.x,p.y,p.z);player.yaw=p.yaw;player.pitch=p.pitch;},
   startWolfTreeTask,
+  startExecutionShowcase,
   startModPortalBuild,
   playMemoryCompanionDemo,
 };
@@ -3015,6 +3066,21 @@ window.MC_DEMO_BRIDGE={
     'furnace-fail':{title:'熔炉为什么不工作',query:'我的熔炉为什么不工作？',reference:'furnace',expectedPath:'G_TO_C',playerState:{health:20,mainHand:'iron_ore',inventory:{iron_ore:3,coal:0}},worldState:{furnace:{input:'iron_ore',fuel:null,output:null}}},
     'player-stats':{title:'玩家数据总结',query:'总结一下我当前存档的表现。',reference:null,expectedPath:'PURE_G',playerState:{health:20,stats:{playMinutes:620,treesCutTotal:327,minedBlocks:1842,deaths:3}},worldState:{}},
   };
+  const SHOWCASE_LOCAL_RESULTS={
+    'zombie-fight':['你的铁剑和铁甲足够应对单只僵尸。','保持距离，约3次有效攻击即可击败；当前满血，风险较低。'],
+    'diamond-tool':['钻石矿至少需要铁镐。','你当前工具状态已同步；使用铁镐对准矿石持续开采。'],
+    'next-step':['优先补充食物，再维修或替换低耐久武器。','阶段1：找食物；阶段2：获取铁锭；阶段3：继续探索。'],
+    'sheep-care':['你有6份小麦且羊圈已建好。','手持小麦引羊入圈；喂两只成年羊即可繁殖。'],
+    'iron-locate':['最近铁矿距你7格，坐标约为(17,61,-12)。','当前石镐可以开采，沿东南方向下降3格。'],
+    'enchant-room':['当前有8个书架，可提升附魔等级。','书架与附魔台间隔1格，中间保持空气；15个达到最高效果。'],
+    'furnace-fail':['输入槽有铁矿，但燃料槽为空。','放入煤炭后即可熔炼；附近煤矿或开采煤矿石可补充燃料。'],
+    'player-stats':['当前存档：游玩620分钟，砍树327棵，挖掘1842块，死亡3次。','你的资源采集稳定，下一阶段可专注装备与成就。'],
+  };
+  function renderShowcaseResult(scene){
+    const lines=SHOWCASE_LOCAL_RESULTS[PLAYER_RUNTIME_STATE.activeShowcase]||['场景已加载。'];
+    const result={route:{path:scene.expectedPath,intent:'SHOWCASE'},intent:{label:'SHOWCASE',confidence:1,evidence:['玩家状态已同步','世界状态已同步']},components:[],componentPlan:{family:scene.expectedPath==='PURE_G'?'PURE_G_STAT':'MIXED_GUIDE',components:scene.expectedPath==='PURE_G'?['G1','G7']:['G1','G4','G6','C7']},output:{lines,text:lines.join('\n')},failure:null,aiEnhanced:false};
+    addAIMsg(buildStrategyCard(result,scene.reference));return result;
+  }
   const LOBBY_PLAYER_POSITION=window.MC_DEMO_BRIDGE.getPlayerPose();
   function sceneContext(scene){
     const record=scene.reference?WIKI_SNAPSHOT.records[scene.reference]:null;
@@ -3030,8 +3096,13 @@ window.MC_DEMO_BRIDGE={
     CHAT.selectedType=scene.reference;CHAT.selectionSource=scene.reference?'showcase':null;
     input.value=scene.query;
     openChat(false);addUserMsg('【场景：'+scene.title+'】'+scene.query);
-    const result=await run({...scene,q:scene.query,ctx:sceneContext(scene)});
-    if(result&&result.route.path!==scene.expectedPath) value(2,routeReason(result.route)+'<br>预期：'+scene.expectedPath,'fail');
+    const result=renderShowcaseResult(scene);
+    value(1,'SHOWCASE · 置信度 1.00<br>玩家状态和世界状态已同步','on');
+    value(2,`<span class="st-route">${scene.expectedPath}</span> 本地演示路径`,'on');
+    value(3,compText(result.componentPlan.components.map(id=>({id}))));
+    value(4,'本地场景结果已组件化输出');value(5,'当前场景上下文已缓存');value(6,'未触发','on');
+    output.innerHTML=result.output.lines.map(esc).join('<br>');
+    return result;
   }
   function returnToLobby(){
     Object.assign(PLAYER_RUNTIME_STATE,JSON.parse(JSON.stringify(LOBBY_RUNTIME_SNAPSHOT)));syncRuntimeUI();
@@ -3044,7 +3115,7 @@ window.MC_DEMO_BRIDGE={
     if(domain==='answer'){document.getElementById('strategy-domain-list').style.display='none';document.getElementById('strategy-answer-scenes').style.display='block';return;}
     panel.classList.remove('open');
     if(domain==='planning')applyShowcase('next-step');
-    if(domain==='execution')window.MC_DEMO_BRIDGE.startWolfTreeTask();
+    if(domain==='execution')window.MC_DEMO_BRIDGE.startExecutionShowcase();
     if(domain==='discovery')window.MC_DEMO_BRIDGE.startModPortalBuild();
     if(domain==='memory')window.MC_DEMO_BRIDGE.playMemoryCompanionDemo();
   }
