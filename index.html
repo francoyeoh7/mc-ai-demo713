@@ -3094,6 +3094,7 @@ window.MC_DEMO_BRIDGE={
   setPlayerPose:p=>{player.pos.set(p.x,p.y,p.z);player.yaw=p.yaw;player.pitch=p.pitch;},
   startWolfTreeTask,
   startExecutionShowcase,
+  testExecuteTarget:type=>{CHAT.selectedType=type;startExecutionShowcase(type);const b=document.querySelector('[data-exec-action]');if(b)b.click();},
   startModPortalBuild,
   playMemoryCompanionDemo,
 };
