@@ -303,7 +303,7 @@ body.ai-suppressed #chat-panel{opacity:.32 !important;filter:saturate(.4);transi
 #strategy-panel .st-head span{font:10px monospace;color:#4fc3f7;}
 #strategy-panel .st-scenes{display:grid;grid-template-columns:repeat(2,1fr);gap:6px;margin-bottom:10px;}
 #strategy-panel button{border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.05);color:#dce7f3;border-radius:8px;padding:8px;font-size:11px;text-align:left;}
-#strategy-panel button:active{background:rgba(79,195,247,.2);}
+#strategy-panel .st-scenes button small{display:block;color:#7f91a3;font-size:9px;margin-top:3px;line-height:1.4}#strategy-panel .st-scenes button b{font-size:12px;color:#fff}#strategy-panel .st-scenes button:disabled{opacity:.4}
 #strategy-panel .st-input{display:flex;gap:6px;margin-bottom:10px;}
 #strategy-query{flex:1;min-width:0;border:1px solid rgba(255,255,255,.14);background:#111823;color:#fff;border-radius:8px;padding:9px;font-size:12px;outline:none;}
 #strategy-run{flex:none;background:linear-gradient(135deg,#4fc3f7,#2b8fc4)!important;color:#fff!important;font-weight:700;}
@@ -453,16 +453,17 @@ body.ai-suppressed #chat-panel{opacity:.32 !important;filter:saturate(.4);transi
   <button id="strategy-toggle">策略控制台</button>
   <div id="strategy-panel">
     <div class="st-head"><b>多元意图混合识别</b><span>6-LAYER TRACE</span></div>
-    <div class="st-scenes">
-      <button data-showcase-scene="zombie-fight">1 · 能打僵尸吗</button>
-      <button data-showcase-scene="diamond-tool">2 · 为什么挖不动钻石</button>
-      <button data-showcase-scene="next-step">3 · 下一步做什么</button>
-      <button data-showcase-scene="sheep-care">4 · 羊怎么饲养</button>
-      <button data-showcase-scene="iron-locate">5 · 铁矿在哪里</button>
-      <button data-showcase-scene="enchant-room">6 · 书架如何增强附魔</button>
-      <button data-showcase-scene="furnace-fail">7 · 熔炉为什么不工作</button>
-      <button data-showcase-scene="player-stats">8 · 玩家数据总结</button>
+    <div id="strategy-domain-list" class="st-scenes">
+      <button data-strategy-domain="planning"><b>C · 规划编排</b><small>目标拆解、资源依赖、阶段计划</small></button>
+      <button data-strategy-domain="execution"><b>D · 执行代劳</b><small>小狼执行砍树、收集与整理</small></button>
+      <button data-strategy-domain="discovery"><b>B · 发现推荐</b><small>小狼搭建可进入的MOD传送门</small></button>
+      <button data-strategy-domain="memory"><b>F · 记忆陪伴</b><small>事件记忆、里程碑与状态关怀</small></button>
+      <button data-strategy-domain="review" disabled><b>E · 复盘提升</b><small>规划中</small></button>
+      <button data-strategy-domain="answer"><b>A · 答疑解惑</b><small>信息库、攻略与机制解释</small></button>
     </div>
+    <div id="strategy-answer-scenes" style="display:none"><button id="strategy-domain-back">← 六大能力</button><div class="st-scenes">
+      <button data-showcase-scene="zombie-fight">1 · 能打僵尸吗</button><button data-showcase-scene="diamond-tool">2 · 为什么挖不动钻石</button><button data-showcase-scene="next-step">3 · 下一步做什么</button><button data-showcase-scene="sheep-care">4 · 羊怎么饲养</button><button data-showcase-scene="iron-locate">5 · 铁矿在哪里</button><button data-showcase-scene="enchant-room">6 · 书架如何增强附魔</button><button data-showcase-scene="furnace-fail">7 · 熔炉为什么不工作</button><button data-showcase-scene="player-stats">8 · 玩家数据总结</button>
+    </div></div>
     <button id="showcase-return-lobby">返回大厅</button>
     <div class="st-input"><input id="strategy-query" placeholder="输入问题，如：这把剑还能用多久？"><button id="strategy-run">运行</button></div>
     <div class="st-layer" id="st-l1"><div class="st-name">层1 · 意图分类器</div><div class="st-value">等待输入</div></div>
@@ -1301,7 +1302,39 @@ buildSheepPen();
 createSheep(.3,3.4);createSheep(1.7,5.2);createSheep(2.9,6.7);
 createZombie(-10,-6);createZombie(-14,-10);
 
-// Highlight — outline + emissive fill (glowing)
+const wolfLegs=[];let wolfTail=null;
+const WOLF_STATES=new Set(['follow','wander','work','build','idle']);
+function createAIWolf(){
+  const g=new THREE.Group(),white=0xc8c8c8,dark=0x777777;
+  boxPart(g,[.9,.65,.42],[0,.65,0],white);boxPart(g,[.48,.48,.48],[.62,.88,0],white);boxPart(g,[.38,.22,.36],[.95,.8,0],dark);
+  [[-.3,.25,-.15],[-.3,.25,.15],[.3,.25,-.15],[.3,.25,.15]].forEach(p=>{const leg=boxPart(g,[.16,.5,.16],p,dark);wolfLegs.push(leg);});
+  wolfTail=boxPart(g,[.55,.13,.13],[-.68,.78,0],dark);wolfTail.rotation.z=-.45;
+  g.userData={state:'follow',target:null,timer:0,phase:0};g.position.set(1,0,1);scene.add(g);return g;
+}
+const aiWolf=createAIWolf();
+function setWolfState(state,target=null){if(WOLF_STATES.has(state)){aiWolf.userData.state=state;aiWolf.userData.target=target;}}
+function updateAIWolf(dt,now){
+  const w=aiWolf,s=w.userData.state;let target=w.userData.target;
+  if(s==='follow'||s==='wander'||s==='idle') target=new THREE.Vector3(player.pos.x+1.5,0,player.pos.z+1.5);
+  if(target){const dx=target.x-w.position.x,dz=target.z-w.position.z,d=Math.hypot(dx,dz);if(d>.45){w.position.x+=dx/d*dt*(s==='work'||s==='build'?2.4:1.4);w.position.z+=dz/d*dt*(s==='work'||s==='build'?2.4:1.4);w.rotation.y=Math.atan2(dx,dz);w.userData.phase+=dt*9;wolfLegs.forEach((l,i)=>l.rotation.x=Math.sin(w.userData.phase+(i%2)*Math.PI)*.55);}}
+  if(wolfTail)wolfTail.rotation.y=Math.sin(now*.008)*.55;
+}
+const wolfDrops=[];
+function spawnItemDrop(type,pos){const m=new THREE.Mesh(new THREE.BoxGeometry(.22,.22,.22),new THREE.MeshLambertMaterial({color:0x9b6a3d}));m.position.copy(pos);m.userData.type=type;scene.add(m);wolfDrops.push(m);return m;}
+function collectWolfDrop(drop){scene.remove(drop);PLAYER_RUNTIME_STATE.inventory[drop.userData.type]=(PLAYER_RUNTIME_STATE.inventory[drop.userData.type]||0)+1;syncRuntimeUI();}
+function breakTreeBlock(pos){const key=keyOf(...pos);if(world.has(key)){world.delete(key);const d=spawnItemDrop('log',new THREE.Vector3(pos[0]+.5,pos[1]+.5,pos[2]+.5));setTimeout(()=>collectWolfDrop(d),700);}}
+function startWolfTreeTask(){setWolfState('work',new THREE.Vector3(-8,0,4));setTimeout(()=>breakTreeBlock([-8,1,4]),1800);setTimeout(()=>{setWolfState('follow');showBubble('木头已收集，并同步进你的背包。');},2800);}
+const modPortalBlocks=[];let modPortalActive=false;
+function activateModPortal(){modPortalActive=true;showBubble('MOD传送门已激活：进入可体验「机械探险」推荐内容。');}
+function startModPortalBuild(){
+  setWolfState('build',new THREE.Vector3(3,0,-3));const frame=[];for(let y=0;y<5;y++){frame.push([2,y,-3],[5,y,-3]);}for(let x=3;x<5;x++){frame.push([x,0,-3],[x,4,-3]);}
+  frame.forEach((p,i)=>setTimeout(()=>{const m=new THREE.Mesh(new THREE.BoxGeometry(1,1,1),new THREE.MeshLambertMaterial({color:0x4a226b}));m.position.set(p[0]+.5,p[1]+.5,p[2]+.5);scene.add(m);modPortalBlocks.push(m);if(i===frame.length-1){activateModPortal();setWolfState('follow');}},i*180));
+}
+function checkModPortalEntry(){if(modPortalActive&&Math.hypot(player.pos.x-3.5,player.pos.z+3)<1.2)showBubble('已进入MOD体验：机械方块、自动采矿与新配方已解锁。');}
+const MEMORY_MILESTONES=[];
+function recordMemoryMilestone(type,text){if(!MEMORY_MILESTONES.some(x=>x.type===type))MEMORY_MILESTONES.push({type,text,time:Date.now()});}
+function playMemoryCompanionDemo(){recordMemoryMilestone('first-sheep','你第一次发现羊圈时，手里正好有小麦。');showBubble('我还记得你第一次来到羊圈。现在你已经准备好小麦，要继续扩建它吗？');setWolfState('idle');}
+
 const highlightOutline = new THREE.LineSegments(
   new THREE.EdgesGeometry(new THREE.BoxGeometry(1.04,1.04,1.04)),
   new THREE.LineBasicMaterial({color:0xffe040, transparent:true, opacity:0.95, depthTest:false, toneMapped:false})
@@ -2472,6 +2505,8 @@ function loop(){
   cloudGroup.position.x += dt*0.5;
   if(cloudGroup.position.x>60) cloudGroup.position.x -= 120;
   updateRoamingEntities(dt,performance.now());
+  updateAIWolf(dt,performance.now());
+  checkModPortalEntry();
 
   if(AI_DRAG.active && CHAT.selectionSource!=='ui') raycastCrosshair();
 
@@ -2949,6 +2984,9 @@ requestAnimationFrame(loop);
 window.MC_DEMO_BRIDGE={
   getPlayerPose:()=>({x:player.pos.x,y:player.pos.y,z:player.pos.z,yaw:player.yaw,pitch:player.pitch}),
   setPlayerPose:p=>{player.pos.set(p.x,p.y,p.z);player.yaw=p.yaw;player.pitch=p.pitch;},
+  startWolfTreeTask,
+  startModPortalBuild,
+  playMemoryCompanionDemo,
 };
 
 
@@ -3001,6 +3039,16 @@ window.MC_DEMO_BRIDGE={
     CHAT.selectedType=null;CHAT.selectionSource=null;clearChip();closeChat(false);panel.classList.remove('open');
   }
 
+  function showStrategyDomainList(){document.getElementById('strategy-domain-list').style.display='grid';document.getElementById('strategy-answer-scenes').style.display='none';}
+  function openStrategyDomain(domain){
+    if(domain==='answer'){document.getElementById('strategy-domain-list').style.display='none';document.getElementById('strategy-answer-scenes').style.display='block';return;}
+    panel.classList.remove('open');
+    if(domain==='planning')applyShowcase('next-step');
+    if(domain==='execution')window.MC_DEMO_BRIDGE.startWolfTreeTask();
+    if(domain==='discovery')window.MC_DEMO_BRIDGE.startModPortalBuild();
+    if(domain==='memory')window.MC_DEMO_BRIDGE.playMemoryCompanionDemo();
+  }
+
   const value=(n,html,state='on')=>{const el=layers[n-1];el.classList.remove('on','fail');if(state)el.classList.add(state);el.querySelector('.st-value').innerHTML=html;};
   const reset=()=>layers.forEach(el=>{el.classList.remove('on','fail');});
   const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -3038,6 +3086,8 @@ window.MC_DEMO_BRIDGE={
   toggle.addEventListener('click',()=>{panel.classList.toggle('open');const sim=document.getElementById('sim-panel');if(sim)sim.classList.remove('open');});
   runBtn.addEventListener('click',()=>run({q:input.value,ctx:aiContextFor(CHAT.selectedType)}));
   input.addEventListener('keydown',e=>{if(e.key==='Enter')run({q:input.value,ctx:aiContextFor(CHAT.selectedType)});});
+  panel.querySelectorAll('[data-strategy-domain]').forEach(btn=>{if(!btn.disabled)btn.addEventListener('click',()=>openStrategyDomain(btn.dataset.strategyDomain));});
+  document.getElementById('strategy-domain-back').addEventListener('click',showStrategyDomainList);
   panel.querySelectorAll('[data-showcase-scene]').forEach(btn=>btn.addEventListener('click',()=>applyShowcase(btn.dataset.showcaseScene)));
   document.getElementById('showcase-return-lobby').addEventListener('click',returnToLobby);
 })();
