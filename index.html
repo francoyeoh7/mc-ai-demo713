@@ -318,6 +318,15 @@ body.ai-suppressed #chat-panel{opacity:.32 !important;filter:saturate(.4);transi
 #strategy-panel .st-action{display:inline-block;margin-top:7px;border:1px solid rgba(79,195,247,.4);color:#8cddff;padding:4px 8px;border-radius:7px;font-size:10px;}
 #strategy-panel .st-note{font-size:9px;color:#647485;margin-top:8px;line-height:1.5;}
 @media(max-width:720px){#strategy-panel{width:calc(100vw - 24px);right:12px;}#strategy-toggle{left:112px;}}
+
+/* MC HUD */
+#hotbar{position:fixed;left:50%;bottom:8px;transform:translateX(-50%);z-index:40;display:flex;gap:2px;padding:3px;background:#2b2b2b;border:2px solid #111;box-shadow:0 0 0 2px #777;}
+.hot-slot{width:36px;height:36px;background:#777;border:2px solid #333;box-shadow:inset 2px 2px #aaa,inset -2px -2px #444;display:flex;align-items:center;justify-content:center;color:white;font:bold 10px monospace;position:relative;}
+.hot-slot.active{outline:3px solid #fff;z-index:1;}.hot-slot .count{position:absolute;right:2px;bottom:0;text-shadow:1px 1px #000;}
+#inventory-btn{position:fixed;right:16px;bottom:16px;z-index:42;width:42px;height:42px;background:#777;border:2px solid #222;color:#fff;font:bold 16px monospace;box-shadow:inset 2px 2px #aaa,inset -2px -2px #444;}
+#inventory-panel{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);z-index:96;width:min(420px,78vw);padding:14px;background:#c6c6c6;border:4px solid #222;box-shadow:inset 2px 2px #fff,inset -2px -2px #555;display:none;color:#222;}
+#inventory-panel.open{display:block}.inv-title{font:bold 14px monospace;margin-bottom:9px}.inv-grid{display:grid;grid-template-columns:repeat(9,1fr);gap:3px}.inv-slot{aspect-ratio:1;background:#8b8b8b;border:2px solid;border-color:#555 #fff #fff #555;display:flex;align-items:center;justify-content:center;font:bold 9px monospace;text-align:center;}
+.wiki-link{color:#7ed957;text-decoration:underline;text-decoration-style:dotted;cursor:pointer;font-weight:700;}
 </style>
 </head>
 <body>
@@ -343,6 +352,18 @@ body.ai-suppressed #chat-panel{opacity:.32 !important;filter:saturate(.4);transi
 
   <div id="joystick"><div class="knob" id="joy-knob"></div></div>
   <button id="jump-btn">JUMP</button>
+  <div id="hotbar">
+    <div class="hot-slot active">剑</div><div class="hot-slot">镐</div><div class="hot-slot">斧</div><div class="hot-slot">火把<span class="count">16</span></div><div class="hot-slot">面包<span class="count">5</span></div><div class="hot-slot">木</div><div class="hot-slot">石<span class="count">32</span></div><div class="hot-slot">书</div><div class="hot-slot"></div>
+  </div>
+  <button id="inventory-btn">B</button>
+  <div id="inventory-panel">
+    <div class="inv-title">物品栏</div>
+    <div class="inv-grid">
+      <div class="inv-slot">铁剑</div><div class="inv-slot">铁镐</div><div class="inv-slot">斧</div><div class="inv-slot">火把</div><div class="inv-slot">面包</div><div class="inv-slot">原木</div><div class="inv-slot">圆石</div><div class="inv-slot">书</div><div class="inv-slot"></div>
+      <div class="inv-slot">铁锭</div><div class="inv-slot">煤</div><div class="inv-slot">小麦</div><div class="inv-slot">羊毛</div><div class="inv-slot">皮革</div><div class="inv-slot"></div><div class="inv-slot"></div><div class="inv-slot"></div><div class="inv-slot"></div>
+      <div class="inv-slot"></div><div class="inv-slot"></div><div class="inv-slot"></div><div class="inv-slot"></div><div class="inv-slot"></div><div class="inv-slot"></div><div class="inv-slot"></div><div class="inv-slot"></div><div class="inv-slot"></div>
+    </div>
+  </div>
 
   <div id="ai-ball" data-state="idle" aria-label="AI 助手：待命">
     <div class="ring"></div>
@@ -469,6 +490,9 @@ const loadBar    = document.getElementById('load-bar');
 const loadTip    = document.getElementById('load-tip');
 const joystick   = document.getElementById('joystick');
 const joyKnob    = document.getElementById('joy-knob');
+const hotbar     = document.getElementById('hotbar');
+const inventoryBtn = document.getElementById('inventory-btn');
+const inventoryPanel = document.getElementById('inventory-panel');
 const jumpBtn    = document.getElementById('jump-btn');
 const aiBall     = document.getElementById('ai-ball');
 const dragCross  = document.getElementById('drag-cross');
@@ -675,6 +699,12 @@ T.planks = makeTex(ctx=>{
     ctx.fillStyle='#c89060'; ctx.fillRect(0,y,16,1);
   });
 });
+T.bookshelf = makeTex(ctx=>{
+  fillBase(ctx,'#6b3f1f');
+  ctx.fillStyle='#3e2414';ctx.fillRect(0,0,16,2);ctx.fillRect(0,7,16,2);ctx.fillRect(0,14,16,2);
+  const colors=['#a33','#2b68a0','#d2ad35','#477d45','#824f97'];
+  for(let x=1;x<15;x+=2){ctx.fillStyle=colors[(x/2)%colors.length|0];ctx.fillRect(x,2,1+(x%3===0?1:0),5);ctx.fillRect(x,9,1,5);}
+});
 T.glass = makeTex(ctx=>{
   ctx.clearRect(0,0,16,16);
   ctx.fillStyle='rgba(180,220,240,0.18)'; ctx.fillRect(0,0,16,16);
@@ -745,6 +775,7 @@ M.cobble= mat(T.cobble);
 M.log   = [mat(T.logSide),mat(T.logSide),mat(T.logTop),mat(T.logTop),mat(T.logSide),mat(T.logSide)];
 M.leaves= mat(T.leaves);
 M.planks= mat(T.planks);
+M.bookshelf=mat(T.bookshelf);
 M.glass = mat(T.glass,{transparent:true,opacity:0.55,depthWrite:false});
 M.diamond_ore = mat(T.diamond_ore);
 M.iron_ore    = mat(T.iron_ore);
@@ -763,6 +794,7 @@ const BLOCK_INFO = {
   log:         {name:'橡木原木', desc:'橡树砍下的原木。合成 4 个橡木板，是所有建筑与工具的起点。'},
   leaves:      {name:'橡树树叶', desc:'橡树的叶子，会腐烂消失。少量掉落树苗与苹果。'},
   planks:      {name:'橡木木板', desc:'由原木合成，是工作台、门、船、栅栏等的原料。'},
+  bookshelf:   {name:'书架',     desc:'由木板和书合成，可增强附魔台的附魔等级。'},
   glass:       {name:'玻璃',     desc:'沙子熔炼得到。透明，被打破后不会掉落——除非用精准采集。'},
   diamond_ore: {name:'钻石矿石', desc:'珍稀的钻石矿。Y=-58 附近最密集。必须用铁镐及以上开采。'},
   iron_ore:    {name:'铁矿石',   desc:'常见的铁矿。用石镐开采，熔炼后得到铁锭。'},
@@ -982,6 +1014,10 @@ function house(x0,z0){
   setB(x0+1,2,z0,'glass'); setB(x0+5,2,z0,'glass');
   setB(x0,2,z0+2,'glass'); setB(x0+w-1,2,z0+3,'glass');
   setB(x0+2,2,z0+d-1,'glass'); setB(x0+4,2,z0+d-1,'glass');
+  // bookshelves inside house
+  setB(x0+1,1,z0+1,'bookshelf'); setB(x0+1,2,z0+1,'bookshelf');
+  setB(x0+2,1,z0+1,'bookshelf'); setB(x0+2,2,z0+1,'bookshelf');
+  setB(x0+w-2,1,z0+d-2,'bookshelf');
   // path
   for(let i=1;i<=5;i++) setB(x0+3,-1,z0-i,'cobble');
   // chimney
@@ -1150,6 +1186,48 @@ fencePost(fx0,fz0); fencePost(fx0,fz1); fenceRail(fx0,fz0,fx1,fz1);
 const fx2=7.8, fx3=7.8;
 fencePost(fx2,fz0); fencePost(fx3,fz1); fenceRail(fx2,fz0,fx3,fz1);
 
+// sheep pen behind/left of house
+function buildSheepPen(){
+  const x0=-1,z0=2,x1=4,z1=8;
+  for(let x=x0;x<=x1;x++){ fencePost(x,z0);fencePost(x,z1);if(x<x1){fenceRail(x,z0,x+1,z0);fenceRail(x,z1,x+1,z1);} }
+  for(let z=z0+1;z<z1;z++){ fencePost(x0,z);fencePost(x1,z);if(z!==5){fenceRail(x0,z-1,x0,z);fenceRail(x1,z-1,x1,z);} }
+}
+
+const entityTargets=[];
+const roamingEntities=[];
+function boxPart(group,size,pos,color){
+  const mesh=new THREE.Mesh(new THREE.BoxGeometry(...size),new THREE.MeshLambertMaterial({color}));
+  mesh.position.set(...pos);mesh.castShadow=true;mesh.receiveShadow=true;group.add(mesh);return mesh;
+}
+function registerEntity(group,type,name,bounds){
+  group.userData={type,name,isEntity:true,bounds,dir:Math.random()*Math.PI*2,nextTurn:0};
+  group.traverse(o=>{if(o.isMesh){o.userData.entityRoot=group;entityTargets.push(o);}});
+  roamingEntities.push(group);scene.add(group);return group;
+}
+function createSheep(x,z){
+  const g=new THREE.Group();boxPart(g,[1.15,.8,.65],[0,.75,0],0xeeeeee);boxPart(g,[.48,.48,.5],[.75,.85,0],0xd8d1c3);
+  [[-.35,.3,-.22],[-.35,.3,.22],[.35,.3,-.22],[.35,.3,.22]].forEach(p=>boxPart(g,[.18,.6,.18],p,0xb5aa98));
+  g.position.set(x,0,z);return registerEntity(g,'sheep','羊',{xMin:-.4,xMax:3.4,zMin:2.4,zMax:7.6});
+}
+function createZombie(x,z){
+  const g=new THREE.Group();boxPart(g,[.62,.7,.62],[0,1.65,0],0x5f9d62);boxPart(g,[.7,.85,.38],[0,1.0,0],0x2e6f8a);
+  boxPart(g,[.24,.85,.24],[-.48,1.05,0],0x5f9d62);boxPart(g,[.24,.85,.24],[.48,1.05,0],0x5f9d62);
+  boxPart(g,[.28,.85,.28],[-.2,.42,0],0x394a70);boxPart(g,[.28,.85,.28],[.2,.42,0],0x394a70);
+  g.position.set(x,0,z);return registerEntity(g,'zombie','僵尸',{xMin:-17,xMax:-6,zMin:-13,zMax:-3});
+}
+function updateRoamingEntities(dt,now){
+  for(const e of roamingEntities){
+    if(now>e.userData.nextTurn){e.userData.dir+=(Math.random()-.5)*2.2;e.userData.nextTurn=now+1400+Math.random()*2400;}
+    const speed=e.userData.type==='zombie'?.55:.35,b=e.userData.bounds;
+    let nx=e.position.x+Math.cos(e.userData.dir)*speed*dt,nz=e.position.z+Math.sin(e.userData.dir)*speed*dt;
+    if(nx<b.xMin||nx>b.xMax||nz<b.zMin||nz>b.zMax||getB(Math.floor(nx),0,Math.floor(nz))){e.userData.dir+=Math.PI*.75;continue;}
+    e.position.x=nx;e.position.z=nz;e.rotation.y=-e.userData.dir;
+  }
+}
+buildSheepPen();
+createSheep(.3,3.4);createSheep(1.7,5.2);createSheep(2.9,6.7);
+createZombie(-10,-6);createZombie(-14,-10);
+
 // Highlight — outline + emissive fill (glowing)
 const highlightOutline = new THREE.LineSegments(
   new THREE.EdgesGeometry(new THREE.BoxGeometry(1.04,1.04,1.04)),
@@ -1245,6 +1323,8 @@ function moveAndCollide(dx,dy,dz){
 // Input state
 // ==============================================================
 const input = { joyX:0, joyY:0 };
+inventoryBtn.addEventListener('click',e=>{e.stopPropagation();inventoryPanel.classList.toggle('open');});
+const toggleInventory=()=>inventoryPanel.classList.toggle('open');
 const JOY = { id:null, cx:0, cy:0, r:52 };
 const LOOK = { id:null, lastX:0, lastY:0 };
 const AI_DRAG = { id:null, startX:0, startY:0, startT:0, curX:0, curY:0, moved:0, active:false, listening:false, willTap:true, holdTimer:null };
@@ -1514,6 +1594,7 @@ const BLOCK_CARDS = {
   log:         {tag:'原木',   desc:'橡树砍下的原木。合成 4 个 木板，是所有建筑与工具的起点。', kw:['木板','建筑','工具'], hardness:2, drops:[{type:'log', name:'橡木原木', count:1}], loc:'橡树平原、森林 生物群系的树上。', locKw:['橡树平原','森林']},
   leaves:      {tag:'装饰',   desc:'橡树叶，会自然腐烂。少量掉 树苗 与 苹果。', kw:['树苗','苹果','腐烂'], hardness:1, drops:[{type:'log', name:'树苗', count:1}], loc:'各种 树木 顶部。', locKw:['树木']},
   planks:      {tag:'建材',   desc:'橡木板。由 原木 合成，是 工作台、门、船 的原料。', kw:['原木','工作台','门'], hardness:2, drops:[{type:'planks', name:'橡木板', count:1}], loc:'需 合成台 用 原木 合成。', locKw:['合成台','原木']},
+  bookshelf:   {tag:'功能方块',desc:'由 木板 与 书 合成，可增强 附魔台 的附魔等级。',kw:['木板','书','附魔台'],hardness:2,drops:[{type:'bookshelf',name:'书架',count:1}],loc:'房屋、村庄图书馆，或使用 木板 与 书 合成。',locKw:['村庄图书馆','木板','书']},
   glass:       {tag:'装饰',   desc:'沙子 熔炼得到。透明，被打破不会掉落。', kw:['沙子','熔炼','透明'], hardness:1, drops:[], loc:'熔炉中熔炼 沙子 得到。', locKw:['熔炉','沙子']},
   diamond_ore: {tag:'矿石',   desc:'珍稀的钻石矿。必须使用 铁镐 及以上工具开采。', kw:['铁镐','珍稀'], hardness:5, drops:[{type:'diamond_ore', name:'钻石', count:1}], loc:'Y=-58 附近最密集，主世界地下深处。', locKw:['Y=-58','地下']},
   iron_ore:    {tag:'矿石',   desc:'常见的铁矿。用 石镐 开采，熔炼后得到 铁锭。', kw:['石镐','铁锭','熔炼'], hardness:3, drops:[{type:'iron_ore', name:'铁矿', count:1}], loc:'Y=-24 至 Y=56 均有分布。', locKw:['Y=-24','Y=56']},
@@ -1612,15 +1693,49 @@ function buildTextCard(text){
   return c;
 }
 
+function wikiLinks(text){
+  const refs={书架:'bookshelf',附魔台:'enchanting_table',皮革:'leather',书与笔:'writable_book',木板:'planks',原木:'log',铁锭:'iron_ingot'};
+  let s=escapeHtml(text);
+  for(const [name,type] of Object.entries(refs)){
+    s=s.replace(new RegExp(name,'g'),`<span class="wiki-link" data-wiki="${type}">${name}</span>`);
+  }
+  return s;
+}
+function bindWikiLinks(card){
+  card.querySelectorAll('.wiki-link').forEach(link=>link.addEventListener('click',e=>{
+    e.stopPropagation();openRelatedWiki(link.dataset.wiki);
+  }));
+}
+function openRelatedWiki(type){
+  const fake={componentPlan:{family:'PURE_C_WIKI',components:['C1','C2','C5','C6','C7']},output:{text:''}};
+  addUserMsg('查看【'+((COMPACT_ITEMS[type]||{}).name||type)+'】');
+  addAIMsg(buildPureCWikiCard(fake,type));
+}
+const COMPACT_ITEMS={
+  book:{name:'书',tag:'材料',intro:'书是一种用于附魔与合成的物品。',keywords:['附魔','合成'],uses:'可制作书与笔、书架和附魔台。',recipe:['纸 ×3','皮革 ×1','书 ×1'],source:'纸与皮革合成'},
+  bookshelf:{name:'书架',tag:'功能方块',intro:'用于增强附魔台的可用附魔等级。',keywords:['附魔台','附魔等级'],uses:'围绕附魔台摆放可提高附魔等级。',recipe:['木板 ×6','书 ×3','书架 ×1'],source:'由木板与书合成'},
+  enchanting_table:{name:'附魔台',tag:'功能方块',intro:'可消耗经验与青金石为装备附魔。',keywords:['经验','青金石','附魔'],uses:'为工具、武器和护甲提供附魔。',recipe:['书 ×1','钻石 ×2','黑曜石 ×4'],source:'通过合成获得'},
+  leather:{name:'皮革',tag:'材料',intro:'常见动物材料，可用于制作书与皮革装备。',keywords:['书','皮革装备'],uses:'可制作书和皮革护甲。',recipe:null,source:'主要由牛、马等生物掉落'},
+  writable_book:{name:'书与笔',tag:'工具',intro:'可以由玩家写入文字并署名。',keywords:['写入','署名'],uses:'记录坐标、计划和服务器信息。',recipe:['书 ×1','墨囊 ×1','羽毛 ×1'],source:'通过合成获得'},
+  iron_ingot:{name:'铁锭',tag:'材料',intro:'常用金属材料，可制作工具、护甲与功能方块。',keywords:['工具','护甲'],uses:'可制作铁制工具、铁砧、水桶等。',recipe:['铁矿石','熔炼','铁锭'],source:'熔炼铁矿石获得'},
+};
+
 function compactWikiFor(type){
+  const special=COMPACT_ITEMS[type];
+  if(special) return {
+    C1:{name:special.name,tag:special.tag},C2:{intro:special.intro,keywords:special.keywords},
+    C3:{label:'关键数值',value:null},C4:{drops:[]},C5:{uses:special.uses},
+    C6:{recipe:special.recipe},C7:{source:special.source,keywords:[]}
+  };
   const info=BLOCK_INFO[type]||{name:type,desc:'暂无介绍'};
   const bc=BLOCK_CARDS[type]||{tag:'方块',desc:info.desc,kw:[],hardness:null,drops:[],loc:'暂无可靠位置信息',locKw:[]};
-  const recipes={planks:['橡木原木 ×1','橡木木板 ×4'],glass:['沙子 ×1','熔炉燃料'],cobble:['石头','任意镐'],iron_ore:null};
+  const recipes={planks:['橡木原木 ×1','橡木木板 ×4'],bookshelf:['木板 ×6','书 ×3','书架 ×1'],glass:['沙子 ×1','熔炉燃料'],cobble:['石头','任意镐'],iron_ore:null};
   const uses={
     log:'可合成木板，并继续制作工作台、木棍和初级工具。',
     planks:'可合成工作台、木棍、门和多种建筑部件。',
     iron_ore:'熔炼后获得铁锭，可制作铁制工具、护甲和功能方块。',
     diamond_ore:'开采后获得钻石，可制作高级工具、护甲和附魔台。',
+  bookshelf:'可围绕附魔台摆放，提高可用附魔等级。',
     stone:'可用于建筑；开采后通常掉落圆石。',
   };
   return {
@@ -1643,14 +1758,15 @@ function buildPureCWikiCard(result,type){
   const ids=new Set((result.componentPlan&&result.componentPlan.components)||['C1','C2']);
   const c=document.createElement('div');c.className='card cmp-card pure-c-card';
   let html=`<div class="card-head" data-component="C1"><span class="name">${escapeHtml(C.C1.name)}</span><span class="tag">${escapeHtml(C.C1.tag)}</span><span class="cmp-id">C1</span></div>`;
-  if(ids.has('C2')) html+=`<div class="info-body" data-component="C2"><div class="thumb" data-t="${type}"></div><div class="desc">${highlight(C.C2.intro,C.C2.keywords)}</div></div>`;
+  if(ids.has('C2')) html+=`<div class="info-body" data-component="C2"><div class="thumb" data-t="${type}"></div><div class="desc">${wikiLinks(C.C2.intro)}</div></div>`;
   if(ids.has('C3')&&C.C3.value!=null) html+=sectionHtml('C3',C.C3.label,`<b class="k">${escapeHtml(C.C3.value)}</b>`);
   if(ids.has('C4')&&C.C4.drops.length) html+=sectionHtml('C4','掉落物',C.C4.drops.map(d=>`<span class="cmp-chip">${escapeHtml(d.name)} ×${escapeHtml(d.count)}</span>`).join(' '));
-  if(ids.has('C5')) html+=sectionHtml('C5','能做什么',highlight(C.C5.uses,[C.C1.name]));
-  if(ids.has('C6')&&C.C6.recipe) html+=sectionHtml('C6','合成配方',`<div class="cmp-recipe">${C.C6.recipe.map((x,i)=>`${i?'<span>→</span>':''}<span class="cmp-chip">${escapeHtml(x)}</span>`).join('')}</div>`);
-  if(ids.has('C7')) html+=sectionHtml('C7','在哪里',highlight(C.C7.source,C.C7.keywords));
+  if(ids.has('C5')) html+=sectionHtml('C5','能做什么',wikiLinks(C.C5.uses));
+  if(ids.has('C6')&&C.C6.recipe) html+=sectionHtml('C6','合成配方',`<div class="cmp-recipe">${C.C6.recipe.map((x,i)=>`${i?'<span>→</span>':''}<span class="cmp-chip">${wikiLinks(x)}</span>`).join('')}</div>`);
+  if(ids.has('C7')) html+=sectionHtml('C7','在哪里',wikiLinks(C.C7.source));
   c.innerHTML=html;
   c.querySelectorAll('.thumb').forEach(w=>w.appendChild(makeThumb(w.dataset.t)));
+  bindWikiLinks(c);
   return c;
 }
 
@@ -1670,8 +1786,9 @@ function buildMixedGuideCard(result,type){
   if(ids.has('G3')) html+=sectionHtml('G3','解决步骤',highlight(advice,[C.C1.name]));
   else html+=sectionHtml('G6','建议',highlight(advice,[C.C1.name]));
   if(ids.has('C6')&&C.C6.recipe) html+=sectionHtml('C6','所需配方',C.C6.recipe.map(x=>`<span class="cmp-chip">${escapeHtml(x)}</span>`).join(' '));
-  if(ids.has('C7')) html+=sectionHtml('C7','具体来源',highlight(C.C7.source,C.C7.keywords));
+  if(ids.has('C7')) html+=sectionHtml('C7','具体来源',wikiLinks(C.C7.source));
   c.innerHTML=html;
+  bindWikiLinks(c);
   return c;
 }
 
@@ -2028,6 +2145,8 @@ document.addEventListener('touchstart', e=>{
       if(AI_DRAG.id===null && aiState!=='think') aiStart(t);
     } else if(target===jumpBtn){
       if(player.onGround){ player.vel.y = 8.4; player.onGround=false; }
+    } else if(hotbar.contains(target) || inventoryBtn.contains(target) || inventoryPanel.contains(target)){
+      // MC HUD controls — keep chat open and allow UI click.
     } else if(chatPanel.contains(target)){
       // Panel — let native scroll / input work. Do not preventDefault.
     } else if(loadingEl && loadingEl.contains(target)){
@@ -2047,7 +2166,7 @@ document.addEventListener('touchstart', e=>{
 // 演示层可点 UI：这些元素上的触摸交给浏览器原生点击，不当作转视角
 function isDemoUI(target){
   return !!(target && target.closest && target.closest(
-    '#sim-toggle,#sim-panel,#proactive-bubble,#float-card,#ctx-menu'
+    '#sim-toggle,#sim-panel,#proactive-bubble,#float-card,#ctx-menu,#strategy-toggle,#strategy-panel,#hotbar,#inventory-btn,#inventory-panel'
   ));
 }
 
@@ -2090,6 +2209,7 @@ window.addEventListener('mousemove', e=>{
 });
 window.addEventListener('keydown', e=>{
   if(document.activeElement===chatText) return;
+  if(e.code==='KeyB'){e.preventDefault();toggleInventory();return;}
   if(e.code==='Space' && player.onGround){ player.vel.y=8.4; player.onGround=false; }
   const s = e.code==='KeyW'?[0,-1]:e.code==='KeyS'?[0,1]:e.code==='KeyA'?[-1,0]:e.code==='KeyD'?[1,0]:null;
   if(s){ input.joyX=s[0]; input.joyY=s[1]; }
@@ -2111,7 +2231,21 @@ function raycastCrosshair(){
   ndc.x = (cx / window.innerWidth) * 2 - 1;
   ndc.y = -(cy / window.innerHeight) * 2 + 1;
   raycaster.setFromCamera(ndc, camera);
-  const hits = raycaster.intersectObjects(blockMeshes, false);
+  const entityHits=raycaster.intersectObjects(entityTargets,false);
+  const blockHits=raycaster.intersectObjects(blockMeshes,false);
+  const nearestEntity=entityHits[0];
+  const nearestBlock=blockHits[0];
+  if(nearestEntity && (!nearestBlock || nearestEntity.distance<nearestBlock.distance)){
+    const root=nearestEntity.object.userData.entityRoot;
+    CHAT.selectedType=root.userData.type;
+    CHAT.selectedPos=[root.position.x,root.position.y,root.position.z];
+    highlightOutline.position.copy(root.position).add(new THREE.Vector3(0,1,0));
+    highlightFill.position.copy(highlightOutline.position);
+    highlightOutline.visible=true;highlightFill.visible=true;
+    blockLabel.textContent=root.userData.name;blockLabel.style.display='block';
+    setAIState('sense');return;
+  }
+  const hits=blockHits;
   if(hits.length===0){
     CHAT.selectedType=null; CHAT.selectedPos=null;
     highlightOutline.visible=false; highlightFill.visible=false;
@@ -2200,6 +2334,7 @@ function loop(){
   sunGlow.position.copy(sunDisc.position);
   cloudGroup.position.x += dt*0.5;
   if(cloudGroup.position.x>60) cloudGroup.position.x -= 120;
+  updateRoamingEntities(dt,performance.now());
 
   if(AI_DRAG.active) raycastCrosshair();
 
@@ -2440,11 +2575,17 @@ requestAnimationFrame(loop);
     el.addEventListener('contextmenu', e=>{ e.preventDefault(); cb(e.clientX, e.clientY); });
   }
 
+  function isChatSafeTarget(target){
+    return !!(target && (
+      chatPanel.contains(target) || aiBall.contains(target) || joystick.contains(target) || hotbar.contains(target) ||
+      inventoryBtn.contains(target) || inventoryPanel.contains(target) || simToggle.contains(target) || simPanel.contains(target) ||
+      document.getElementById('strategy-toggle').contains(target) || document.getElementById('strategy-panel').contains(target)
+    ));
+  }
   // 点击外部 (OP-10) 收起浮层 / 菜单 / 对话面板
   document.addEventListener('pointerdown', e=>{
     if(!ctxMenu.contains(e.target) && ctxMenu.style.display==='block'){ closeCtxMenu(); }
-    // 面板打开时，点击对话框以外的任意空白处即关闭（球本身用于toggle，排除）
-    if(chatPanel.classList.contains('open') && !chatPanel.contains(e.target) && !aiBall.contains(e.target)){
+    if(chatPanel.classList.contains('open') && !isChatSafeTarget(e.target)){
       closeChat();
     }
     if(pb.style.display==='block' && !pb.contains(e.target) && !aiBall.contains(e.target)){ /* 保留气泡, 外点不强关, 交给划走 */ }
