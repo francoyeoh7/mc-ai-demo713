@@ -536,7 +536,7 @@ function renderHotbarSlots(){
     const item=PLAYER_RUNTIME_STATE.hotbar[index]||{};
     slot.dataset.itemId=item.id||'';
     const r=WIKI_SNAPSHOT.records[item.id];if(!r){slot.innerHTML='';return;}
-    slot.innerHTML=`<img class="mc-icon" src="${r.icon}" alt="${escapeHtml(r.C1.name)}">`;
+    slot.innerHTML=`<img class="mc-icon" src="${r.icon}" alt="${escapeHtml(r.C1.name)}">${item.count?`<span class="slot-count">${item.count}</span>`:''}`;
     slot.title=r.C1.name;
   });
 }
@@ -1308,11 +1308,11 @@ createZombie(-10,-6);createZombie(-14,-10);
 const wolfLegs=[];let wolfTail=null,wolfCarry=null;
 const WOLF_STATES=new Set(['follow','wander','work','build','idle']);
 function createAIWolf(){
-  const g=new THREE.Group(),white=0xc8c8c8,dark=0x777777;
-  boxPart(g,[.9,.65,.42],[0,.65,0],white);boxPart(g,[.48,.48,.48],[.62,.88,0],white);boxPart(g,[.38,.22,.36],[.95,.8,0],dark);
-  [[-.3,.25,-.15],[-.3,.25,.15],[.3,.25,-.15],[.3,.25,.15]].forEach(p=>{const leg=boxPart(g,[.16,.5,.16],p,dark);wolfLegs.push(leg);});
-  wolfTail=boxPart(g,[.55,.13,.13],[-.68,.78,0],dark);wolfTail.rotation.z=-.45;
-  wolfCarry=boxPart(g,[.3,.3,.3],[1.15,.72,0],0x8b5a2b);wolfCarry.visible=false;
+  const g=new THREE.Group(),wolfVisual=new THREE.Group(),white=0xc8c8c8,dark=0x777777;g.add(wolfVisual);g.userData.wolfVisual=wolfVisual;
+  boxPart(wolfVisual,[.9,.65,.42],[0,.65,0],white);boxPart(wolfVisual,[.48,.48,.48],[0,.88,.62],white);boxPart(wolfVisual,[.36,.22,.38],[0,.8,.96],dark);
+  [[-.3,.25,-.15],[-.3,.25,.15],[.3,.25,-.15],[.3,.25,.15]].forEach(p=>{const leg=boxPart(wolfVisual,[.16,.5,.16],p,dark);wolfLegs.push(leg);});
+  wolfTail=boxPart(wolfVisual,[.13,.13,.55],[0,.78,-.68],dark);wolfTail.rotation.x=-.45;
+  wolfCarry=boxPart(wolfVisual,[.3,.3,.3],[0,.72,1.22],0x8b5a2b);wolfCarry.visible=false;
   g.userData={state:'follow',target:null,timer:0,phase:0};g.position.set(1,0,1);scene.add(g);return g;
 }
 const aiWolf=createAIWolf();
@@ -1320,14 +1320,14 @@ function setWolfState(state,target=null){if(WOLF_STATES.has(state)){aiWolf.userD
 function updateAIWolf(dt,now){
   const w=aiWolf,s=w.userData.state;let target=w.userData.target;
   if(s==='follow'||s==='wander'||s==='idle') target=new THREE.Vector3(player.pos.x+1.5,0,player.pos.z+1.5);
-  if(target){const dx=target.x-w.position.x,dz=target.z-w.position.z,d=Math.hypot(dx,dz);if(d>.45){w.position.x+=dx/d*dt*(s==='work'||s==='build'?2.4:1.4);w.position.z+=dz/d*dt*(s==='work'||s==='build'?2.4:1.4);w.rotation.y=Math.atan2(dx,dz);w.userData.phase+=dt*9;wolfLegs.forEach((l,i)=>l.rotation.x=Math.sin(w.userData.phase+(i%2)*Math.PI)*.55);}}
+  if(target){const dx=target.x-w.position.x,dz=target.z-w.position.z,d=Math.hypot(dx,dz);if(d>.45){w.position.x+=dx/d*dt*(s==='work'||s==='build'?2.4:1.4);w.position.z+=dz/d*dt*(s==='work'||s==='build'?2.4:1.4);w.lookAt(target.x,w.position.y,target.z);w.userData.phase+=dt*9;wolfLegs.forEach((l,i)=>l.rotation.x=Math.sin(w.userData.phase+(i%2)*Math.PI)*.55);}}
   if(wolfTail)wolfTail.rotation.y=Math.sin(now*.008)*.55;
 }
 const wolfDrops=[];
 function spawnItemDrop(type,pos){const m=new THREE.Mesh(new THREE.BoxGeometry(.22,.22,.22),new THREE.MeshLambertMaterial({color:0x9b6a3d}));m.position.copy(pos);m.userData.type=type;scene.add(m);wolfDrops.push(m);return m;}
 function showAgentNotice(text,opts={}){
   if(typeof window.__showBubble==='function')window.__showBubble(text,opts);
-  else{openChat(false);addAIMsg(buildTextCard(text));}
+  ensureChatHasMessages();addAIMsg(buildTextCard(text));
 }
 function collectWolfDrop(drop){scene.remove(drop);wolfCarry.visible=true;setWolfState('follow');setTimeout(()=>{PLAYER_RUNTIME_STATE.inventory[drop.userData.type]=(PLAYER_RUNTIME_STATE.inventory[drop.userData.type]||0)+1;wolfCarry.visible=false;syncRuntimeUI();showAgentNotice('已带回 1 个橡木原木，背包数量 +1。');},1200);}
 function breakTreeBlock(pos){
@@ -1336,7 +1336,15 @@ function breakTreeBlock(pos){
   if(mesh){const idx=mesh.userData.positions.findIndex(p=>p[0]===pos[0]&&p[1]===pos[1]&&p[2]===pos[2]);if(idx>=0){const dummy=new THREE.Object3D();dummy.position.set(0,-999,0);dummy.scale.set(0,0,0);dummy.updateMatrix();mesh.setMatrixAt(idx,dummy.matrix);mesh.instanceMatrix.needsUpdate=true;}}
   const d=spawnItemDrop('log',new THREE.Vector3(pos[0]+.5,pos[1]+.5,pos[2]+.5));setTimeout(()=>collectWolfDrop(d),700);
 }
-function startWolfTreeTask(){setWolfState('work',new THREE.Vector3(-8,0,4));setTimeout(()=>breakTreeBlock([-8,1,4]),1800);}
+function findNextLogTarget(){
+  let best=null,bestD=Infinity;
+  for(const [key,type] of world){if(type!=='log')continue;const [x,y,z]=key.split(',').map(Number);const d=Math.hypot(x-aiWolf.position.x,z-aiWolf.position.z);if(d<bestD){bestD=d;best=[x,y,z];}}
+  return best;
+}
+function startWolfTreeTask(){
+  const target=findNextLogTarget();if(!target){showAgentNotice('附近已没有可收集的原木。');return;}
+  setWolfState('work',new THREE.Vector3(target[0],0,target[2]));setTimeout(()=>breakTreeBlock(target),1800);
+}
 function buildExecutionChoiceCard(){
   const c=document.createElement('div');c.className='card';c.innerHTML='<div class="card-head"><span class="name">橡木原木</span><span class="tag">执行目标</span></div><button class="opt" data-exec-collect>⚑ 帮我收集</button>';
   c.querySelector('[data-exec-collect]').addEventListener('click',()=>{addUserMsg('帮我收集');startWolfTreeTask();});return c;
@@ -1380,7 +1388,6 @@ function startMemoryCombat(){
   closeChat(false);PLAYER_RUNTIME_STATE.health=20;PLAYER_RUNTIME_STATE.mainHand='iron_sword';PLAYER_RUNTIME_STATE.hotbar[0]={id:'iron_sword'};syncRuntimeUI();
   const z=createZombie(player.pos.x,player.pos.z-4);z.userData.diamondArmored=true;z.traverse(o=>{if(o.material)o.material.color.setHex(0x48cfe0);});
   MEMORY_COMBAT.active=true;MEMORY_COMBAT.playerHits=0;MEMORY_COMBAT.zombieHits=0;MEMORY_COMBAT.zombie=z;
-  showAgentNotice('记忆挑战：轻触僵尸挥剑，拖动仍可转向。双方3次命中决定胜负。');
 }
 function playMemoryCompanionDemo(){startMemoryCombat();}
 
