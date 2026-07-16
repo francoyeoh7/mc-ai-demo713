@@ -362,7 +362,7 @@ body.ai-suppressed #chat-panel{opacity:.32 !important;filter:saturate(.4);transi
     <div class="inv-title">物品栏</div>
     <div class="inv-grid">
       <div class="inv-slot" data-item-id="iron_sword"></div><div class="inv-slot" data-item-id="iron_pickaxe"></div><div class="inv-slot" data-item-id="iron_axe"></div><div class="inv-slot" data-item-id="torch" data-count="16"></div><div class="inv-slot" data-item-id="bread" data-count="5"></div><div class="inv-slot" data-item-id="log" data-count="12"></div><div class="inv-slot" data-item-id="cobble" data-count="32"></div><div class="inv-slot" data-item-id="book"></div><div class="inv-slot" data-item-id="furnace"></div>
-      <div class="inv-slot" data-item-id="iron_ingot" data-count="3"></div><div class="inv-slot" data-item-id="coal" data-count="8"></div><div class="inv-slot" data-item-id="wheat" data-count="6"></div><div class="inv-slot" data-item-id="white_wool" data-count="4"></div><div class="inv-slot" data-item-id="leather" data-count="2"></div><div class="inv-slot"></div><div class="inv-slot"></div><div class="inv-slot"></div><div class="inv-slot"></div>
+      <div class="inv-slot" data-item-id="iron_ingot" data-count="3"></div><div class="inv-slot" data-item-id="coal" data-count="8"></div><div class="inv-slot" data-item-id="raw_iron" data-count="4"></div><div class="inv-slot" data-item-id="raw_gold" data-count="2"></div><div class="inv-slot" data-item-id="sand" data-count="6"></div><div class="inv-slot" data-item-id="wheat" data-count="6"></div><div class="inv-slot" data-item-id="white_wool" data-count="4"></div><div class="inv-slot" data-item-id="leather" data-count="2"></div><div class="inv-slot"></div>
       <div class="inv-slot"></div><div class="inv-slot"></div><div class="inv-slot"></div><div class="inv-slot"></div><div class="inv-slot"></div><div class="inv-slot"></div><div class="inv-slot"></div><div class="inv-slot"></div><div class="inv-slot"></div>
     </div>
     <button class="mc-ui-btn" onclick="openFurnace()">打开熔炉</button>
@@ -1372,10 +1372,10 @@ const HOUSE_FURNACE_POSITION=new THREE.Vector3(9.5,0,7.5);
 function createHouseFurnace(){
   const group=new THREE.Group(),body=boxPart(group,[.95,.95,.95],[0,.5,0],0x686868);body.material.roughness=1;
   boxPart(group,[.62,.28,.03],[0,.42,.49],0x171717);boxPart(group,[.55,.08,.04],[0,.75,.5],0x333333);
-  group.position.set(9.5,0,7.5);group.userData={type:'furnace',name:'熔炉',isUtility:true};group.traverse(o=>{if(o.isMesh){o.userData.entityRoot=group;entityTargets.push(o);}});scene.add(group);return group;
+  group.position.set(9.5,1,7.5);group.userData={type:'furnace',name:'熔炉',isUtility:true};group.traverse(o=>{if(o.isMesh){o.userData.entityRoot=group;entityTargets.push(o);}});scene.add(group);return group;
 }
 const houseFurnace=createHouseFurnace();
-const houseChest=new THREE.Group();boxPart(houseChest,[.95,.65,.8],[0,.4,0],0x8d5b25);boxPart(houseChest,[.12,.18,.05],[0,.48,.43],0xd1b24a);houseChest.position.set(10.8,0,7.5);scene.add(houseChest);
+const houseChest=new THREE.Group();boxPart(houseChest,[.95,.65,.8],[0,.4,0],0x8d5b25);boxPart(houseChest,[.12,.18,.05],[0,.48,.43],0xd1b24a);houseChest.position.set(10.8,1,7.5);scene.add(houseChest);
 function hasRequiredTool(tool){if(!tool)return true;const ids=PLAYER_RUNTIME_STATE.hotbar.map(x=>x.id).concat([PLAYER_RUNTIME_STATE.mainHand]);if(tool==='axe')return ids.some(x=>/axe/.test(x||''));if(tool==='shovel')return ids.some(x=>/shovel/.test(x||''));if(tool==='shears')return ids.includes('shears');if(tool==='silk_touch')return !!PLAYER_RUNTIME_STATE.silkTouch;return ids.some(x=>TOOL_LEVEL[x]>=TOOL_LEVEL[tool]);}
 function findNearestCollectible(selectedType){
   let best=null,bestD=Infinity;for(const [key,type] of world){if(type!==selectedType)continue;const [x,y,z]=key.split(',').map(Number);const d=Math.hypot(x-aiWolf.position.x,z-aiWolf.position.z);if(d<bestD){bestD=d;best=[x,y,z];}}return best;
@@ -3094,7 +3094,7 @@ window.MC_DEMO_BRIDGE={
   setPlayerPose:p=>{player.pos.set(p.x,p.y,p.z);player.yaw=p.yaw;player.pitch=p.pitch;},
   startWolfTreeTask,
   startExecutionShowcase,
-  testExecuteTarget:type=>{CHAT.selectedType=type;startExecutionShowcase(type);const b=document.querySelector('[data-exec-action]');if(b)b.click();},
+  testExecuteTarget:type=>{CHAT.selectedType=type;startExecutionShowcase(type);const buttons=document.querySelectorAll('[data-exec-action]');const b=buttons[buttons.length-1];if(b)b.click();},
   startModPortalBuild,
   playMemoryCompanionDemo,
 };
