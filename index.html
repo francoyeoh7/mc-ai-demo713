@@ -3090,7 +3090,7 @@ requestAnimationFrame(loop);
 
 window.MC_DEMO_BRIDGE={
   getPlayerPose:()=>({x:player.pos.x,y:player.pos.y,z:player.pos.z,yaw:player.yaw,pitch:player.pitch}),
-  getDebugState:()=>({wolfState:aiWolf.userData.state,wolfCarry:wolfCarry.visible,inventory:{...PLAYER_RUNTIME_STATE.inventory},portalActive:modPortalActive,portalBlocks:modPortalBlocks.length,memory:{...MEMORY_COMBAT},domains:6}),
+  getDebugState:()=>({wolfState:aiWolf.userData.state,wolfPos:{x:aiWolf.position.x,z:aiWolf.position.z},wolfTask:{...WOLF_TASK,targetPos:WOLF_TASK.targetPos?{x:WOLF_TASK.targetPos.x,z:WOLF_TASK.targetPos.z}:null},wolfCarry:wolfCarry.visible,inventory:{...PLAYER_RUNTIME_STATE.inventory},portalActive:modPortalActive,portalBlocks:modPortalBlocks.length,memory:{...MEMORY_COMBAT},domains:6}),
   setPlayerPose:p=>{player.pos.set(p.x,p.y,p.z);player.yaw=p.yaw;player.pitch=p.pitch;},
   startWolfTreeTask,
   startExecutionShowcase,
