@@ -370,7 +370,7 @@ body.ai-suppressed #chat-panel{opacity:.32 !important;filter:saturate(.4);transi
     <div class="inv-title">熔炉</div>
     <div class="furnace-layout"><div class="inv-slot" data-item-id="iron_ore"></div><div class="furnace-icons">🔥<br>→</div><div class="inv-slot" data-item-id="iron_ingot"></div><div class="inv-slot fuel" data-item-id="coal"></div></div>
     <div class="inv-grid furnace-inventory"></div>
-    <button class="mc-ui-btn" onclick="closeFurnace()">返回背包</button>
+    <button class="mc-ui-btn" id="furnace-back" type="button">返回背包</button>
   </div>
 
   <div id="ai-ball" data-state="idle" aria-label="AI 助手：待命">
@@ -502,6 +502,7 @@ const hotbar     = document.getElementById('hotbar');
 const inventoryBtn = document.getElementById('inventory-btn');
 const inventoryPanel = document.getElementById('inventory-panel');
 const furnacePanel = document.getElementById('furnace-panel');
+const furnaceBack = document.getElementById('furnace-back');
 let WIKI_SNAPSHOT={records:{}};
 async function loadWikiSnapshot(){
   try{WIKI_SNAPSHOT=await fetch('./wiki-snapshot.json',{cache:'no-store'}).then(r=>{if(!r.ok)throw new Error(r.status);return r.json();});renderItemSlots();}
@@ -521,6 +522,8 @@ function openFurnace(){inventoryPanel.classList.remove('open');furnacePanel.clas
 function closeFurnace(){furnacePanel.classList.remove('open');inventoryPanel.classList.add('open');}
 function closeSecondaryUI(){inventoryPanel.classList.remove('open');furnacePanel.classList.remove('open');}
 window.openFurnace=openFurnace;window.closeFurnace=closeFurnace;
+furnaceBack.addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();closeFurnace();});
+furnaceBack.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();closeFurnace();});
 const jumpBtn    = document.getElementById('jump-btn');
 const aiBall     = document.getElementById('ai-ball');
 const dragCross  = document.getElementById('drag-cross');
@@ -1427,7 +1430,7 @@ function aiStart(t){
       startVoice(text=>{ CHAT.pendingVoice = text; voiceTxt.textContent = text || '正在聆听...'; });
       if(navigator.vibrate) navigator.vibrate(20);
     }
-  }, 500);
+  }, 300);
 }
 function activateAIDrag(){
   AI_DRAG.active = true;
@@ -1450,9 +1453,10 @@ function activateAIDrag(){
   if(hintEl) hintEl.classList.add('hidden');
 }
 function selectUISlotAt(x,y){
-  const el=document.elementFromPoint(x,y);const slot=el&&el.closest&&el.closest('[data-item-id]');
-  document.querySelectorAll('.ai-slot-selected').forEach(s=>s.classList.remove('ai-slot-selected'));
+  const stack=document.elementsFromPoint(x,y);
+  const slot=stack.map(el=>el.closest&&el.closest('[data-item-id]')).find(Boolean);
   if(!slot)return false;
+  document.querySelectorAll('.ai-slot-selected').forEach(s=>s.classList.remove('ai-slot-selected'));
   slot.classList.add('ai-slot-selected');
   const id=slot.dataset.itemId,record=WIKI_SNAPSHOT.records[id];
   CHAT.selectedType=id;CHAT.selectedPos=null;
@@ -1474,7 +1478,11 @@ function aiMove(t){
   }
   moveAIBallTo(t.clientX, t.clientY);
   moveCrossTo(t.clientX, t.clientY);
-  if(inventoryPanel.classList.contains('open')||furnacePanel.classList.contains('open')) selectUISlotAt(t.clientX,t.clientY);
+  if(inventoryPanel.classList.contains('open')||furnacePanel.classList.contains('open')){
+    const cx=parseFloat(dragCross.style.left)||t.clientX;
+    const cy=parseFloat(dragCross.style.top)||t.clientY;
+    selectUISlotAt(cx,cy);
+  }
   if(voiceBubble.style.display==='block') placeVoiceNearBall();
 }
 function aiEnd(){
@@ -1763,9 +1771,18 @@ const COMPACT_ITEMS={
   iron_ingot:{name:'铁锭',tag:'材料',intro:'常用金属材料，可制作工具、护甲与功能方块。',keywords:['工具','护甲'],uses:'可制作铁制工具、铁砧、水桶等。',recipe:['铁矿石','熔炼','铁锭'],source:'熔炼铁矿石获得'},
 };
 
+function formatC3(value){
+  if(value==null)return '';
+  if(typeof value!=='object')return escapeHtml(value);
+  return Object.entries(value).map(([k,v])=>`<span class="cmp-chip">${escapeHtml(k)}：<b class="k">${escapeHtml(v)}</b></span>`).join(' ');
+}
+function normalizeDrops(drops){
+  return (drops||[]).map(d=>typeof d==='string'?{name:d,count:1}:d);
+}
+
 function compactWikiFor(type){
   const snap=WIKI_SNAPSHOT.records[type];
-  if(snap) return {C1:snap.C1,C2:{intro:snap.C2.intro,keywords:[]},C3:{label:'关键数值',value:Object.values(snap.C3||{}).join(' / ')||null},C4:{drops:(snap.C4||[]).map(name=>({name,count:1}))},C5:{uses:snap.C5||''},C6:{recipe:snap.C6},C7:{source:snap.C7||'',keywords:[]},icon:snap.icon};
+  if(snap) return {C1:snap.C1,C2:{intro:snap.C2.intro,keywords:[]},C3:{label:'关键数值',value:snap.C3||{}},C4:{drops:normalizeDrops(snap.C4)},C5:{uses:snap.C5||''},C6:{recipe:snap.C6},C7:{source:snap.C7||'',keywords:[]},icon:snap.icon};
   const special=COMPACT_ITEMS[type];
   if(special) return {
     C1:{name:special.name,tag:special.tag},C2:{intro:special.intro,keywords:special.keywords},
@@ -1798,13 +1815,24 @@ function sectionHtml(id,title,body){
   return `<div class="cmp-section" data-component="${id}"><div class="cmp-title">${escapeHtml(title)} <span class="cmp-id">${id}</span></div><div class="cmp-text">${body}</div></div>`;
 }
 
+function requiredCComponents(type,record){
+  const tag=record?.C1?.tag||'';
+  if(type==='sheep'||type==='zombie'||/生物/.test(tag)) return ['C1','C2','C3','C4','C7'];
+  if(/矿|方块/.test(tag)) return ['C1','C2','C3','C5','C7'];
+  if(/工具|武器|防具/.test(tag)) return ['C1','C2','C3','C6','C5'];
+  if(/材料|食物|作物/.test(tag)) return ['C1','C2','C5','C6','C7'];
+  return ['C1','C2','C3','C4','C5','C6','C7'];
+}
+
 function buildPureCWikiCard(result,type){
   const C=compactWikiFor(type);
-  const ids=new Set((result.componentPlan&&result.componentPlan.components)||['C1','C2']);
+  const record=WIKI_SNAPSHOT.records[type];
+  const requested=(result.componentPlan&&result.componentPlan.components)||[];
+  const ids=new Set([...requested,...requiredCComponents(type,record)]);
   const c=document.createElement('div');c.className='card cmp-card pure-c-card';
   let html=`<div class="card-head" data-component="C1"><span class="name">${escapeHtml(C.C1.name)}</span><span class="tag">${escapeHtml(C.C1.tag)}</span><span class="cmp-id">C1</span></div>`;
   if(ids.has('C2')) html+=`<div class="info-body" data-component="C2"><div class="thumb" data-t="${type}">${C.icon?`<img class="mc-icon" src="${C.icon}" alt="${escapeHtml(C.C1.name)}">`:''}</div><div class="desc">${wikiLinks(C.C2.intro)}</div></div>`;
-  if(ids.has('C3')&&C.C3.value!=null) html+=sectionHtml('C3',C.C3.label,`<b class="k">${escapeHtml(C.C3.value)}</b>`);
+  if(ids.has('C3')&&C.C3.value!=null&&Object.keys(C.C3.value).length) html+=sectionHtml('C3',C.C3.label,formatC3(C.C3.value));
   if(ids.has('C4')&&C.C4.drops.length) html+=sectionHtml('C4','掉落物',C.C4.drops.map(d=>`<span class="cmp-chip">${escapeHtml(d.name)} ×${escapeHtml(d.count)}</span>`).join(' '));
   if(ids.has('C5')) html+=sectionHtml('C5','能做什么',wikiLinks(C.C5.uses));
   if(ids.has('C6')&&C.C6.recipe) html+=sectionHtml('C6','合成配方',`<div class="cmp-recipe">${C.C6.recipe.map((x,i)=>`${i?'<span>→</span>':''}<span class="cmp-chip">${wikiLinks(x)}</span>`).join('')}</div>`);
@@ -2190,7 +2218,7 @@ document.addEventListener('touchstart', e=>{
       if(AI_DRAG.id===null && aiState!=='think') aiStart(t);
     } else if(target===jumpBtn){
       if(player.onGround){ player.vel.y = 8.4; player.onGround=false; }
-    } else if(hotbar.contains(target) || inventoryBtn.contains(target) || inventoryPanel.contains(target)){
+    } else if(hotbar.contains(target) || inventoryBtn.contains(target) || inventoryPanel.contains(target) || furnacePanel.contains(target)){
       // MC HUD controls — keep chat open and allow UI click.
     } else if(chatPanel.contains(target)){
       // Panel — let native scroll / input work. Do not preventDefault.
@@ -2211,7 +2239,7 @@ document.addEventListener('touchstart', e=>{
 // 演示层可点 UI：这些元素上的触摸交给浏览器原生点击，不当作转视角
 function isDemoUI(target){
   return !!(target && target.closest && target.closest(
-    '#sim-toggle,#sim-panel,#proactive-bubble,#float-card,#ctx-menu,#strategy-toggle,#strategy-panel,#hotbar,#inventory-btn,#inventory-panel'
+    '#sim-toggle,#sim-panel,#proactive-bubble,#float-card,#ctx-menu,#strategy-toggle,#strategy-panel,#hotbar,#inventory-btn,#inventory-panel,#furnace-panel'
   ));
 }
 
@@ -2255,6 +2283,7 @@ window.addEventListener('mousemove', e=>{
 window.addEventListener('keydown', e=>{
   if(document.activeElement===chatText) return;
   if(e.code==='KeyB'){e.preventDefault();toggleInventory();return;}
+  if(e.code==='Escape'){e.preventDefault();closeSecondaryUI();return;}
   if(e.code==='Space' && player.onGround){ player.vel.y=8.4; player.onGround=false; }
   const s = e.code==='KeyW'?[0,-1]:e.code==='KeyS'?[0,1]:e.code==='KeyA'?[-1,0]:e.code==='KeyD'?[1,0]:null;
   if(s){ input.joyX=s[0]; input.joyY=s[1]; }
