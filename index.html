@@ -2946,6 +2946,11 @@ requestAnimationFrame(loop);
   updateMonitor();
 })();
 
+window.MC_DEMO_BRIDGE={
+  getPlayerPose:()=>({x:player.pos.x,y:player.pos.y,z:player.pos.z,yaw:player.yaw,pitch:player.pitch}),
+  setPlayerPose:p=>{player.pos.set(p.x,p.y,p.z);player.yaw=p.yaw;player.pitch=p.pitch;},
+};
+
 
 </script>
 <script src="./mixed-output-strategy.js"></script>
@@ -2972,7 +2977,7 @@ requestAnimationFrame(loop);
     'furnace-fail':{title:'熔炉为什么不工作',query:'我的熔炉为什么不工作？',reference:'furnace',expectedPath:'G_TO_C',playerState:{health:20,mainHand:'iron_ore',inventory:{iron_ore:3,coal:0}},worldState:{furnace:{input:'iron_ore',fuel:null,output:null}}},
     'player-stats':{title:'玩家数据总结',query:'总结一下我当前存档的表现。',reference:null,expectedPath:'PURE_G',playerState:{health:20,stats:{playMinutes:620,treesCutTotal:327,minedBlocks:1842,deaths:3}},worldState:{}},
   };
-  const LOBBY_PLAYER_POSITION={x:player.pos.x,y:player.pos.y,z:player.pos.z,yaw:player.yaw,pitch:player.pitch};
+  const LOBBY_PLAYER_POSITION=window.MC_DEMO_BRIDGE.getPlayerPose();
   function sceneContext(scene){
     const record=scene.reference?WIKI_SNAPSHOT.records[scene.reference]:null;
     return {selectedObjects:record?[{id:'minecraft:'+scene.reference,name:record.C1.name,type:scene.reference,wiki:{summary:record.C2.intro,intro:record.C2.intro,stats:record.C3,drops:record.C4,uses:record.C5,recipe:record.C6,source:record.C7}}]:[],playerState:JSON.parse(JSON.stringify(PLAYER_RUNTIME_STATE)),worldState:JSON.parse(JSON.stringify(PLAYER_RUNTIME_STATE.worldState))};
@@ -2992,7 +2997,7 @@ requestAnimationFrame(loop);
   }
   function returnToLobby(){
     Object.assign(PLAYER_RUNTIME_STATE,JSON.parse(JSON.stringify(LOBBY_RUNTIME_SNAPSHOT)));syncRuntimeUI();
-    player.pos.set(LOBBY_PLAYER_POSITION.x,LOBBY_PLAYER_POSITION.y,LOBBY_PLAYER_POSITION.z);player.yaw=LOBBY_PLAYER_POSITION.yaw;player.pitch=LOBBY_PLAYER_POSITION.pitch;
+    window.MC_DEMO_BRIDGE.setPlayerPose(LOBBY_PLAYER_POSITION);
     CHAT.selectedType=null;CHAT.selectionSource=null;clearChip();closeChat(false);panel.classList.remove('open');
   }
 
