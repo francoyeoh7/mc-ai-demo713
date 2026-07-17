@@ -1405,13 +1405,158 @@ function startExecutionShowcase(selectedType=CHAT.selectedType||'log'){
   const rule=COLLECTION_RULES[selectedType];if(!rule?.collectible){showAgentNotice('该对象不能作为采集任务。');return;}
   closeChat(false);CHAT.selectedType=selectedType;const label=rule.smelt?'熔炼':'收集';showAgentNotice(`我已识别目标，是否需要我帮你${label}？`, {expand:{}});openChat(false);addAIMsg(buildExecutionChoiceCard(selectedType));
 }
-const modPortalBlocks=[];let modPortalActive=false;
+const modPortalBlocks=[];let modPortalActive=false;let modPortalTargetMod=null;
 function activateModPortal(){modPortalActive=true;showAgentNotice('MOD传送门已激活：进入可体验「机械探险」推荐内容。');}
 function startModPortalBuild(){
   setWolfState('build',new THREE.Vector3(3,0,-3));const frame=[];for(let y=0;y<5;y++){frame.push([2,y,-3],[5,y,-3]);}for(let x=3;x<5;x++){frame.push([x,0,-3],[x,4,-3]);}
   frame.forEach((p,i)=>setTimeout(()=>{const m=new THREE.Mesh(new THREE.BoxGeometry(1,1,1),new THREE.MeshLambertMaterial({color:0x4a226b}));m.position.set(p[0]+.5,p[1]+.5,p[2]+.5);scene.add(m);modPortalBlocks.push(m);if(i===frame.length-1){activateModPortal();setWolfState('follow');}},i*180));
 }
-function checkModPortalEntry(){if(modPortalActive&&Math.hypot(player.pos.x-3.5,player.pos.z+3)<1.2)showAgentNotice('已进入MOD体验：机械方块、自动采矿与新配方已解锁。');}
+function checkModPortalEntry(){
+  if(!modPortalActive)return;
+  if(Math.hypot(player.pos.x-3.5,player.pos.z+3)<1.2){
+    modPortalActive=false;
+    modPortalBlocks.forEach(b=>scene.remove(b));modPortalBlocks.length=0;
+    enterCityScene();
+  }
+}
+
+// ============================================================
+// Scene management: lobby <-> city MOD
+// ============================================================
+let SCENE_MODE='lobby';
+const lobbyObjects=[];
+const cityGroup=new THREE.Group();cityGroup.visible=false;scene.add(cityGroup);
+const cityZombies=[];
+
+function buildCityScene(){
+  const roadMat=new THREE.MeshLambertMaterial({color:0x555555});
+  const sidewalkMat=new THREE.MeshLambertMaterial({color:0x888880});
+  const concreteMat=new THREE.MeshLambertMaterial({color:0x9e9e9e});
+  const darkMat=new THREE.MeshLambertMaterial({color:0x3a3a3a});
+  const glassMat=new THREE.MeshLambertMaterial({color:0x87ceeb,transparent:true,opacity:0.6});
+  const rustMat=new THREE.MeshLambertMaterial({color:0x7a4a2a});
+  function cityBlock(mat,x,y,z,w,h,d){
+    const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),mat);
+    m.position.set(x+w/2,y+h/2,z+d/2);cityGroup.add(m);return m;
+  }
+  // 路面
+  const roadFloor=new THREE.Mesh(new THREE.BoxGeometry(44,0.5,44),roadMat);
+  roadFloor.position.set(0,-0.75,0);cityGroup.add(roadFloor);
+  // 人行道边缘
+  [-22,-21,20,21].forEach(x=>{const m=new THREE.Mesh(new THREE.BoxGeometry(1,0.3,44),sidewalkMat);m.position.set(x,-0.35,0);cityGroup.add(m);});
+  [-22,-21,20,21].forEach(z=>{const m=new THREE.Mesh(new THREE.BoxGeometry(44,0.3,1),sidewalkMat);m.position.set(0,-0.35,z);cityGroup.add(m);});
+  // 建筑
+  function building(x,z,w,floors,mat,winMat){
+    cityBlock(mat,x,0,z,w,floors*3,6);
+    for(let f=0;f<floors;f++){
+      for(let wx=0;wx<w-1;wx+=2){
+        const wm=new THREE.Mesh(new THREE.BoxGeometry(0.9,0.9,0.12),winMat);
+        wm.position.set(x+wx+0.9,f*3+1.5,z-0.1);cityGroup.add(wm);
+        const wm2=wm.clone();wm2.position.set(x+wx+0.9,f*3+1.5,z+6.1);cityGroup.add(wm2);
+      }
+    }
+  }
+  building(-20, 2, 6, 3, concreteMat, glassMat);
+  building(-20,-10, 6, 4, darkMat, glassMat);
+  building(-20, 12, 6, 2, concreteMat, glassMat);
+  building(13,  2, 8, 5, concreteMat, glassMat);
+  building(13,-12, 6, 3, darkMat, glassMat);
+  // 废墟加油站
+  cityBlock(darkMat,-4,0,-8,8,2,5);
+  cityBlock(concreteMat,-4,2,-8,8,0.3,5);
+  // 发电站（东侧，Boss地点）
+  cityBlock(darkMat,13,0,10,8,6,8);
+  cityBlock(rustMat,16,6,12,2,6,2);
+  cityBlock(rustMat,17,6,14,1,4,1);
+  for(let i=0;i<8;i++){
+    const fence=new THREE.Mesh(new THREE.BoxGeometry(0.1,1.2,0.1),rustMat);
+    fence.position.set(13+i,0.6,9.9);cityGroup.add(fence);
+    const fence2=fence.clone();fence2.position.set(13+i,0.6,18.1);cityGroup.add(fence2);
+  }
+  // 路灯
+  const poleM=new THREE.MeshLambertMaterial({color:0x666666});
+  const lampM=new THREE.MeshLambertMaterial({color:0xfff9c4,emissive:new THREE.Color(0xfff176),emissiveIntensity:0.8});
+  [-12,-2,8,18].forEach(z=>{
+    const pole=new THREE.Mesh(new THREE.BoxGeometry(0.15,3.5,0.15),poleM);pole.position.set(-8.5,1.75,z);cityGroup.add(pole);
+    const lamp=new THREE.Mesh(new THREE.BoxGeometry(0.6,0.25,0.6),lampM);lamp.position.set(-8.5,3.6,z);cityGroup.add(lamp);
+    const pole2=pole.clone();pole2.position.set(8.5,1.75,z);cityGroup.add(pole2);
+    const lamp2=lamp.clone();lamp2.position.set(8.5,3.6,z);cityGroup.add(lamp2);
+  });
+  // 废墟钢管（视觉）
+  for(let i=0;i<6;i++){
+    const pipe=new THREE.Mesh(new THREE.BoxGeometry(0.1,0.1,1.2),rustMat);
+    pipe.position.set(-6+i*2.5,0,-15+Math.random()*2);pipe.rotation.y=Math.random()*Math.PI;cityGroup.add(pipe);
+  }
+  // 城市光源
+  const cityAmb=new THREE.AmbientLight(0x334455,0.9);cityGroup.add(cityAmb);
+  const cityDir=new THREE.DirectionalLight(0xffffff,0.6);cityDir.position.set(-5,10,5);cityGroup.add(cityDir);
+}
+buildCityScene();
+
+function spawnCityZombies(){
+  const positions=[[-15,0,-5],[-5,0,-12],[0,0,5],[5,0,-18],[-10,0,15],[8,0,-8]];
+  positions.forEach(([x,,z])=>{
+    const z2=createZombie(x,z);
+    z2.traverse(o=>{if(o.material)o.material.color.setHex(0x556b55);});
+    cityZombies.push(z2);
+  });
+}
+
+function showSceneBadge(mode){
+  let badge=document.getElementById('scene-badge');
+  if(!badge){badge=document.createElement('div');badge.id='scene-badge';document.body.appendChild(badge);}
+  badge.textContent=mode==='city'?'🏙 城市求生 MOD':'';
+  badge.style.cssText='position:fixed;top:10px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,0.75);color:#ffdc50;padding:4px 14px;border-radius:20px;font-size:12px;font-weight:600;z-index:60;border:1px solid rgba(255,220,80,0.5);letter-spacing:1px;pointer-events:none;';
+  if(window.__cityExitBtn)window.__cityExitBtn.style.display=mode==='city'?'block':'none';
+}
+function hideSceneBadge(){
+  const b=document.getElementById('scene-badge');if(b)b.remove();
+  if(window.__cityExitBtn)window.__cityExitBtn.style.display='none';
+}
+
+function enterCityScene(){
+  if(SCENE_MODE==='city')return;
+  SCENE_MODE='city';
+  scene.children.forEach(o=>{
+    if(o===cityGroup)return;
+    if(o.isLight)return;
+    if(!o.visible)return;
+    o.visible=false;lobbyObjects.push(o);
+  });
+  cityGroup.visible=true;
+  player.pos.set(0,0,2);
+  if(cityZombies.length===0)spawnCityZombies();
+  else cityZombies.forEach(z=>{z.visible=true;});
+  showSceneBadge('city');
+  openChat(false);
+  addAIMsg(buildTextCard('已进入【城市求生MOD】！街道上僵尸横行，点击左上角【规划编排】获取专属城市攻略，或直接问我"怎么打"。'));
+  PLAYER_RUNTIME_STATE.worldState={nearby:[{type:'city_zombie',distance:6}],time:'dusk',scene:'city'};
+  syncRuntimeUI();
+}
+
+function exitCityScene(){
+  if(SCENE_MODE!=='city')return;
+  SCENE_MODE='lobby';
+  cityGroup.visible=false;
+  cityZombies.forEach(z=>{z.visible=false;});
+  lobbyObjects.forEach(o=>{o.visible=true;});lobbyObjects.length=0;
+  player.pos.set(0,0,15);
+  hideSceneBadge();
+  PLAYER_RUNTIME_STATE.worldState={nearby:[{type:'sheep',distance:18}],time:'day'};
+  syncRuntimeUI();
+  showAgentNotice('已返回大厅。');
+}
+
+(function setupCityExitBtn(){
+  const btn=document.createElement('button');
+  btn.id='city-exit-btn';
+  btn.textContent='← 返回大厅';
+  btn.style.cssText='position:fixed;bottom:150px;right:24px;padding:8px 16px;border-radius:20px;background:rgba(0,0,0,0.75);border:1px solid rgba(255,220,80,0.6);color:#ffdc50;font-size:12px;font-weight:600;z-index:30;display:none;letter-spacing:1px;cursor:pointer;-webkit-tap-highlight-color:transparent;';
+  document.body.appendChild(btn);
+  btn.addEventListener('click',()=>exitCityScene());
+  window.__cityExitBtn=btn;
+})();
+
 const MEMORY_MILESTONES=[];
 const MEMORY_COMBAT={active:false,playerHits:0,zombieHits:0,zombie:null,diamondArmored:true,lastTap:null};
 const COMBAT_TAP_MAX_MOVE=10;
@@ -1935,7 +2080,8 @@ function buildTextCard(text){
 
 function linkedWikiText(text,links={}){
   let s=escapeHtml(text);
-  const merged={...Object.fromEntries(Object.entries({书架:'bookshelf',附魔台:'enchanting_table',皮革:'leather',书与笔:'writable_book',木板:'planks',原木:'log',铁锭:'iron_ingot',羊毛:'white_wool',生羊肉:'raw_mutton',腐肉:'rotten_flesh',胡萝卜:'carrot',马铃薯:'potato'})),...links};
+  const cityKw=window.SCENE_MODE==='city'?{城市僵尸:'city_zombie',行尸领主:'city_boss',防暴甲:'riot_gear',钢管:'steel_pipe',发电站:'power_station',混凝土:'concrete_block'}:{};
+  const merged={...Object.fromEntries(Object.entries({书架:'bookshelf',附魔台:'enchanting_table',皮革:'leather',书与笔:'writable_book',木板:'planks',原木:'log',铁锭:'iron_ingot',羊毛:'white_wool',生羊肉:'raw_mutton',腐肉:'rotten_flesh',胡萝卜:'carrot',马铃薯:'potato'})),...cityKw,...links};
   for(const [name,type] of Object.entries(merged).sort((a,b)=>b[0].length-a[0].length)){
     s=s.replace(new RegExp(name,'g'),`<span class="wiki-link" data-wiki="${type}">${name}</span>`);
   }
@@ -1961,6 +2107,71 @@ const COMPACT_ITEMS={
   iron_ingot:{name:'铁锭',tag:'材料',intro:'常用金属材料，可制作工具、护甲与功能方块。',keywords:['工具','护甲'],uses:'可制作铁制工具、铁砧、水桶等。',recipe:['铁矿石','熔炼','铁锭'],source:'熔炼铁矿石获得'},
 };
 
+const CITY_MOD_WIKI = {
+  records: {
+    city_zombie: {
+      C1:{name:'城市僵尸',tag:'怪物'},
+      C2:{intro:'经过变异的城市居民，行动迟缓但群体出现时极具威胁。身着褴褛都市服装，偶尔掉落城市物资碎片。'},
+      C3:{'生命值':'20','攻击力':'3','移动速度':'慢'},
+      C4:[{name:'腐肉',count:1},{name:'城市物资碎片',count:1}],
+      C5:'群体清除可获得城市物资碎片，是升级钢管的主要来源。',
+      C6:null,
+      C7:'遍布城市街道和废墟区，夜间会从建筑内涌出。',
+      icon:'',links:{腐肉:'rotten_flesh',钢管:'steel_pipe'}
+    },
+    city_boss: {
+      C1:{name:'行尸领主',tag:'精英怪物'},
+      C2:{intro:'城市变异的终极形态，身着破损防暴装备，手持加强型警棍。击败后可获得防暴甲图纸。'},
+      C3:{'生命值':'80','攻击力':'8','技能':'冲锋击退'},
+      C4:[{name:'防暴甲图纸',count:1},{name:'警棍碎片',count:2}],
+      C5:'击败后解锁防暴甲合成配方，是城市攻略的关键里程碑。',
+      C6:null,
+      C7:'驻守于城市东侧发电站一楼，被大量城市僵尸护卫。',
+      icon:'',links:{防暴甲:'riot_gear',发电站:'power_station',城市僵尸:'city_zombie'}
+    },
+    riot_gear: {
+      C1:{name:'防暴甲',tag:'防具'},
+      C2:{intro:'城市MOD专属重型护甲，防御值远超铁甲。击败行尸领主后可通过图纸合成。'},
+      C3:{'防御值':'16','耐久':'800','特效':'减少25%受击击退'},
+      C4:[],
+      C5:'装备后可大幅提升生存能力，是攻略城市高难度区域的必备装备。',
+      C6:['城市钢板 ×6','警棍碎片 ×2','防暴甲 ×1'],
+      C7:'通过击败行尸领主获得图纸后合成，城市钢板在废墟区可收集。',
+      icon:'',links:{行尸领主:'city_boss',城市钢板:'steel_pipe',发电站:'power_station'}
+    },
+    steel_pipe: {
+      C1:{name:'钢管',tag:'武器/材料'},
+      C2:{intro:'城市废墟中随处可见的金属管道，既是武器也是合成材料。攻击力高于木棍，低于铁剑。'},
+      C3:{'攻击力':'5','耐久':'120','用途':'武器 / 合成城市装备'},
+      C4:[],
+      C5:'可直接作为武器使用，也是合成城市装备的关键材料。',
+      C6:null,
+      C7:'在城市街道的废墟区和建筑废墟中随机出现，每区约3-5根。',
+      icon:'',links:{防暴甲:'riot_gear',城市僵尸:'city_zombie'}
+    },
+    power_station: {
+      C1:{name:'发电站',tag:'地标建筑'},
+      C2:{intro:'城市东侧的废弃发电站，外墙布满藤蔓与锈迹。行尸领主盘踞其中，周围聚集了大量城市僵尸。'},
+      C3:{'层数':'3层','危险等级':'极高','推荐':'清街后再进入'},
+      C4:[{name:'防暴甲图纸',count:1},{name:'城市宝箱',count:2}],
+      C5:'攻略终点，击败Boss后可获得顶级装备和大量城市物资。',
+      C6:null,
+      C7:'在城市场景东侧（x=+15区域），用深色混凝土和铁链栏栅围合，顶部有破损的高烟囱。',
+      icon:'',links:{行尸领主:'city_boss',防暴甲:'riot_gear',城市僵尸:'city_zombie'}
+    },
+    concrete_block: {
+      C1:{name:'混凝土',tag:'建筑方块'},
+      C2:{intro:'现代城市MOD核心建材，颜色多样，用于搭建建筑物外墙、路面和装饰。'},
+      C3:{'硬度':'1.8','工具':'铁镐以上'},
+      C4:[{name:'混凝土碎砾',count:1}],
+      C5:'城市建筑的主要组成部分，采集后可用于建造现代风格建筑。',
+      C6:['沙 ×4','砂砾 ×4','染料 ×1'],
+      C7:'城市场景所有建筑均由混凝土构成，到处可见。',
+      icon:'',links:{}
+    }
+  }
+};
+
 function formatC3(value){
   if(value==null)return '';
   if(typeof value!=='object')return escapeHtml(value);
@@ -1971,6 +2182,8 @@ function normalizeDrops(drops){
 }
 
 function compactWikiFor(type){
+  const citySnap=CITY_MOD_WIKI.records[type];
+  if(citySnap) return {C1:citySnap.C1,C2:{intro:citySnap.C2.intro,keywords:[]},C3:{label:'关键数值',value:citySnap.C3||null},C4:{drops:normalizeDrops(citySnap.C4)},C5:{uses:citySnap.C5||''},C6:{recipe:citySnap.C6},C7:{source:citySnap.C7||'',keywords:[]},icon:citySnap.icon||'',links:citySnap.links||{}};
   const snap=WIKI_SNAPSHOT.records[type];
   if(snap) return {C1:snap.C1,C2:{intro:snap.C2.intro,keywords:[]},C3:{label:'关键数值',value:snap.C3||{}},C4:{drops:normalizeDrops(snap.C4)},C5:{uses:snap.C5||''},C6:{recipe:snap.C6},C7:{source:snap.C7||'',keywords:[]},icon:snap.icon,links:snap.links||{}};
   const special=COMPACT_ITEMS[type];
@@ -2069,6 +2282,66 @@ function buildPureGStatCard(result,type){
   return c;
 }
 
+// ============================================================
+// City planning card (6-component attack guide)
+// ============================================================
+function buildCityPlanningCard(){
+  const ps=PLAYER_RUNTIME_STATE;
+  const weapon=ps.mainHand?(WIKI_SNAPSHOT.records[ps.mainHand]?.C1?.name||ps.mainHand):'徒手';
+  const armorPieces=Array.isArray(ps.armor)?ps.armor.length:0;
+  const armorDesc=armorPieces>0?`${armorPieces}件护甲（${ps.armor.map(a=>WIKI_SNAPSHOT.records[a]?.C1?.name||a).join('、')}）`:'无护甲';
+  const hpStr=`${ps.health||20}/20`;
+  const introText='城市求生MOD是一个末日都市生存与战斗体验。大量城市僵尸占据街道，你需要从废墟中收集钢管等物资，逐步清理街道，最终挑战发电站内的行尸领主，夺取防暴甲图纸并合成顶级城市装备。';
+  const step1Text=`先不要贸然深入。以你目前的装备（${weapon}，${armorDesc}）足以应对街道上的散乱城市僵尸。优先清理出生点周围3~5只僵尸，收集掉落的腐肉和城市物资碎片，稳定资源基础。`;
+  const bossText='行尸领主驻守在城市东侧发电站一楼，被大量城市僵尸护卫。建议先清理街道后再进入，直接冲入极为危险。';
+  const gearText='发电站周围和二楼宝箱藏有防暴甲图纸，击败Boss后可合成防暴甲。废墟区散落的钢管也是强力武器，顺路收集。';
+  const routeText='推荐路线：出生点 → 清周围街道（约10分钟） → 废墟区收集钢管 → 向东靠近发电站外围 → 清外围城市僵尸 → 进入发电站 → 击败行尸领主 → 合成防暴甲。';
+  const cityLinks={城市僵尸:'city_zombie',钢管:'steel_pipe',发电站:'power_station',行尸领主:'city_boss',防暴甲:'riot_gear',腐肉:'rotten_flesh'};
+  function cityLinked(text){
+    let s=escapeHtml(text);
+    for(const [name,type] of Object.entries(cityLinks).sort((a,b)=>b[0].length-a[0].length)){
+      s=s.replace(new RegExp(name,'g'),`<span class="wiki-link" data-wiki="${type}">${name}</span>`);
+    }
+    return s;
+  }
+  const c=document.createElement('div');c.className='card cmp-card';
+  c.innerHTML=`
+    <div class="card-head" data-component="G7">
+      <span class="name">城市求生攻略</span><span class="tag">规划编排</span><span class="cmp-id">G7·C2·G3·C7·C5·G6</span>
+    </div>
+    <div class="cmp-section" data-component="G7">
+      <div class="cmp-label">📊 当前状态</div>
+      <div class="cmp-body">
+        <span class="cmp-chip">武器：<b class="k">${escapeHtml(weapon)}</b></span>
+        <span class="cmp-chip">护甲：<b class="k">${escapeHtml(armorDesc)}</b></span>
+        <span class="cmp-chip">血量：<b class="k">${hpStr}</b></span>
+      </div>
+    </div>
+    <div class="cmp-section" data-component="C2">
+      <div class="cmp-label">🏙 MOD玩法简介</div>
+      <div class="cmp-body">${cityLinked(introText)}</div>
+    </div>
+    <div class="cmp-section" data-component="G3">
+      <div class="cmp-label">⚡ 第一步</div>
+      <div class="cmp-body">${cityLinked(step1Text)}</div>
+    </div>
+    <div class="cmp-section" data-component="C7">
+      <div class="cmp-label">📍 首领位置</div>
+      <div class="cmp-body">${cityLinked(bossText)}</div>
+    </div>
+    <div class="cmp-section" data-component="C5">
+      <div class="cmp-label">🗡 强力装备</div>
+      <div class="cmp-body">${cityLinked(gearText)}</div>
+    </div>
+    <div class="cmp-section" data-component="G6">
+      <div class="cmp-label">🗺 推荐路线</div>
+      <div class="cmp-body">${cityLinked(routeText)}</div>
+    </div>
+  `;
+  bindWikiLinks(c);
+  return c;
+}
+
 function buildStrategyCard(result,type){
   const family=result.componentPlan&&result.componentPlan.family;
   if(family==='PURE_C_WIKI') return buildPureCWikiCard(result,type);
@@ -2108,6 +2381,9 @@ function aiContextFor(type){
 }
 
 async function runAIChat(query,type,options={}){
+  if(window.SCENE_MODE==='city'&&/攻略|怎么打|下一步|规划|怎么玩|boss|领主|僵尸|发电站/i.test(query)){
+    openChat(false);addAIMsg(buildCityPlanningCard());return;
+  }
   const API=window.MixedOutputStrategy;
   if(!API){
     addAIMsg(buildTextCard('AI策略模块加载失败，请刷新页面。'));
@@ -2131,6 +2407,118 @@ async function runAIChat(query,type,options={}){
     addAIMsg(buildTextCard('AI连接失败，请稍后再试。'));
     setAIActive();
   }
+}
+
+// ============================================================
+// Discovery flow: style select -> mod list -> portal -> city
+// ============================================================
+function buildDiscoveryStyleCard(){
+  const c=document.createElement('div');c.className='card';
+  c.innerHTML=`
+    <div class="card-head"><span class="name">探索偏好</span><span class="tag">发现推荐</span></div>
+    <div style="padding:4px 2px 8px;color:#aac;font-size:12px;line-height:1.6;">告诉小狼你想要什么体验，它会为你推荐最合适的MOD，并现场搭建传送门。</div>
+    <div style="display:flex;flex-direction:column;gap:6px;margin-top:4px;">
+      <button class="opt" data-style="combat"><span class="oi">⚔️</span>畅快战斗<small style="display:block;font-size:10px;color:#7f91a3;margin-top:1px;">武器、Boss战、高强度战斗体验</small></button>
+      <button class="opt" data-style="survival"><span class="oi">🏕</span>极限生存<small style="display:block;font-size:10px;color:#7f91a3;margin-top:1px;">资源稀缺、危险环境、真实挑战</small></button>
+      <button class="opt" data-style="creative"><span class="oi">🏗</span>休闲建造<small style="display:block;font-size:10px;color:#7f91a3;margin-top:1px;">创意建筑、城市规划、轻松玩法</small></button>
+    </div>
+  `;
+  c.querySelectorAll('[data-style]').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      const label=btn.querySelector('span.oi').nextSibling?btn.textContent.replace(btn.querySelector('small').textContent,'').trim():btn.textContent.trim();
+      addUserMsg('我想要：'+label.replace(/^\S+\s*/,''));
+      thinkThen(()=>addAIMsg(buildDiscoveryModListCard(btn.dataset.style)));
+    });
+  });
+  return c;
+}
+
+const DISCOVERY_MOD_DATA={
+  combat:[
+    {id:'city_mod',name:'城市求生',tag:'战斗·生存',heat:5,desc:'末日都市中与变异僵尸搏杀，获取防暴装备，挑战Boss行尸领主。'},
+    {id:'city_mod',name:'城市求生',tag:'战斗·PVE',heat:4,desc:'街道清扫、建筑探索、精英怪打Boss，含完整武器升级线。'},
+    {id:'city_mod',name:'城市求生',tag:'战斗·冒险',heat:4,desc:'6类僵尸变体、3个Boss关卡，通关后解锁城市重建玩法。'}
+  ],
+  survival:[
+    {id:'city_mod',name:'城市求生',tag:'极限·末日',heat:5,desc:'资源匮乏的末日城市，饥饿和僵尸双重威胁，寻找物资维持生存。'},
+    {id:'city_mod',name:'城市求生',tag:'极限·生存',heat:4,desc:'动态僵尸刷新、食物腐败机制、安全屋争夺，挑战你的生存极限。'},
+    {id:'city_mod',name:'城市求生',tag:'极限·资源',heat:3,desc:'废墟探索获取城市特有材料，合成城市专属装备对抗高难度怪物。'}
+  ],
+  creative:[
+    {id:'city_mod',name:'城市求生',tag:'建造·城市',heat:5,desc:'现代城市建材和装饰件，建造摩天大楼、商业街和地下停车场。'},
+    {id:'city_mod',name:'城市求生',tag:'建造·创意',heat:4,desc:'含100+现代建筑方块，路灯、玻璃幕墙、电梯等城市设施完整还原。'},
+    {id:'city_mod',name:'城市求生',tag:'建造·休闲',heat:4,desc:'低难度模式体验城市风貌，边战斗边建造，打造属于自己的城市据点。'}
+  ]
+};
+
+function buildDiscoveryModListCard(style){
+  const mods=DISCOVERY_MOD_DATA[style]||DISCOVERY_MOD_DATA.combat;
+  const stars=n=>'★'.repeat(n)+'☆'.repeat(5-n);
+  const c=document.createElement('div');c.className='card';
+  c.innerHTML=`
+    <div class="card-head"><span class="name">为你推荐</span><span class="tag">热门MOD</span></div>
+    <div style="display:flex;flex-direction:column;gap:8px;margin:6px 0;">
+      ${mods.map((m,i)=>`
+        <div class="cmp-section" style="cursor:pointer;border-radius:6px;padding:6px;" data-mod-idx="${i}">
+          <div style="display:flex;align-items:center;gap:6px;margin-bottom:3px;">
+            <span style="font-weight:600;color:#ffe;font-size:13px;">${escapeHtml(m.name)}</span>
+            <span class="tag" style="font-size:10px;">${escapeHtml(m.tag)}</span>
+          </div>
+          <div style="font-size:11px;color:#aac;line-height:1.5;margin-bottom:3px;">${escapeHtml(m.desc)}</div>
+          <div style="font-size:11px;color:#ffdc50;">热度 ${stars(m.heat)}</div>
+        </div>
+      `).join('')}
+    </div>
+    <div style="display:flex;gap:8px;margin-top:4px;">
+      <button class="opt" id="disc-confirm-btn" style="flex:1;background:rgba(126,217,87,0.18);">🐺 确认，让小狼搭建传送门</button>
+      <button class="opt" id="disc-back-btn" style="flex:0 0 60px;">再看看</button>
+    </div>
+  `;
+  let selectedIdx=0;
+  const items=c.querySelectorAll('[data-mod-idx]');
+  items[0].style.background='rgba(126,217,87,0.1)';
+  items.forEach(el=>{
+    el.addEventListener('click',()=>{
+      items.forEach(e=>e.style.background='');
+      el.style.background='rgba(126,217,87,0.1)';
+      selectedIdx=parseInt(el.dataset.modIdx);
+    });
+  });
+  c.querySelector('#disc-confirm-btn').addEventListener('click',()=>{
+    const mod=mods[selectedIdx];
+    addUserMsg('进入 '+mod.name+'！');
+    closeChat(false);
+    startModPortalBuildWithEntry(mod.id);
+  });
+  c.querySelector('#disc-back-btn').addEventListener('click',()=>{
+    addUserMsg('再看看');
+    thinkThen(()=>addAIMsg(buildDiscoveryStyleCard()));
+  });
+  return c;
+}
+
+function startDiscoveryFlow(){
+  openChat(false);
+  addUserMsg('发现推荐');
+  thinkThen(()=>addAIMsg(buildDiscoveryStyleCard()));
+}
+
+function startModPortalBuildWithEntry(modId){
+  modPortalTargetMod=modId;
+  setWolfState('build',new THREE.Vector3(3,0,-3));
+  const frame=[];
+  for(let y=0;y<5;y++){frame.push([2,y,-3],[5,y,-3]);}
+  for(let x=3;x<5;x++){frame.push([x,0,-3],[x,4,-3]);}
+  frame.forEach((p,i)=>setTimeout(()=>{
+    const m=new THREE.Mesh(new THREE.BoxGeometry(1,1,1),new THREE.MeshLambertMaterial({color:0x4a226b}));
+    m.position.set(p[0]+.5,p[1]+.5,p[2]+.5);scene.add(m);modPortalBlocks.push(m);
+    if(i===frame.length-1){
+      modPortalActive=true;
+      const modName={city_mod:'城市求生'}[modId]||modId;
+      showAgentNotice('传送门已激活！走进传送门进入【'+modName+'】MOD体验。');
+      setWolfState('follow');
+    }
+  },i*180));
 }
 
 function buildChoiceCard(type){
@@ -3096,6 +3484,9 @@ window.MC_DEMO_BRIDGE={
   startExecutionShowcase,
   testExecuteTarget:type=>{CHAT.selectedType=type;startExecutionShowcase(type);const buttons=document.querySelectorAll('[data-exec-action]');const b=buttons[buttons.length-1];if(b)b.click();},
   startModPortalBuild,
+  startDiscoveryFlow,
+  enterCityScene,
+  exitCityScene,
   playMemoryCompanionDemo,
 };
 
@@ -3169,9 +3560,18 @@ window.MC_DEMO_BRIDGE={
   function openStrategyDomain(domain){
     if(domain==='answer'){document.getElementById('strategy-domain-list').style.display='none';document.getElementById('strategy-answer-scenes').style.display='block';return;}
     panel.classList.remove('open');
-    if(domain==='planning')applyShowcase('next-step');
+    if(domain==='planning'){
+      if(window.SCENE_MODE==='city'){
+        panel.classList.remove('open');
+        openChat(false);
+        addUserMsg('【城市场景】规划编排 · 攻略');
+        addAIMsg(buildCityPlanningCard());
+      } else {
+        applyShowcase('next-step');
+      }
+    }
     if(domain==='execution')window.MC_DEMO_BRIDGE.startExecutionShowcase();
-    if(domain==='discovery')window.MC_DEMO_BRIDGE.startModPortalBuild();
+    if(domain==='discovery')window.MC_DEMO_BRIDGE.startDiscoveryFlow();
     if(domain==='memory')window.MC_DEMO_BRIDGE.playMemoryCompanionDemo();
   }
 
