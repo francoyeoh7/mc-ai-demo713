@@ -2098,7 +2098,27 @@ function makeThumb(type){
   const c = document.createElement('canvas'); c.width=64; c.height=64;
   const x = c.getContext('2d'); x.imageSmoothingEnabled=false;
   if(src){ x.drawImage(src, 0, 0, 64, 64); }
-  else { x.fillStyle='#555'; x.fillRect(0,0,64,64); }
+  else {
+    // Craft material colours — distinct enough to read in 3x3 grid
+    const CRAFT_COLORS={
+      paper:['#f5f0d8','#d4c89a'],     // 纸 — cream
+      leather:['#9e6737','#6b3e1e'],   // 皮革 — brown
+      stick:['#8b5e2e','#5c3510'],     // 棍子 — wood-brown
+      ink_sac:['#1a1a1a','#3a3a3a'],   // 墨囊 — black
+      feather:['#e8e8e8','#aaaaaa'],   // 羽毛 — white
+      diamond:['#4dd9e8','#1fb0c4'],   // 钻石 — cyan
+      obsidian:['#1a0a2e','#3d1f5a'],  // 黑曜石 — dark purple
+      book:['#c0803a','#8a5220'],      // 书 — orange-brown
+      iron_ingot:['#c8c8c8','#909090'],// 铁锭 — silver
+    };
+    const col=CRAFT_COLORS[type];
+    if(col){
+      x.fillStyle=col[0];x.fillRect(0,0,64,64);
+      x.fillStyle=col[1];x.fillRect(0,0,64,3);x.fillRect(0,61,64,3);x.fillRect(0,0,3,64);x.fillRect(61,0,3,64);
+    } else {
+      x.fillStyle='#555'; x.fillRect(0,0,64,64);
+    }
+  }
   return c;
 }
 
@@ -2231,11 +2251,15 @@ function openRelatedWiki(type){
   addAIMsg(buildPureCWikiCard(fake,type));
 }
 const COMPACT_ITEMS={
-  book:{name:'书',tag:'材料',intro:'书是一种用于附魔与合成的物品。',keywords:['附魔','合成'],uses:'可制作书与笔、书架和附魔台。',recipe:['纸 ×3','皮革 ×1','书 ×1'],source:'纸与皮革合成'},
-  bookshelf:{name:'书架',tag:'功能方块',intro:'用于增强附魔台的可用附魔等级。',keywords:['附魔台','附魔等级'],uses:'围绕附魔台摆放可提高附魔等级。',recipe:['木板 ×6','书 ×3','书架 ×1'],source:'由木板与书合成'},
-  enchanting_table:{name:'附魔台',tag:'功能方块',intro:'可消耗经验与青金石为装备附魔。',keywords:['经验','青金石','附魔'],uses:'为工具、武器和护甲提供附魔。',recipe:['书 ×1','钻石 ×2','黑曜石 ×4'],source:'通过合成获得'},
+  book:{name:'书',tag:'材料',intro:'书是一种用于附魔与合成的物品。',keywords:['附魔','合成'],uses:'可制作书与笔、书架和附魔台。',recipe:['纸 ×3','皮革 ×1','书 ×1'],source:'纸与皮革合成',
+    recipeGrid:['paper','paper',null, 'paper',null,null, 'leather',null,null]},
+  bookshelf:{name:'书架',tag:'功能方块',intro:'用于增强附魔台的可用附魔等级。',keywords:['附魔台','附魔等级'],uses:'围绕附魔台摆放可提高附魔等级。',recipe:['木板 ×6','书 ×3','书架 ×1'],source:'由木板与书合成',
+    recipeGrid:['planks','planks','planks', 'book','book','book', 'planks','planks','planks']},
+  enchanting_table:{name:'附魔台',tag:'功能方块',intro:'可消耗经验与青金石为装备附魔。',keywords:['经验','青金石','附魔'],uses:'为工具、武器和护甲提供附魔。',recipe:['书 ×1','钻石 ×2','黑曜石 ×4'],source:'通过合成获得',
+    recipeGrid:[null,'book',null, 'diamond','obsidian','diamond', 'obsidian','obsidian','obsidian']},
   leather:{name:'皮革',tag:'材料',intro:'常见动物材料，可用于制作书与皮革装备。',keywords:['书','皮革装备'],uses:'可制作书和皮革护甲。',recipe:null,source:'主要由牛、马等生物掉落'},
-  writable_book:{name:'书与笔',tag:'工具',intro:'可以由玩家写入文字并署名。',keywords:['写入','署名'],uses:'记录坐标、计划和服务器信息。',recipe:['书 ×1','墨囊 ×1','羽毛 ×1'],source:'通过合成获得'},
+  writable_book:{name:'书与笔',tag:'工具',intro:'可以由玩家写入文字并署名。',keywords:['写入','署名'],uses:'记录坐标、计划和服务器信息。',recipe:['书 ×1','墨囊 ×1','羽毛 ×1'],source:'通过合成获得',
+    recipeGrid:[null,null,null, 'feather','ink_sac','book', null,null,null]},
   iron_ingot:{name:'铁锭',tag:'材料',intro:'常用金属材料，可制作工具、护甲与功能方块。',keywords:['工具','护甲'],uses:'可制作铁制工具、铁砧、水桶等。',recipe:['铁矿石','熔炼','铁锭'],source:'熔炼铁矿石获得'},
   raw_iron:   {name:'生铁',tag:'原矿材料',intro:'开采铁矿石掉落的原矿，需放入熔炉熔炼成铁锭方可使用。',keywords:['铁锭','熔炉'],uses:'熔炼后获得铁锭，是制作工具和护甲的基础。',recipe:null,source:'开采铁矿石掉落'},
   raw_gold:   {name:'生金',tag:'原矿材料',intro:'开采金矿石掉落的原矿，熔炼后得到金锭。',keywords:['金锭','熔炉'],uses:'熔炼后获得金锭，用于合成金制装备和钟。',recipe:null,source:'开采金矿石掉落'},
@@ -2330,7 +2354,7 @@ function compactWikiFor(type){
     C3:{label:'关键数值',value:special.stats||null},
     C4:{drops:normalizeDrops(special.drops||[])},
     C5:{uses:special.uses||''},
-    C6:{recipe:special.recipe},
+    C6:{recipe:special.recipe,recipeGrid:special.recipeGrid||null},
     C7:{source:special.source||'',keywords:[]},
     links:{}
   };
@@ -2427,16 +2451,31 @@ function buildPureCWikiCard(result,type){
   if(ids.has('C6')&&C.C6&&C.C6.recipe&&C.C6.recipe.length>1){
     hasRecipe=true;
     const mats=C.C6.recipe.slice(0,-1);
-    // 解析 "纸 ×3" → {name:'纸', count:'×3'}
     const parseMat=str=>{const m=str.match(/^(.+?)\s*(×\d+)$/);return m?{name:m[1].trim(),count:m[2]}:{name:str,count:''};};
     const matsHtml=mats.map(m=>{
       const {name,count}=parseMat(m);
       return '<div class="wc-mat"><span class="wc-mn">'+linkedWikiText(name,links)+'</span>'+(count?'<span class="wc-mc">'+escapeHtml(count)+'</span>':'')+'</div>';
     }).join('');
-    html+=`<div class="wc-recipe">
-      <div class="wc-sec-t">合成配方</div>
-      <div class="wc-mats-list">${matsHtml}</div>
-    </div>`;
+    const grid=C.C6.recipeGrid;
+    if(grid&&grid.length===9){
+      // 九宫格模式
+      const cells=grid.map(t=>t?`<div class="wc-cell" data-t="${t}"></div>`:'<div class="wc-cell"></div>').join('');
+      html+=`<div class="wc-recipe">
+        <div class="wc-sec-t">合成配方</div>
+        <div class="wc-recipe-row">
+          <div class="wc-craft3">${cells}</div>
+          <span class="wc-arrow">→</span>
+          <div class="wc-result" data-t="${type}"></div>
+          <div class="wc-mats">${matsHtml}</div>
+        </div>
+      </div>`;
+    } else {
+      // 无位置数据：纯材料列表
+      html+=`<div class="wc-recipe">
+        <div class="wc-sec-t">合成配方</div>
+        <div class="wc-mats-list">${matsHtml}</div>
+      </div>`;
+    }
   }
 
   // C7: 在哪里 — 只在没有配方时展示（有配方的物品就是合成来的，无需再说来源）
@@ -2446,7 +2485,15 @@ function buildPureCWikiCard(result,type){
 
   html+=`<div class="wc-pad"></div>`;
   c.innerHTML=html;
-  c.querySelectorAll('[data-t]').forEach(w=>{if(w.tagName==='DIV'&&!w.querySelector('canvas,img'))w.appendChild(makeThumb(w.getAttribute('data-t')));});
+  c.querySelectorAll('[data-t]').forEach(w=>{
+    if(w.tagName==='DIV'&&!w.querySelector('canvas,img')){
+      const t=w.getAttribute('data-t');if(!t)return;
+      const snap=WIKI_SNAPSHOT.records[t];
+      if(snap?.icon){const img=document.createElement('img');img.src=snap.icon;img.style.cssText='width:80%;height:80%;object-fit:contain;image-rendering:pixelated;';w.appendChild(img);}
+      else if(ENTITY_WIKI_IMAGES[t]){const img=document.createElement('img');img.src=ENTITY_WIKI_IMAGES[t];img.style.cssText='width:80%;height:80%;object-fit:contain;image-rendering:pixelated;';w.appendChild(img);}
+      else{w.appendChild(makeThumb(t));}
+    }
+  });
   bindWikiLinks(c);
   return c;
 }
