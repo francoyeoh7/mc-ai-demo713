@@ -1369,7 +1369,16 @@ const COLLECTION_RULES={
  grass:{collectible:true,drop:'dirt',tool:'shovel'},dirt:{collectible:true,drop:'dirt',tool:'shovel'},stone:{collectible:true,drop:'cobble',tool:'wood_pickaxe'},cobble:{collectible:true,drop:'cobble',tool:'wood_pickaxe'},
  log:{collectible:true,drop:'log',tool:'axe'},leaves:{collectible:true,drop:'sapling',tool:'shears'},planks:{collectible:true,drop:'planks',tool:'axe'},glass:{collectible:true,drop:'glass',tool:'silk_touch'},bookshelf:{collectible:true,drop:'bookshelf',tool:'silk_touch'},
  diamond_ore:{collectible:true,drop:'diamond',tool:'iron_pickaxe'},iron_ore:{collectible:true,drop:'raw_iron',tool:'stone_pickaxe',smelt:{input:'raw_iron',output:'iron_ingot'}},coal_ore:{collectible:true,drop:'coal',tool:'wood_pickaxe'},gold_ore:{collectible:true,drop:'raw_gold',tool:'iron_pickaxe',smelt:{input:'raw_gold',output:'gold_ingot'}},redstone_ore:{collectible:true,drop:'redstone',tool:'iron_pickaxe'},sand:{collectible:true,drop:'sand',tool:'shovel',smelt:{input:'sand',output:'glass'}},
- bedrock:{collectible:false},water:{collectible:false}
+ bedrock:{collectible:false},water:{collectible:false},
+ // 背包物品：选中后可触发"帮我熔炼"
+ raw_iron:    {collectible:false,smelt:{input:'raw_iron',output:'iron_ingot'}},
+ iron_ingot:  {collectible:false,smelt:{input:'raw_iron',output:'iron_ingot'}},
+ raw_gold:    {collectible:false,smelt:{input:'raw_gold',output:'gold_ingot'}},
+ gold_ingot:  {collectible:false,smelt:{input:'raw_gold',output:'gold_ingot'}},
+ copper_ore:  {collectible:true, drop:'raw_copper',tool:'stone_pickaxe',smelt:{input:'raw_copper',output:'copper_ingot'}},
+ raw_copper:  {collectible:false,smelt:{input:'raw_copper',output:'copper_ingot'}},
+ copper_ingot:{collectible:false,smelt:{input:'raw_copper',output:'copper_ingot'}},
+ sand_item:   {collectible:false,smelt:{input:'sand',output:'glass'}},
 };
 const TOOL_LEVEL={wood_pickaxe:1,stone_pickaxe:2,iron_pickaxe:3,diamond_pickaxe:4,axe:1,shovel:1,shears:1,silk_touch:5};
 const HOUSE_CHEST={raw_iron:4,raw_gold:2,sand:6,coal:8};
@@ -1407,7 +1416,7 @@ function buildExecutionChoiceCard(selectedType=CHAT.selectedType||'log'){
   c.querySelector('[data-exec-action]').addEventListener('click',()=>{addUserMsg(label);rule.smelt?startWolfSmeltingTask(selectedType):startWolfCollectionTask(selectedType);});return c;
 }
 function startExecutionShowcase(selectedType=CHAT.selectedType||'log'){
-  const rule=COLLECTION_RULES[selectedType];if(!rule?.collectible){showAgentNotice('该对象不能作为采集任务。');return;}
+  const rule=COLLECTION_RULES[selectedType];if(!rule?.collectible&&!rule?.smelt){showAgentNotice('该对象不能作为采集或熔炼任务。');return;}
   closeChat(false);CHAT.selectedType=selectedType;const label=rule.smelt?'熔炼':'收集';showAgentNotice(`我已识别目标，是否需要我帮你${label}？`, {expand:{}});openChat(false);addAIMsg(buildExecutionChoiceCard(selectedType));
 }
 const modPortalBlocks=[];let modPortalActive=false;let modPortalTargetMod=null;
@@ -2096,6 +2105,9 @@ const COMPACT_ITEMS={
   leather:{name:'皮革',tag:'材料',intro:'常见动物材料，可用于制作书与皮革装备。',keywords:['书','皮革装备'],uses:'可制作书和皮革护甲。',recipe:null,source:'主要由牛、马等生物掉落'},
   writable_book:{name:'书与笔',tag:'工具',intro:'可以由玩家写入文字并署名。',keywords:['写入','署名'],uses:'记录坐标、计划和服务器信息。',recipe:['书 ×1','墨囊 ×1','羽毛 ×1'],source:'通过合成获得'},
   iron_ingot:{name:'铁锭',tag:'材料',intro:'常用金属材料，可制作工具、护甲与功能方块。',keywords:['工具','护甲'],uses:'可制作铁制工具、铁砧、水桶等。',recipe:['铁矿石','熔炼','铁锭'],source:'熔炼铁矿石获得'},
+  raw_iron:   {name:'生铁',tag:'原矿材料',intro:'开采铁矿石掉落的原矿，需放入熔炉熔炼成铁锭方可使用。',keywords:['铁锭','熔炉'],uses:'熔炼后获得铁锭，是制作工具和护甲的基础。',recipe:null,source:'开采铁矿石掉落'},
+  raw_gold:   {name:'生金',tag:'原矿材料',intro:'开采金矿石掉落的原矿，熔炼后得到金锭。',keywords:['金锭','熔炉'],uses:'熔炼后获得金锭，用于合成金制装备和钟。',recipe:null,source:'开采金矿石掉落'},
+  gold_ingot: {name:'金锭',tag:'材料',intro:'黄金材料，可制作金制装备、钟和其他装饰品。',keywords:['金制装备','钟'],uses:'制作金剑、金甲、钟和胡萝卜钓竿。',recipe:['金矿石','熔炼','金锭'],source:'熔炼生金获得'},
 };
 
 const CITY_MOD_WIKI = {
@@ -2515,7 +2527,9 @@ function startModPortalBuildWithEntry(modId){
 function buildChoiceCard(type){
   const info = WIKI_SNAPSHOT.records[type]?.C1 || BLOCK_INFO[type] || {name:type};
   const bc = BLOCK_CARDS[type] || {tag:info.tag||'方块'};
-  const rule=COLLECTION_RULES[type];const actionable=!!rule?.collectible;const actionLabel=rule?.smelt?'帮我熔炼':'帮我收集';
+  const rule=COLLECTION_RULES[type];
+  const actionable=!!(rule?.collectible || rule?.smelt);
+  const actionLabel=rule?.smelt?'帮我熔炼':'帮我收集';
   const c = document.createElement('div'); c.className = 'card';
   c.innerHTML = `
     <div class="card-head"><span class="name">${escapeHtml(info.name)}</span><span class="tag">${escapeHtml(bc.tag||info.tag||'方块')}</span></div>
