@@ -141,12 +141,80 @@ canvas{display:block;width:100%;height:100%;touch-action:none;}
 .msg.ai .bubble.thinking .dots span:nth-child(3){animation-delay:0.3s;}
 @keyframes thk{0%,80%,100%{opacity:0.25;transform:scale(0.8);}40%{opacity:1;transform:scale(1);}}
 
-/* Card base (dark green panel) */
-.card{background:#141a15;border-radius:8px;padding:8px;color:#e8e8e8;font-size:12px;line-height:1.5;}
-.card .card-head{background:#000;padding:6px 10px;border-radius:5px;margin-bottom:7px;display:flex;align-items:center;gap:7px;}
-.card .card-head .name{font-size:14px;font-weight:800;color:#fff;letter-spacing:1px;}
-.card .card-head .tag{padding:2px 8px;background:rgba(255,255,255,0.1);border-radius:4px;font-size:10px;color:#ccc;letter-spacing:.5px;}
-.card .k{color:#7ed957;font-weight:600;}
+/* ===== FIGMA DESIGN SYSTEM — 信息卡片 ===== */
+/* Card base */
+.card{background:rgba(0,0,0,0.32);border:2px solid rgba(0,0,0,0.36);border-radius:6px;padding:0;color:#e8e8e8;font-size:12px;line-height:1.5;overflow:hidden;}
+
+/* Card header bar — 颜色按实体类型区分 */
+.card .card-head{padding:10px 12px;margin-bottom:0;display:flex;align-items:center;gap:8px;position:relative;overflow:hidden;min-height:44px;}
+.card .card-head.hostile  {background:#8b1a1a;}
+.card .card-head.neutral  {background:#3f9e25;}
+.card .card-head.passive  {background:#3f9e25;}
+.card .card-head.structure{background:#1e1e1e;border-bottom:1px solid rgba(255,255,255,0.08);}
+.card .card-head.item     {background:#1e1e1e;border-bottom:1px solid rgba(255,255,255,0.08);}
+.card .card-head.default  {background:#1e1e1e;border-bottom:1px solid rgba(255,255,255,0.08);}
+/* 分隔光线 */
+.card .card-head::after{content:'';position:absolute;bottom:0;left:0;right:0;height:1.5px;background:linear-gradient(90deg,rgba(255,255,255,0) 0%,rgba(255,255,255,0.6) 50%,rgba(255,255,255,0) 100%);pointer-events:none;}
+.card .card-head .name{font-size:15px;font-weight:800;color:#fff;letter-spacing:1px;text-shadow:0 1px 2px rgba(0,0,0,0.5);}
+.card .card-head .tag{font-size:11px;font-weight:600;color:rgba(255,255,255,0.7);letter-spacing:.5px;}
+.card .card-head.hostile .tag{color:#ffaaaa;}
+.card .k{color:#9fff84;font-weight:600;}
+/* 实体图片浮于右上角 */
+.card .card-head .entity-img{position:absolute;right:8px;top:50%;transform:translateY(-50%);width:64px;height:64px;object-fit:contain;image-rendering:pixelated;filter:drop-shadow(0 2px 4px rgba(0,0,0,0.5));pointer-events:none;}
+
+/* Card inner padding wrapper */
+.card .card-body{padding:10px 12px;}
+
+/* Description text */
+.card .card-desc{font-size:12px;color:rgba(255,255,255,0.64);line-height:1.7;margin-bottom:8px;padding-right:68px;}
+
+/* Stats section — dark gradient bar */
+.card .stats-bar{background:linear-gradient(135deg,#535353 0%,#3a3a3a 100%);border-radius:5px;padding:8px 12px;margin-top:6px;box-shadow:0 4px 0 rgba(0,0,0,1);}
+.card .stats-bar .stat-row{display:flex;gap:0;flex-wrap:wrap;}
+.card .stats-bar .stat-item{display:flex;align-items:baseline;gap:6px;flex:1;min-width:120px;margin-bottom:4px;}
+.card .stats-bar .stat-item:last-child{margin-bottom:0;}
+.card .stats-bar .stat-label{color:rgba(255,255,255,0.48);font-size:11px;font-weight:500;min-width:52px;}
+.card .stats-bar .stat-val{color:#fff;font-size:11px;font-weight:500;}
+
+/* Drops section */
+.card .drops-sec{margin-top:6px;padding:8px 12px;background:rgba(0,0,0,0.45);border-radius:5px;}
+.card .drops-sec .sec-title{color:#fff;font-size:12px;font-weight:700;margin-bottom:8px;letter-spacing:.5px;}
+.drops-grid{display:flex;gap:8px;flex-wrap:nowrap;overflow-x:auto;padding-bottom:2px;-webkit-overflow-scrolling:touch;}
+.drops-grid::-webkit-scrollbar{height:2px;}
+.drops-grid::-webkit-scrollbar-thumb{background:rgba(255,255,255,.2);border-radius:1px;}
+.drop-item{flex-shrink:0;display:flex;flex-direction:column;align-items:center;gap:3px;}
+.drop-item .di-icon{width:44px;height:44px;background:#6b6b6b;border-radius:3px;display:flex;align-items:center;justify-content:center;overflow:hidden;}
+.drop-item .di-icon canvas,.drop-item .di-icon img{image-rendering:pixelated;image-rendering:-moz-crisp-edges;width:80%;height:80%;object-fit:contain;}
+.drop-item .di-name{font-size:10px;color:rgba(255,255,255,0.75);text-align:center;line-height:1.3;max-width:52px;}
+
+/* Spawn rule / location section */
+.card .spawn-sec{margin-top:6px;padding:8px 12px;background:rgba(0,0,0,0.45);border-radius:5px;}
+.card .spawn-sec .sec-title{color:#fff;font-size:12px;font-weight:700;margin-bottom:6px;letter-spacing:.5px;}
+.card .spawn-sec .sec-text{font-size:11.5px;color:rgba(255,255,255,0.7);line-height:1.7;}
+
+/* Craft recipe section */
+.card .craft-sec{margin-top:6px;background:rgba(255,255,255,0.04);border-radius:5px;padding:8px 12px;}
+.card .craft-sec .craft-grid{display:flex;align-items:center;gap:8px;}
+.craft-3x3{display:grid;grid-template-columns:repeat(3,1fr);gap:2px;width:90px;height:90px;background:#8b8b8b;border:2px solid #373737;border-radius:3px;overflow:hidden;}
+.craft-cell{background:#9a9a9a;display:flex;align-items:center;justify-content:center;}
+.craft-cell img,.craft-cell canvas{width:80%;height:80%;object-fit:contain;image-rendering:pixelated;}
+.craft-arrow{color:rgba(255,255,255,0.5);font-size:18px;flex-shrink:0;}
+.craft-result{width:44px;height:44px;background:#6b6b6b;border:2px solid #373737;border-radius:3px;display:flex;align-items:center;justify-content:center;}
+.craft-result img,.craft-result canvas{width:80%;height:80%;object-fit:contain;image-rendering:pixelated;}
+.craft-materials{flex:1;padding-left:4px;}
+.craft-mat-row{display:flex;justify-content:space-between;align-items:center;padding:4px 0;border-bottom:1px dashed rgba(255,255,255,0.12);}
+.craft-mat-row:last-child{border-bottom:none;}
+.craft-mat-name{color:#9fff84;font-size:11px;font-weight:600;text-decoration:underline;text-decoration-style:dotted;}
+.craft-mat-count{color:#fff;font-size:11px;font-weight:700;}
+
+/* Can-craft section */
+.card .can-craft-sec{margin-top:6px;padding:8px 12px;background:rgba(0,0,0,0.45);border-radius:5px;}
+.card .can-craft-sec .sec-title{color:#fff;font-size:12px;font-weight:700;margin-bottom:8px;}
+.can-craft-list{display:flex;gap:8px;flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;}
+.can-craft-item{flex-shrink:0;display:flex;flex-direction:column;align-items:center;gap:3px;}
+.can-craft-item .cci-icon{width:44px;height:44px;background:#5a5a5a;border-radius:3px;display:flex;align-items:center;justify-content:center;}
+.can-craft-item .cci-icon img,.can-craft-item .cci-icon canvas{width:80%;height:80%;object-fit:contain;image-rendering:pixelated;}
+.can-craft-item .cci-name{font-size:10px;color:rgba(255,255,255,0.7);text-align:center;max-width:52px;}
 
 /* Choice buttons */
 .card .opt{width:100%;padding:8px 12px;background:#2e7d32;border:none;border-radius:5px;color:#fff;font-size:13px;font-weight:600;display:flex;align-items:center;gap:8px;margin-top:6px;text-align:left;cursor:pointer;letter-spacing:.5px;transition:background .15s;}
@@ -154,37 +222,30 @@ canvas{display:block;width:100%;height:100%;touch-action:none;}
 .card .opt .oi{width:18px;height:18px;flex-shrink:0;display:inline-flex;align-items:center;justify-content:center;}
 .card .opt .oi svg{width:100%;height:100%;fill:currentColor;}
 
-/* Info card body */
+/* === Legacy compat — kept for non-info cards === */
+.card .card-head.legacy{background:#000;padding:6px 10px;border-radius:5px;margin-bottom:7px;}
+.card .card-head.legacy .tag{padding:2px 8px;background:rgba(255,255,255,0.1);border-radius:4px;font-size:10px;color:#ccc;}
 .info-body{display:flex;gap:8px;margin-bottom:2px;padding:2px 0;}
 .info-body .thumb{width:54px;height:54px;background:rgba(255,255,255,0.06);border-radius:5px;flex-shrink:0;display:flex;align-items:center;justify-content:center;overflow:hidden;padding:3px;}
 .info-body .thumb canvas,.info-body .thumb img{image-rendering:pixelated;image-rendering:-moz-crisp-edges;width:100%;height:100%;object-fit:contain;}
 .info-body .desc{flex:1;color:#e0e0e0;padding-top:2px;font-size:11.5px;line-height:1.5;}
-
 .stats-row{margin-top:6px;padding:7px 10px;background:rgba(0,0,0,0.35);border-radius:5px;display:flex;justify-content:space-between;align-items:center;gap:6px;}
 .stats-row .label{color:#7ed957;font-size:12px;font-weight:600;flex-shrink:0;letter-spacing:.5px;}
 .stats-row .val{display:flex;gap:2px;align-items:center;font-size:11px;color:#ccc;flex-wrap:wrap;justify-content:flex-end;}
-.hearts{display:inline-flex;gap:1px;}
-.hearts svg{width:12px;height:12px;}
+.hearts{display:inline-flex;gap:1px;}.hearts svg{width:12px;height:12px;}
 .stats-row .num{margin-left:6px;font-family:monospace;color:#fff;font-size:12px;font-weight:600;}
-
-/* Drops — chip style, no icon */
 .drops-row{margin-top:6px;padding:6px 8px;background:rgba(0,0,0,0.35);border-radius:5px;}
 .drops-row .label{color:#7ed957;font-size:11px;font-weight:600;margin-bottom:4px;letter-spacing:.5px;}
 .drops-list{display:flex;gap:5px;flex-wrap:nowrap;overflow-x:auto;align-items:center;padding-bottom:2px;-webkit-overflow-scrolling:touch;}
-.drops-list::-webkit-scrollbar{height:2px;}
-.drops-list::-webkit-scrollbar-thumb{background:rgba(126,217,87,.3);border-radius:1px;}
+.drops-list::-webkit-scrollbar{height:2px;}.drops-list::-webkit-scrollbar-thumb{background:rgba(126,217,87,.3);border-radius:1px;}
 .drop{flex-shrink:0;display:inline-flex;align-items:center;}
 .drop .lbl{display:inline-block;padding:3px 7px;background:#1e2d1f;border:1px solid #3a5040;border-radius:10px;font-size:10.5px;color:#c8e6c9;letter-spacing:.2px;white-space:nowrap;}
 .drop .icon-wrap{display:none;}
-
 .loc-row{margin-top:6px;padding:7px 10px;background:rgba(0,0,0,0.35);border-radius:5px;}
 .loc-row .title{color:#7ed957;font-size:11px;font-weight:600;margin-bottom:4px;display:flex;align-items:center;gap:4px;letter-spacing:.5px;}
 .loc-row .title svg{width:12px;height:12px;fill:#7ed957;}
 .loc-row .text{font-size:11.5px;line-height:1.6;color:#ddd;}
-
-/* Guide card */
-.guide-sec{margin-bottom:7px;}
-.guide-sec:last-child{margin-bottom:0;}
+.guide-sec{margin-bottom:7px;}.guide-sec:last-child{margin-bottom:0;}
 .guide-sec .sec-title{font-size:12px;font-weight:700;color:#fff;margin-bottom:4px;padding:5px 10px;background:rgba(0,0,0,0.35);border-radius:4px;letter-spacing:.5px;}
 .guide-sec .sec-text{font-size:11.5px;line-height:1.6;color:#e0e0e0;padding:2px 2px;}
 .guide-action{margin-top:8px;text-align:right;}
@@ -1412,7 +1473,7 @@ function startWolfTreeTask(){startWolfCollectionTask('log');}
 function buildExecutionChoiceCard(selectedType=CHAT.selectedType||'log'){
   const rule=COLLECTION_RULES[selectedType]||{};const label=rule.smelt?'帮我熔炼':'帮我收集';
   const name=WIKI_SNAPSHOT.records[selectedType]?.C1?.name||BLOCK_INFO[selectedType]?.name||selectedType;
-  const c=document.createElement('div');c.className='card';c.innerHTML=`<div class="card-head"><span class="name">${escapeHtml(name)}</span><span class="tag">执行目标</span></div><button class="opt" data-exec-action>⚑ ${label}</button>`;
+  const c=document.createElement('div');c.className='card';c.innerHTML=`<div class="card-head default"><span class="name">${escapeHtml(name)}</span><span class="tag">执行目标</span></div><div class="card-body"><button class="opt" data-exec-action>⚑ ${label}</button></div>`;
   c.querySelector('[data-exec-action]').addEventListener('click',()=>{addUserMsg(label);rule.smelt?startWolfSmeltingTask(selectedType):startWolfCollectionTask(selectedType);});return c;
 }
 function startExecutionShowcase(selectedType=CHAT.selectedType||'log'){
@@ -2236,7 +2297,7 @@ function buildPureCWikiCard(result,type){
   const requested=(result.componentPlan&&result.componentPlan.components)||[];
   const ids=new Set([...requested,...requiredCComponents(type,record)]);
   const c=document.createElement('div');c.className='card cmp-card pure-c-card';
-  let html=`<div class="card-head" data-component="C1"><span class="name">${escapeHtml(C.C1.name)}</span><span class="tag">${escapeHtml(C.C1.tag)}</span><span class="cmp-id">C1</span></div>`;
+  let html=`<div class="card-head default" data-component="C1"><span class="name">${escapeHtml(C.C1.name)}</span><span class="tag">${escapeHtml(C.C1.tag)}</span><span class="cmp-id">C1</span></div>`;
   if(ids.has('C2')) html+=`<div class="info-body" data-component="C2"><div class="thumb" data-t="${type}">${C.icon?`<img class="mc-icon" src="${C.icon}" alt="${escapeHtml(C.C1.name)}">`:''}</div><div class="desc">${linkedWikiText(C.C2.intro,C.links)}</div></div>`;
   if(ids.has('C3')&&C.C3.value!=null&&Object.keys(C.C3.value).length) html+=sectionHtml('C3',C.C3.label,formatC3(C.C3.value));
   if(ids.has('C4')&&C.C4.drops.length) html+=sectionHtml('C4','掉落物',C.C4.drops.map(d=>`<span class="cmp-chip">${linkedWikiText(d.name,C.links)}${d.count>1?` ×${escapeHtml(d.count)}`:''}</span>`).join(' '));
@@ -2258,7 +2319,7 @@ function buildMixedGuideCard(result,type){
   const ids=new Set((result.componentPlan&&result.componentPlan.components)||[]);
   const lines=splitGenerated(result.output&&result.output.text);
   const c=document.createElement('div');c.className='card cmp-card mixed-card';
-  let html=`<div class="card-head"><span class="name">${escapeHtml(C.C1.name||'综合建议')}</span><span class="tag">混合策略</span></div>`;
+  let html=`<div class="card-head default"><span class="name">${escapeHtml(C.C1.name||'综合建议')}</span><span class="tag">混合策略</span></div>`;
   const reason=lines[0]||'已结合对象资料和当前状态完成判断。';
   const advice=lines.slice(1).join(' ')||'建议先确认当前条件，再按步骤处理。';
   if(ids.has('G2')||ids.has('G4')||ids.has('C2')||ids.has('C3')) html+=sectionHtml(ids.has('G4')?'G4':'G2','原因',highlight(reason,[C.C1.name]));
@@ -2281,7 +2342,7 @@ function statFromQuery(query,context){
 function buildPureGStatCard(result,type){
   const stat=statFromQuery(result.query||'',result.context||aiContextFor(type));
   const c=document.createElement('div');c.className='card cmp-card pure-g-card';
-  c.innerHTML=`<div class="card-head"><span class="name">${escapeHtml(stat.label)}</span><span class="tag">玩家统计</span><span class="cmp-id">G7</span></div><div class="cmp-metric" data-component="G7"><span class="big">${escapeHtml(stat.value)}</span><span class="unit">${escapeHtml(stat.unit)}</span><div class="sub">${escapeHtml(stat.sub)}</div></div>`;
+  c.innerHTML=`<div class="card-head default"><span class="name">${escapeHtml(stat.label)}</span><span class="tag">玩家统计</span><span class="cmp-id">G7</span></div><div class="cmp-metric" data-component="G7"><span class="big">${escapeHtml(stat.value)}</span><span class="unit">${escapeHtml(stat.unit)}</span><div class="sub">${escapeHtml(stat.sub)}</div></div>`;
   return c;
 }
 
@@ -2418,7 +2479,7 @@ async function runAIChat(query,type,options={}){
 function buildDiscoveryStyleCard(){
   const c=document.createElement('div');c.className='card';
   c.innerHTML=`
-    <div class="card-head"><span class="name">探索偏好</span><span class="tag">发现推荐</span></div>
+    <div class="card-head default"><span class="name">探索偏好</span><span class="tag">发现推荐</span></div>
     <div style="padding:4px 2px 8px;color:#aac;font-size:12px;line-height:1.6;">告诉小狼你想要什么体验，它会为你推荐最合适的MOD，并现场搭建传送门。</div>
     <div style="display:flex;flex-direction:column;gap:6px;margin-top:4px;">
       <button class="opt" data-style="combat"><span class="oi">⚔️</span>畅快战斗<small style="display:block;font-size:10px;color:#7f91a3;margin-top:1px;">武器、Boss战、高强度战斗体验</small></button>
@@ -2459,7 +2520,7 @@ function buildDiscoveryModListCard(style){
   const stars=n=>'★'.repeat(n)+'☆'.repeat(5-n);
   const c=document.createElement('div');c.className='card';
   c.innerHTML=`
-    <div class="card-head"><span class="name">为你推荐</span><span class="tag">热门MOD</span></div>
+    <div class="card-head default"><span class="name">为你推荐</span><span class="tag">热门MOD</span></div>
     <div style="display:flex;flex-direction:column;gap:8px;margin:6px 0;">
       ${mods.map((m,i)=>`
         <div class="cmp-section" style="cursor:pointer;border-radius:6px;padding:6px;" data-mod-idx="${i}">
@@ -2524,17 +2585,40 @@ function startModPortalBuildWithEntry(modId){
   },i*180));
 }
 
+// Entity type → header color class mapping
+const ENTITY_HEAD_CLASS={
+  zombie:'hostile',creeper:'hostile',skeleton:'hostile',spider:'hostile',witch:'hostile',
+  enderman:'hostile',blaze:'hostile',ghast:'hostile',wither:'hostile',phantom:'hostile',
+  city_zombie:'hostile',city_boss:'hostile',
+  sheep:'passive',cow:'passive',pig:'passive',chicken:'passive',horse:'passive',
+  wolf:'neutral',fox:'neutral',bee:'neutral',llama:'neutral',
+  jungle_temple:'structure',village:'structure',stronghold:'structure',
+  iron_sword:'item',iron_pickaxe:'item',book:'item',
+};
+function entityHeadClass(type){
+  if(ENTITY_HEAD_CLASS[type])return ENTITY_HEAD_CLASS[type];
+  const snap=WIKI_SNAPSHOT.records[type];
+  if(snap){const t=(snap.C1?.tag||'').toLowerCase();if(t.includes('敌对')||t.includes('hostile'))return'hostile';if(t.includes('中立')||t.includes('被动'))return'passive';if(t.includes('物品')||t.includes('武器')||t.includes('工具'))return'item';if(t.includes('建筑'))return'structure';}
+  return'default';
+}
+
 function buildChoiceCard(type){
   const info = WIKI_SNAPSHOT.records[type]?.C1 || BLOCK_INFO[type] || {name:type};
   const bc = BLOCK_CARDS[type] || {tag:info.tag||'方块'};
   const rule=COLLECTION_RULES[type];
   const actionable=!!(rule?.collectible || rule?.smelt);
   const actionLabel=rule?.smelt?'帮我熔炼':'帮我收集';
+  const headCls=entityHeadClass(type);
   const c = document.createElement('div'); c.className = 'card';
   c.innerHTML = `
-    <div class="card-head"><span class="name">${escapeHtml(info.name)}</span><span class="tag">${escapeHtml(bc.tag||info.tag||'方块')}</span></div>
-    <button class="opt" data-act="what"><span class="oi">${ICON_Q}</span>这是什么</button>
-    ${actionable?`<button class="opt" data-act="collect"><span class="oi">${ICON_FLAG}</span>${actionLabel}</button>`:''}
+    <div class="card-head ${headCls}">
+      <span class="name">${escapeHtml(info.name)}</span>
+      <span class="tag">${escapeHtml(bc.tag||info.tag||'方块')}</span>
+    </div>
+    <div class="card-body">
+      <button class="opt" data-act="what"><span class="oi">${ICON_Q}</span>这是什么</button>
+      ${actionable?`<button class="opt" data-act="collect"><span class="oi">${ICON_FLAG}</span>${actionLabel}</button>`:''}
+    </div>
   `;
   c.querySelector('[data-act="what"]').addEventListener('click', ()=>{addUserMsg('这是什么');runAIChat('这是什么',type);});
   const action=c.querySelector('[data-act="collect"]');if(action)action.addEventListener('click',()=>{addUserMsg(actionLabel);rule.smelt?startWolfSmeltingTask(type):startWolfCollectionTask(type);});
@@ -2542,55 +2626,45 @@ function buildChoiceCard(type){
 }
 
 function buildInfoCard(type){
-  const info = BLOCK_INFO[type] || {name:type, desc:''};
-  const bc = BLOCK_CARDS[type] || {tag:'方块', desc:info.desc, kw:[], hardness:1, drops:[], loc:'未知位置', locKw:[]};
-  const c = document.createElement('div'); c.className = 'card';
-  const thumb = makeThumb(type);
-  const heartsN = Math.max(1, Math.min(5, Math.round(bc.hardness/2)+1));
-  let hearts = '';
-  for(let i=0;i<heartsN;i++) hearts += ICON_HEART;
-  const dropsHtml = (bc.drops && bc.drops.length)
-    ? bc.drops.map(d=>`<div class="drop"><div class="lbl">${escapeHtml(d.name)}${d.count>1?` ×${d.count}`:''}</div></div>`).join('')
-    : '<span style="color:#78909c;font-size:11px;">无掉落物</span>';
-
-  c.innerHTML = `
-    <div class="card-head">
+  const snap=WIKI_SNAPSHOT.records[type];
+  const info=snap?.C1||BLOCK_INFO[type]||{name:type,desc:''};
+  const bc=BLOCK_CARDS[type]||{tag:info.tag||'方块',desc:info.desc||'',kw:[],hardness:1,drops:[],loc:'',locKw:[]};
+  const headCls=entityHeadClass(type);
+  const c=document.createElement('div');c.className='card';
+  // Drops
+  const dropsHtml=(bc.drops&&bc.drops.length)
+    ?bc.drops.map(d=>`<div class="drop-item"><div class="di-icon" data-t="${d.type||type}"></div><div class="di-name">${escapeHtml(d.name)}</div></div>`).join('')
+    :'<span style="color:#78909c;font-size:11px;padding:4px 0;">无掉落物</span>';
+  // Stats rows
+  const statsHtml=`<div class="stat-row"><div class="stat-item"><span class="stat-label">硬度</span><span class="stat-val">${bc.hardness}</span></div></div>`;
+  c.innerHTML=`
+    <div class="card-head ${headCls}">
       <span class="name">${escapeHtml(info.name)}</span>
-      <span class="tag">${escapeHtml(bc.tag)}</span>
+      <span class="tag">${escapeHtml(bc.tag||info.tag||'方块')}</span>
     </div>
-    <div class="info-body">
-      <div class="thumb" data-t="${type}"></div>
-      <div class="desc">${highlight(bc.desc, bc.kw)}</div>
-    </div>
-    <div class="stats-row">
-      <span class="label">生命值</span>
-      <span class="val"><span class="hearts">${hearts}</span><span class="num">${bc.hardness}</span></span>
-    </div>
-    <div class="drops-row">
-      <div class="label">掉落物</div>
-      <div class="drops-list">${dropsHtml}</div>
-    </div>
-    <div class="loc-row">
-      <div class="title">${ICON_PIN}<span>在哪里</span></div>
-      <div class="text">${highlight(bc.loc, bc.locKw)}</div>
+    <div class="card-body">
+      <p class="card-desc">${highlight(bc.desc,bc.kw)}</p>
+      <div class="stats-bar">${statsHtml}</div>
+      <div class="drops-sec">
+        <div class="sec-title">掉落物</div>
+        <div class="drops-grid">${dropsHtml}</div>
+      </div>
+      ${bc.loc?`<div class="spawn-sec"><div class="sec-title">在哪里</div><div class="sec-text">${highlight(bc.loc,bc.locKw)}</div></div>`:''}
     </div>
   `;
-  // Fill thumbnail canvases (thumb only, icon-wrap removed)
-  c.querySelectorAll('.thumb').forEach(w=>{
-    const t = w.getAttribute('data-t'); if(!t) return;
-    if(!w.querySelector('canvas,img')) w.appendChild(makeThumb(t));
-  });
+  c.querySelectorAll('.di-icon[data-t]').forEach(w=>{if(!w.querySelector('canvas,img'))w.appendChild(makeThumb(w.getAttribute('data-t')));});
   return c;
 }
 
 function buildGuideCardFromTemplate(g){
   const c = document.createElement('div'); c.className = 'card';
   c.innerHTML = `
-    <div class="card-head">
+    <div class="card-head default">
       <span class="name">${escapeHtml(g.title)}</span>
       <span class="tag">指引</span>
     </div>
-    <div class="guide-sec">
+    <div class="card-body">
+      <div class="guide-sec">
       <div class="sec-title">原因</div>
       <div class="sec-text">${highlight(g.reason, g.reasonKw)}</div>
     </div>
@@ -2599,6 +2673,7 @@ function buildGuideCardFromTemplate(g){
       <div class="sec-text">${highlight(g.suggest, g.suggestKw)}</div>
     </div>
     <div class="guide-action"><button>${escapeHtml(g.action)}</button></div>
+    </div>
   `;
   c.querySelector('.guide-action button').addEventListener('click', ()=>{
     addUserMsg(g.action);
@@ -2624,10 +2699,11 @@ function buildCollectGuideCard(type){
   const suggest = bc.loc ? `${bc.loc} 里可以找到 ${info.name}，靠近后使用 ${tool} 挖掘即可。` : `使用 ${tool} 挖掘即可。`;
   const suggestKw = [info.name, tool].concat(bc.locKw||[]);
   c.innerHTML = `
-    <div class="card-head">
+    <div class="card-head default">
       <span class="name">${escapeHtml(info.name)}</span>
       <span class="tag">收集指引</span>
     </div>
+    <div class="card-body">
     <div class="guide-sec">
       <div class="sec-title">原因</div>
       <div class="sec-text">${highlight(reason, reasonKw)}</div>
@@ -2637,6 +2713,7 @@ function buildCollectGuideCard(type){
       <div class="sec-text">${highlight(suggest, suggestKw)}</div>
     </div>
     <div class="guide-action"><button>帮我收集${escapeHtml(info.name)}</button></div>
+    </div>
   `;
   c.querySelector('.guide-action button').addEventListener('click', ()=>{
     addUserMsg('帮我收集'+info.name);
