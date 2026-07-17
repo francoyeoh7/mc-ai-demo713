@@ -279,7 +279,8 @@ canvas{display:block;width:100%;height:100%;touch-action:none;}
 .hearts{display:inline-flex;gap:1px;}.hearts svg{width:11px;height:11px;}
 .stats-row .num{margin-left:4px;font-family:monospace;color:#fff;font-size:11px;font-weight:600;}
 .cmp-card .cmp-id{font:9px monospace;color:#79bfff;margin-left:auto;opacity:.75;}
-.cmp-section{margin-top:4px;padding:5px 8px;background:rgba(0,0,0,.36);border:1px solid rgba(255,255,255,.09);border-radius:5px;}
+.cmp-section{margin-top:0;padding:8px 12px;background:transparent;border:none;border-radius:0;border-top:1px solid rgba(255,255,255,.07);}
+.card-head+.cmp-section,.card-body>.cmp-section:first-child,.card>.cmp-section:first-child{border-top:none;}
 .cmp-section .cmp-title,.cmp-section .cmp-label{font-size:10px;color:#96a89a;margin-bottom:3px;letter-spacing:.5px;font-weight:600;}
 .cmp-section .cmp-text,.cmp-section .cmp-body{font-size:11px;color:#ecefec;line-height:1.6;}
 .cmp-section .cmp-body{display:flex;flex-wrap:wrap;gap:4px;}
@@ -2743,19 +2744,13 @@ function entityHeadClass(type){
 
 function buildChoiceCard(type){
   const info = WIKI_SNAPSHOT.records[type]?.C1 || BLOCK_INFO[type] || {name:type};
-  const bc = BLOCK_CARDS[type] || {tag:info.tag||'方块'};
   const rule=COLLECTION_RULES[type];
   const actionable=!!(rule?.collectible || rule?.smelt);
   const actionLabel=rule?.smelt?'帮我熔炼':'帮我收集';
-  const headCls=entityHeadClass(type);
   const c = document.createElement('div'); c.className = 'card';
   c.innerHTML = `
-    <div class="card-head ${headCls}">
-      <span class="name">${escapeHtml(info.name)}</span>
-      <span class="tag">${escapeHtml(bc.tag||info.tag||'方块')}</span>
-    </div>
-    <div class="card-body">
-      <button class="opt" data-act="what"><span class="oi">${ICON_Q}</span>这是什么</button>
+    <div class="card-body" style="padding:6px 8px;">
+      <button class="opt" data-act="what" style="margin-top:0;"><span class="oi">${ICON_Q}</span>这是什么</button>
       ${actionable?`<button class="opt" data-act="collect"><span class="oi">${ICON_FLAG}</span>${actionLabel}</button>`:''}
     </div>
   `;
