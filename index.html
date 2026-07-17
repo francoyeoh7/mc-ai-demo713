@@ -2389,13 +2389,13 @@ function buildPureCWikiCard(result,type){
     ${entityImg?`<img class="wc-entity" src="${entityImg}" alt="" onerror="this.style.display='none'">`:''}</div>`;
 
   // C2: 描述
-  if(C.C2&&C.C2.intro){
+  if(ids.has('C2')&&C.C2&&C.C2.intro){
     html+=`<p class="wc-desc">${linkedWikiText(C.C2.intro,links)}</p>`;
   }
 
   // C3: Stats — flat key-value grid
   const statsVal=C.C3&&C.C3.value;
-  if(statsVal&&Object.keys(statsVal).length){
+  if(ids.has('C3')&&statsVal&&Object.keys(statsVal).length){
     const items=Object.entries(statsVal).map(([k,v])=>{
       const isDropLink=k.includes('掉落');
       const spanCls=isDropLink?'wc-sv link':'wc-sv';
@@ -2406,18 +2406,18 @@ function buildPureCWikiCard(result,type){
   }
 
   // C4: Drops icon grid
-  if(C.C4&&C.C4.drops.length){
+  if(ids.has('C4')&&C.C4&&C.C4.drops.length){
     const dItems=C.C4.drops.map(d=>`<div class="wc-dp"><div class="wc-di" data-t="${d.type||type}"></div><div class="wc-dn">${linkedWikiText(d.name,links)}${d.count>1?` ×${d.count}`:''}</div></div>`).join('');
     html+=`<div class="wc-drops"><div class="wc-sec-t">掉落物</div><div class="wc-dg">${dItems}</div></div>`;
   }
 
   // C5: Uses
-  if(C.C5&&C.C5.uses){
+  if(ids.has('C5')&&C.C5&&C.C5.uses){
     html+=`<div class="wc-section"><div class="wc-sec-t">能做什么</div><div class="wc-sec-b">${linkedWikiText(C.C5.uses,links)}</div></div>`;
   }
 
   // C6: Recipe
-  if(C.C6&&C.C6.recipe&&C.C6.recipe.length>1){
+  if(ids.has('C6')&&C.C6&&C.C6.recipe&&C.C6.recipe.length>1){
     const mats=C.C6.recipe.slice(0,-1);
     const matsHtml=mats.map(m=>`<div class="wc-mat"><span class="wc-mn">${linkedWikiText(m,links)}</span></div>`).join('');
     html+=`<div class="wc-recipe"><div class="wc-recipe-row">
@@ -2429,7 +2429,7 @@ function buildPureCWikiCard(result,type){
   }
 
   // C7: Location/spawn
-  if(C.C7&&C.C7.source){
+  if(ids.has('C7')&&C.C7&&C.C7.source){
     html+=`<div class="wc-section"><div class="wc-sec-t">在哪里</div><div class="wc-sec-b">${linkedWikiText(C.C7.source,links)}</div></div>`;
   }
 
