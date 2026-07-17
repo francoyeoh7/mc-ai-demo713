@@ -98,13 +98,15 @@ canvas{display:block;width:100%;height:100%;touch-action:none;}
 #drag-cross svg{width:100%;height:100%;filter:drop-shadow(0 0 8px rgba(255,220,80,1));}
 
 /* Voice bubble */
-#voice-bubble{position:fixed;top:22px;right:92px;left:auto;max-width:200px;padding:10px 16px;border-radius:16px 16px 4px 16px;background:rgba(0,0,0,.8);border:1px solid rgba(126,217,87,.55);color:#eaffd6;font-size:14px;line-height:1.4;z-index:65;display:none;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);text-align:left;white-space:normal;box-shadow:0 8px 22px rgba(0,0,0,.5),0 0 16px rgba(126,217,87,.28);}
+#voice-bubble{position:fixed;top:22px;right:92px;left:auto;max-width:220px;padding:8px 14px;border-radius:16px 16px 4px 16px;background:rgba(0,0,0,.88);border:1px solid rgba(126,217,87,.55);color:#eaffd6;font-size:13px;font-weight:600;line-height:1.4;z-index:65;display:none;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);text-align:left;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;box-shadow:0 8px 22px rgba(0,0,0,.5),0 0 16px rgba(126,217,87,.28);}
 #voice-bubble .mic{display:inline-block;width:8px;height:8px;border-radius:50%;background:#ef5350;margin-right:8px;vertical-align:middle;animation:pulse 1s infinite;}
+#voice-bubble.sense-mode{border-color:rgba(255,220,80,.7);color:#fff8d0;box-shadow:0 8px 22px rgba(0,0,0,.5),0 0 16px rgba(255,200,50,.3);}
+#voice-bubble.sense-mode .mic{background:#ffdc50;animation:senseScan 1.2s linear infinite;}
 @keyframes pulse{0%,100%{opacity:1;transform:scale(1);}50%{opacity:.4;transform:scale(1.35);}}
 #voice-bubble .txt{vertical-align:middle;}
 
-/* Block name label */
-#block-label{position:fixed;left:50%;top:36%;transform:translate(-50%,-50%);padding:6px 16px;background:rgba(0,0,0,.82);border:1px solid rgba(255,220,80,.75);color:#fff8d0;border-radius:6px;font-size:15px;font-weight:600;letter-spacing:1px;z-index:57;display:none;pointer-events:none;text-shadow:0 1px 2px #000;}
+/* Block name label — hidden, name now shown in voice bubble */
+#block-label{display:none !important;}
 
 /* Chat panel — full-height right side, flush to top-right, overlaps AI ball */
 #chat-panel{position:fixed;top:22px;right:22px;bottom:14px;width:min(380px,78vw);max-width:380px;background:rgba(15,22,18,0.94);border:1px solid rgba(255,255,255,0.1);border-radius:14px;z-index:55;display:none;flex-direction:column;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);box-shadow:0 8px 28px rgba(0,0,0,.55);transform-origin:top right;animation:panelIn .22s ease-out;}
@@ -191,8 +193,9 @@ canvas{display:block;width:100%;height:100%;touch-action:none;}
 /* Componentized strategy output */
 .cmp-card .cmp-id{font:9px monospace;color:#79bfff;margin-left:auto;opacity:.75;}
 .cmp-section{margin-top:8px;padding:9px 10px;background:rgba(0,0,0,.36);border:1px solid rgba(255,255,255,.09);border-radius:6px;}
-.cmp-section .cmp-title{font-size:11px;color:#96a89a;margin-bottom:5px;letter-spacing:.5px;}
-.cmp-section .cmp-text{font-size:12px;color:#ecefec;line-height:1.65;}
+.cmp-section .cmp-title,.cmp-section .cmp-label{font-size:11px;color:#96a89a;margin-bottom:5px;letter-spacing:.5px;font-weight:600;}
+.cmp-section .cmp-text,.cmp-section .cmp-body{font-size:12px;color:#ecefec;line-height:1.65;}
+.cmp-section .cmp-body{display:flex;flex-wrap:wrap;gap:5px;}
 .cmp-metric{text-align:center;padding:18px 10px 14px;background:linear-gradient(180deg,rgba(126,217,87,.13),rgba(0,0,0,.3));border-radius:7px;}
 .cmp-metric .big{font:700 42px/1 monospace;color:#8fe56b;text-shadow:0 0 14px rgba(126,217,87,.28);}
 .cmp-metric .unit{font-size:13px;color:#bdd6b6;margin-left:5px;}
@@ -324,6 +327,7 @@ body.ai-suppressed #chat-panel{opacity:.32 !important;filter:saturate(.4);transi
 #hotbar{position:fixed;left:50%;bottom:8px;transform:translateX(-50%);z-index:40;display:flex;gap:2px;padding:3px;background:#2b2b2b;border:2px solid #111;box-shadow:0 0 0 2px #777;overflow:visible;}
 .hot-slot{width:36px;height:36px;background:#777;border:2px solid #333;box-shadow:inset 2px 2px #aaa,inset -2px -2px #444;display:flex;align-items:center;justify-content:center;color:white;font:bold 10px monospace;position:relative;}
 .hot-slot.active{outline:3px solid #fff;z-index:1;}.hot-slot .count{position:absolute;right:2px;bottom:0;text-shadow:1px 1px #000;}
+.hot-slot img,.mc-icon{image-rendering:pixelated;image-rendering:-moz-crisp-edges;width:80%;height:80%;object-fit:contain;}
 #inventory-btn{position:fixed;right:16px;bottom:16px;z-index:42;width:42px;height:42px;background:#777;border:2px solid #222;color:#fff;font:bold 16px monospace;box-shadow:inset 2px 2px #aaa,inset -2px -2px #444;}
 #inventory-panel{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);z-index:96;width:min(420px,78vw);padding:14px;background:#c6c6c6;border:4px solid #222;box-shadow:inset 2px 2px #fff,inset -2px -2px #555;display:none;color:#222;}
 #inventory-panel.open,#furnace-panel.open{display:block}.inv-title{font:bold 14px monospace;margin-bottom:9px;text-shadow:1px 1px #fff}.inv-grid{display:grid;grid-template-columns:repeat(9,1fr);gap:3px}.inv-slot{aspect-ratio:1;background:#8b8b8b;border:2px solid;border-color:#555 #fff #fff #555;display:flex;align-items:center;justify-content:center;font:bold 9px monospace;text-align:center;position:relative;image-rendering:pixelated}.inv-slot img{width:76%;height:76%;object-fit:contain;image-rendering:pixelated}.inv-slot .slot-count{position:absolute;right:2px;bottom:0;color:#fff;text-shadow:1px 1px #111;font:bold 11px monospace}.inv-slot.ai-slot-selected{outline:3px solid #7ed957;z-index:1;box-shadow:0 0 12px #7ed957}
@@ -1758,11 +1762,12 @@ function activateAIDrag(){
   dragCross.style.display='block';
   moveCrossTo(AI_DRAG.curX, AI_DRAG.curY);
   placeVoiceNearBall();
+  voiceBubble.classList.add('sense-mode');
   voiceBubble.style.display='block';
-  voiceTxt.textContent = CHAT.pendingVoice || '正在感知环境...';
+  voiceTxt.textContent = CHAT.pendingVoice || '感知中...';
   if(!recActive){
     CHAT.pendingVoice = '';
-    startVoice(text=>{ CHAT.pendingVoice = text; voiceTxt.textContent = text || '正在感知环境...'; });
+    startVoice(text=>{ CHAT.pendingVoice = text; voiceTxt.textContent = text || '感知中...'; });
   }
   if(hintEl) hintEl.classList.add('hidden');
 }
@@ -1774,7 +1779,9 @@ function selectUISlotAt(x,y){
   slot.classList.add('ai-slot-selected');
   const id=slot.dataset.itemId,record=WIKI_SNAPSHOT.records[id];
   CHAT.selectedType=id;CHAT.selectedPos=null;CHAT.selectionSource='ui';
-  blockLabel.textContent=record?.C1?.name||id;blockLabel.style.display='block';
+  const _slotName=record?.C1?.name||id;
+  blockLabel.style.display='none';
+  if(voiceBubble.style.display==='block'&&!CHAT.pendingVoice)voiceTxt.textContent=_slotName;
   return true;
 }
 
@@ -1807,6 +1814,7 @@ function aiEnd(){
   if(!wasActive){
     if(wasListening){
       voiceBubble.style.display='none';
+      voiceBubble.classList.remove('sense-mode');
       stopVoice();
       const heard = (CHAT.pendingVoice||'').trim();
       if(heard){
@@ -1823,6 +1831,7 @@ function aiEnd(){
   }
   dragCross.style.display='none';
   voiceBubble.style.display='none';
+  voiceBubble.classList.remove('sense-mode');
   blockLabel.style.display='none';
   highlightOutline.visible=false;
   highlightFill.visible=false;
@@ -2300,23 +2309,23 @@ function buildCityPlanningCard(){
     </div>
     <div class="cmp-section" data-component="C2">
       <div class="cmp-label">🏙 MOD玩法简介</div>
-      <div class="cmp-body">${cityLinked(introText)}</div>
+      <div class="cmp-text">${cityLinked(introText)}</div>
     </div>
     <div class="cmp-section" data-component="G3">
       <div class="cmp-label">⚡ 第一步</div>
-      <div class="cmp-body">${cityLinked(step1Text)}</div>
+      <div class="cmp-text">${cityLinked(step1Text)}</div>
     </div>
     <div class="cmp-section" data-component="C7">
       <div class="cmp-label">📍 首领位置</div>
-      <div class="cmp-body">${cityLinked(bossText)}</div>
+      <div class="cmp-text">${cityLinked(bossText)}</div>
     </div>
     <div class="cmp-section" data-component="C5">
       <div class="cmp-label">🗡 强力装备</div>
-      <div class="cmp-body">${cityLinked(gearText)}</div>
+      <div class="cmp-text">${cityLinked(gearText)}</div>
     </div>
     <div class="cmp-section" data-component="G6">
       <div class="cmp-label">🗺 推荐路线</div>
-      <div class="cmp-body">${cityLinked(routeText)}</div>
+      <div class="cmp-text">${cityLinked(routeText)}</div>
     </div>
   `;
   bindWikiLinks(c);
@@ -2874,7 +2883,9 @@ function raycastCrosshair(){
     highlightOutline.position.copy(root.position).add(new THREE.Vector3(0,1,0));
     highlightFill.position.copy(highlightOutline.position);
     highlightOutline.visible=true;highlightFill.visible=true;
-    blockLabel.textContent=root.userData.name;blockLabel.style.display='block';
+    const _eName=root.userData.name||root.userData.type;
+    blockLabel.style.display='none';
+    if(AI_DRAG.active&&voiceBubble.style.display==='block'&&!CHAT.pendingVoice)voiceTxt.textContent=_eName;
     setAIState('sense');return;
   }
   const hits=blockHits;
@@ -2882,6 +2893,7 @@ function raycastCrosshair(){
     CHAT.selectedType=null; CHAT.selectedPos=null; CHAT.selectionSource=null;
     highlightOutline.visible=false; highlightFill.visible=false;
     blockLabel.style.display='none';
+    if(AI_DRAG.active&&voiceBubble.style.display==='block'&&!CHAT.pendingVoice)voiceTxt.textContent='感知中...';
     return;
   }
   setAIState('sense');
@@ -2899,7 +2911,9 @@ function raycastCrosshair(){
   highlightFill.position.set(x+0.5, y+0.5, z+0.5);
   highlightOutline.visible=true; highlightFill.visible=true;
   const info = BLOCK_INFO[type];
-  if(info){ blockLabel.textContent = info.name; blockLabel.style.display='block'; }
+  const _bName=info?.name||WIKI_SNAPSHOT.records[type]?.C1?.name||type;
+  blockLabel.style.display='none';
+  if(AI_DRAG.active&&voiceBubble.style.display==='block'&&!CHAT.pendingVoice)voiceTxt.textContent=_bName;
 }
 
 // ==============================================================
