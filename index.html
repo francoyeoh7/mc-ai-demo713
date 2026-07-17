@@ -410,7 +410,7 @@ body.ai-suppressed #chat-panel{opacity:.32 !important;filter:saturate(.4);transi
 .hot-slot{width:36px;height:36px;background:#777;border:2px solid #333;box-shadow:inset 2px 2px #aaa,inset -2px -2px #444;display:flex;align-items:center;justify-content:center;color:white;font:bold 10px monospace;position:relative;}
 .hot-slot.active{outline:3px solid #fff;z-index:1;}.hot-slot .count{position:absolute;right:2px;bottom:0;text-shadow:1px 1px #000;}
 .hot-slot img,.mc-icon{image-rendering:pixelated;image-rendering:-moz-crisp-edges;width:80%;height:80%;object-fit:contain;}
-#inventory-btn{position:fixed;right:16px;bottom:16px;z-index:42;width:42px;height:42px;background:#777;border:2px solid #222;color:#fff;font:bold 16px monospace;box-shadow:inset 2px 2px #aaa,inset -2px -2px #444;}
+#inventory-btn{position:fixed;left:calc(50% + 196px);bottom:8px;transform:none;z-index:42;width:42px;height:42px;background:#777;border:2px solid #222;color:#fff;font:bold 16px monospace;box-shadow:inset 2px 2px #aaa,inset -2px -2px #444;}
 #inventory-panel{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);z-index:96;width:min(420px,78vw);padding:14px;background:#c6c6c6;border:4px solid #222;box-shadow:inset 2px 2px #fff,inset -2px -2px #555;display:none;color:#222;}
 #inventory-panel.open,#furnace-panel.open{display:block}.inv-title{font:bold 14px monospace;margin-bottom:9px;text-shadow:1px 1px #fff}.inv-grid{display:grid;grid-template-columns:repeat(9,1fr);gap:3px}.inv-slot{aspect-ratio:1;background:#8b8b8b;border:2px solid;border-color:#555 #fff #fff #555;display:flex;align-items:center;justify-content:center;font:bold 9px monospace;text-align:center;position:relative;image-rendering:pixelated}.inv-slot img{width:76%;height:76%;object-fit:contain;image-rendering:pixelated}.inv-slot .slot-count{position:absolute;right:2px;bottom:0;color:#fff;text-shadow:1px 1px #111;font:bold 11px monospace}.inv-slot.ai-slot-selected{outline:3px solid #7ed957;z-index:1;box-shadow:0 0 12px #7ed957}
 #furnace-panel{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);z-index:96;width:min(390px,72vw);padding:14px;background:#c6c6c6;border:4px solid #222;box-shadow:inset 2px 2px #fff,inset -2px -2px #555;display:none;color:#222}.furnace-layout{display:grid;grid-template-columns:52px 66px 52px;grid-template-rows:52px 52px;gap:6px;justify-content:center;align-items:center;margin:14px}.furnace-layout .fuel{grid-column:1;grid-row:2}.furnace-icons{grid-column:2;grid-row:1/3;text-align:center;font-size:24px}.mc-ui-btn{margin-top:10px;padding:7px 12px;background:#777;border:2px solid;border-color:#fff #333 #333 #fff;color:#fff;text-shadow:1px 1px #111;font-family:monospace}
@@ -1628,7 +1628,7 @@ function buildCityScene(){
   const cityAmb=new THREE.AmbientLight(0x334455,0.9);cityGroup.add(cityAmb);
   const cityDir=new THREE.DirectionalLight(0xffffff,0.6);cityDir.position.set(-5,10,5);cityGroup.add(cityDir);
 }
-buildCityScene();
+// buildCityScene() is called lazily inside enterCityScene()
 
 function spawnCityZombies(){
   const positions=[[-15,0,-5],[-5,0,-12],[0,0,5],[5,0,-18],[-10,0,15],[8,0,-8]];
@@ -1642,9 +1642,12 @@ function spawnCityZombies(){
 function showSceneBadge(){}
 function hideSceneBadge(){}
 
+let citySceneBuilt=false;
+
 function enterCityScene(){
   if(window.SCENE_MODE==='city')return;
   window.SCENE_MODE='city';
+  if(!citySceneBuilt){buildCityScene();citySceneBuilt=true;}
   scene.children.forEach(o=>{
     if(o===cityGroup)return;
     if(o.isLight)return;
