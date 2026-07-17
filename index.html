@@ -2398,7 +2398,9 @@ function buildPureCWikiCard(result,type){
   if(statsVal&&Object.keys(statsVal).length){
     const items=Object.entries(statsVal).map(([k,v])=>{
       const isDropLink=k.includes('掉落');
-      return `<div class="wc-stat"><span class="wc-sl">${escapeHtml(k)}</span><span class="wc-sv${isDropLink?' link wiki-link" data-wiki="'+type+'"':'"}'>${escapeHtml(v)}</span></div>`;
+      const spanCls=isDropLink?'wc-sv link':'wc-sv';
+      const wikiAttr=isDropLink?' data-wiki="'+type+'" class="wiki-link"':'';
+      return '<div class="wc-stat"><span class="wc-sl">'+escapeHtml(k)+'</span><span class="'+spanCls+'"'+wikiAttr+'>'+escapeHtml(v)+'</span></div>';
     }).join('');
     html+=`<div class="wc-stats">${items}</div>`;
   }
