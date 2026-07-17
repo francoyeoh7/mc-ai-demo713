@@ -116,7 +116,7 @@ canvas{display:block;width:100%;height:100%;touch-action:none;}
 #chat-close{position:absolute;top:8px;left:8px;width:24px;height:24px;border-radius:50%;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);color:#ccc;font-size:14px;line-height:1;z-index:2;display:flex;align-items:center;justify-content:center;padding:0;}
 #chat-close:active{background:rgba(255,255,255,0.16);}
 
-#chat-panel .chat-body{flex:1;overflow-y:auto;padding:72px 8px 6px;-webkit-overflow-scrolling:touch;}
+#chat-panel .chat-body{flex:1;overflow-y:auto;padding:72px 4px 6px;-webkit-overflow-scrolling:touch;}
 #chat-panel .chat-body::-webkit-scrollbar{width:4px;}
 #chat-panel .chat-body::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.15);border-radius:2px;}
 
@@ -124,7 +124,7 @@ canvas{display:block;width:100%;height:100%;touch-action:none;}
 #chat-panel .empty-state .big{font-size:14px;color:#b0bec5;margin-bottom:8px;font-weight:600;}
 
 /* Message row */
-.msg{margin:8px 0;display:flex;align-items:flex-start;gap:0;}
+.msg{margin:16px 0;display:flex;align-items:flex-start;gap:0;}
 .msg.user{justify-content:flex-end;}
 .msg .avatar{display:none;}
 .msg .bubble{min-width:0;}
@@ -156,16 +156,16 @@ canvas{display:block;width:100%;height:100%;touch-action:none;}
 /* Entity image — absolutely positioned at top-right */
 .wiki-card .wc-entity{position:absolute;right:6px;top:4px;width:88px;height:88px;object-fit:contain;image-rendering:pixelated;image-rendering:-moz-crisp-edges;filter:drop-shadow(0 4px 10px rgba(0,0,0,0.8));pointer-events:none;z-index:2;}
 /* Description */
-.wiki-card .wc-desc{padding:10px 106px 6px 14px;font-size:12px;color:rgba(255,255,255,0.65);line-height:1.7;}
+.wiki-card .wc-desc{padding:10px 14px 8px 14px;padding-right:106px;font-size:12px;color:rgba(255,255,255,0.65);line-height:1.7;}
 .wiki-card .wc-desc .wiki-link{color:#9fff84;text-decoration:underline;text-decoration-style:dotted;cursor:pointer;}
 /* Stats flat key-value grid */
-.wiki-card .wc-stats{margin:4px 10px 0;background:rgba(255,255,255,0.055);border-radius:6px;padding:7px 10px;display:flex;flex-wrap:wrap;gap:0;}
+.wiki-card .wc-stats{margin:0;background:transparent;border-radius:0;padding:8px 14px;display:flex;flex-wrap:wrap;gap:0;border-top:1px solid rgba(255,255,255,0.07);}
 .wc-stat{flex:0 0 50%;display:flex;align-items:baseline;gap:5px;padding:3px 0;}
 .wc-sl{color:rgba(255,255,255,0.45);font-size:11px;white-space:nowrap;min-width:44px;flex-shrink:0;}
 .wc-sv{color:#fff;font-size:11.5px;font-weight:500;}
 .wc-sv.link{color:#9fff84;text-decoration:underline;text-decoration-style:dotted;cursor:pointer;}
 /* Drops icon grid */
-.wiki-card .wc-drops{margin:6px 10px 0;background:rgba(255,255,255,0.04);border-radius:6px;padding:7px 10px;}
+.wiki-card .wc-drops{margin:0;background:transparent;border-radius:0;padding:8px 14px;border-top:1px solid rgba(255,255,255,0.07);}
 .wc-sec-t{color:#fff;font-size:11.5px;font-weight:700;margin-bottom:6px;}
 .wc-dg{display:flex;gap:8px;flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:2px;}
 .wc-dg::-webkit-scrollbar{height:2px;}.wc-dg::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.18);border-radius:1px;}
@@ -174,12 +174,12 @@ canvas{display:block;width:100%;height:100%;touch-action:none;}
 .wc-dp .wc-di canvas,.wc-dp .wc-di img{width:80%;height:80%;object-fit:contain;image-rendering:pixelated;}
 .wc-dp .wc-dn{font-size:10px;color:rgba(255,255,255,0.72);text-align:center;line-height:1.3;max-width:52px;}
 /* Text sections */
-.wiki-card .wc-section{margin:6px 10px 0;background:rgba(255,255,255,0.04);border-radius:6px;padding:7px 10px;}
+.wiki-card .wc-section{margin:0;background:transparent;border-radius:0;padding:8px 14px;border-top:1px solid rgba(255,255,255,0.07);}
 .wiki-card .wc-section .wc-sec-t{margin-bottom:4px;}
 .wiki-card .wc-section .wc-sec-b{font-size:11.5px;color:rgba(255,255,255,0.7);line-height:1.7;}
 .wiki-card .wc-section .wc-sec-b .wiki-link{color:#9fff84;text-decoration:underline;text-decoration-style:dotted;cursor:pointer;}
 /* Recipe */
-.wiki-card .wc-recipe{margin:6px 10px 0;background:rgba(255,255,255,0.04);border-radius:6px;padding:7px 10px;}
+.wiki-card .wc-recipe{margin:0;background:transparent;border-radius:0;padding:8px 14px;border-top:1px solid rgba(255,255,255,0.07);}
 .wc-mats-list{margin-top:5px;display:flex;flex-direction:column;gap:2px;}
 .wc-mat{display:flex;justify-content:space-between;align-items:center;padding:4px 6px;background:rgba(255,255,255,0.04);border-radius:4px;}
 .wc-mat:last-child{border-bottom:none;}
@@ -197,7 +197,7 @@ canvas{display:block;width:100%;height:100%;touch-action:none;}
 .wc-mn{color:#9fff84;font-size:11px;text-decoration:underline;text-decoration-style:dotted;}
 .wc-mc{color:#fff;font-size:11px;font-weight:700;}
 /* Can-craft */
-.wiki-card .wc-cc{margin:6px 10px 0;background:rgba(255,255,255,0.04);border-radius:6px;padding:7px 10px;}
+.wiki-card .wc-cc{margin:0;background:transparent;border-radius:0;padding:8px 14px;border-top:1px solid rgba(255,255,255,0.07);}
 .wc-ccl{display:flex;gap:8px;flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;}
 .wc-cci{flex-shrink:0;display:flex;flex-direction:column;align-items:center;gap:3px;}
 .wc-cci .wc-ci{width:44px;height:44px;background:#5a5a5a;border-radius:3px;display:flex;align-items:center;justify-content:center;overflow:hidden;}
