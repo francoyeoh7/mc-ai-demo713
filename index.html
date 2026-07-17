@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -141,129 +142,148 @@ canvas{display:block;width:100%;height:100%;touch-action:none;}
 .msg.ai .bubble.thinking .dots span:nth-child(3){animation-delay:0.3s;}
 @keyframes thk{0%,80%,100%{opacity:0.25;transform:scale(0.8);}40%{opacity:1;transform:scale(1);}}
 
-/* ===== FIGMA DESIGN SYSTEM — 信息卡片 ===== */
-/* Card base */
-.card{background:rgba(0,0,0,0.32);border:2px solid rgba(0,0,0,0.36);border-radius:6px;padding:0;color:#e8e8e8;font-size:12px;line-height:1.5;overflow:hidden;}
+/* ===== WIKI-CARD — Figma 1:1 Design System ===== */
+.wiki-card{background:rgba(18,22,18,0.97);border-radius:10px;overflow:hidden;color:#e8e8e8;font-size:12px;line-height:1.5;position:relative;}
+/* Header */
+.wiki-card .wc-head{display:flex;align-items:center;gap:8px;padding:11px 106px 11px 14px;min-height:50px;border-radius:10px 10px 0 0;position:relative;}
+.wiki-card .wc-head.neutral,.wiki-card .wc-head.passive{background:#3f9e25;}
+.wiki-card .wc-head.hostile{background:#8b1a1a;}
+.wiki-card .wc-head.item,.wiki-card .wc-head.structure,.wiki-card .wc-head.default{background:#1e2020;border-bottom:1px solid rgba(255,255,255,0.1);}
+.wiki-card .wc-head::after{content:'';position:absolute;bottom:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.5) 50%,transparent);pointer-events:none;}
+.wiki-card .wc-name{font-size:16px;font-weight:800;color:#fff;letter-spacing:1px;}
+.wiki-card .wc-tag{font-size:11.5px;color:rgba(255,255,255,0.8);font-weight:500;margin-left:4px;}
+.wiki-card .wc-head.hostile .wc-tag{color:rgba(255,190,190,0.85);}
+/* Entity image — absolutely positioned at top-right */
+.wiki-card .wc-entity{position:absolute;right:6px;top:4px;width:88px;height:88px;object-fit:contain;image-rendering:pixelated;image-rendering:-moz-crisp-edges;filter:drop-shadow(0 4px 10px rgba(0,0,0,0.8));pointer-events:none;z-index:2;}
+/* Description */
+.wiki-card .wc-desc{padding:10px 106px 6px 14px;font-size:12px;color:rgba(255,255,255,0.65);line-height:1.7;}
+.wiki-card .wc-desc .wiki-link{color:#9fff84;text-decoration:underline;text-decoration-style:dotted;cursor:pointer;}
+/* Stats flat key-value grid */
+.wiki-card .wc-stats{margin:4px 10px 0;background:rgba(255,255,255,0.055);border-radius:6px;padding:7px 10px;display:flex;flex-wrap:wrap;gap:0;}
+.wc-stat{flex:0 0 50%;display:flex;align-items:baseline;gap:5px;padding:3px 0;}
+.wc-sl{color:rgba(255,255,255,0.45);font-size:11px;white-space:nowrap;min-width:44px;flex-shrink:0;}
+.wc-sv{color:#fff;font-size:11.5px;font-weight:500;}
+.wc-sv.link{color:#9fff84;text-decoration:underline;text-decoration-style:dotted;cursor:pointer;}
+/* Drops icon grid */
+.wiki-card .wc-drops{margin:6px 10px 0;background:rgba(255,255,255,0.04);border-radius:6px;padding:7px 10px;}
+.wc-sec-t{color:#fff;font-size:11.5px;font-weight:700;margin-bottom:6px;}
+.wc-dg{display:flex;gap:8px;flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:2px;}
+.wc-dg::-webkit-scrollbar{height:2px;}.wc-dg::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.18);border-radius:1px;}
+.wc-dp{flex-shrink:0;display:flex;flex-direction:column;align-items:center;gap:4px;}
+.wc-dp .wc-di{width:44px;height:44px;background:#6b6b6b;border-radius:3px;display:flex;align-items:center;justify-content:center;overflow:hidden;}
+.wc-dp .wc-di canvas,.wc-dp .wc-di img{width:80%;height:80%;object-fit:contain;image-rendering:pixelated;}
+.wc-dp .wc-dn{font-size:10px;color:rgba(255,255,255,0.72);text-align:center;line-height:1.3;max-width:52px;}
+/* Text sections */
+.wiki-card .wc-section{margin:6px 10px 0;background:rgba(255,255,255,0.04);border-radius:6px;padding:7px 10px;}
+.wiki-card .wc-section .wc-sec-t{margin-bottom:4px;}
+.wiki-card .wc-section .wc-sec-b{font-size:11.5px;color:rgba(255,255,255,0.7);line-height:1.7;}
+.wiki-card .wc-section .wc-sec-b .wiki-link{color:#9fff84;text-decoration:underline;text-decoration-style:dotted;cursor:pointer;}
+/* Recipe */
+.wiki-card .wc-recipe{margin:6px 10px 0;background:rgba(255,255,255,0.04);border-radius:6px;padding:7px 10px;}
+.wc-recipe-row{display:flex;align-items:center;gap:7px;margin-bottom:7px;}.wc-recipe-row:last-child{margin-bottom:0;}
+.wc-craft3{display:grid;grid-template-columns:repeat(3,1fr);gap:2px;width:82px;height:82px;background:#8b8b8b;border:2px solid #373737;border-radius:3px;overflow:hidden;flex-shrink:0;}
+.wc-cell{background:#9a9a9a;display:flex;align-items:center;justify-content:center;}
+.wc-cell img,.wc-cell canvas{width:80%;height:80%;object-fit:contain;image-rendering:pixelated;}
+.wc-arrow{color:rgba(255,255,255,0.5);font-size:14px;flex-shrink:0;}
+.wc-result{width:40px;height:40px;background:#6b6b6b;border:2px solid #373737;border-radius:3px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.wc-result canvas,.wc-result img{width:80%;height:80%;object-fit:contain;image-rendering:pixelated;}
+.wc-mats{flex:1;padding-left:4px;}
+.wc-mat{display:flex;justify-content:space-between;align-items:center;padding:3px 0;border-bottom:1px dashed rgba(255,255,255,0.1);}.wc-mat:last-child{border-bottom:none;}
+.wc-mn{color:#9fff84;font-size:11px;text-decoration:underline;text-decoration-style:dotted;}
+.wc-mc{color:#fff;font-size:11px;font-weight:700;}
+/* Can-craft */
+.wiki-card .wc-cc{margin:6px 10px 0;background:rgba(255,255,255,0.04);border-radius:6px;padding:7px 10px;}
+.wc-ccl{display:flex;gap:8px;flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;}
+.wc-cci{flex-shrink:0;display:flex;flex-direction:column;align-items:center;gap:3px;}
+.wc-cci .wc-ci{width:44px;height:44px;background:#5a5a5a;border-radius:3px;display:flex;align-items:center;justify-content:center;overflow:hidden;}
+.wc-cci .wc-ci canvas,.wc-cci .wc-ci img{width:80%;height:80%;object-fit:contain;image-rendering:pixelated;}
+.wc-cci .wc-cn{font-size:10px;color:rgba(255,255,255,0.7);text-align:center;max-width:52px;}
+.wiki-card .wc-pad{height:8px;}
+.wiki-card .k{color:#9fff84;font-weight:600;}
 
-/* Card header bar — 颜色按实体类型区分 */
-.card .card-head{padding:10px 12px;margin-bottom:0;display:flex;align-items:center;gap:8px;position:relative;overflow:hidden;min-height:44px;}
-.card .card-head.hostile  {background:#8b1a1a;}
-.card .card-head.neutral  {background:#3f9e25;}
-.card .card-head.passive  {background:#3f9e25;}
-.card .card-head.structure{background:#1e1e1e;border-bottom:1px solid rgba(255,255,255,0.08);}
-.card .card-head.item     {background:#1e1e1e;border-bottom:1px solid rgba(255,255,255,0.08);}
-.card .card-head.default  {background:#1e1e1e;border-bottom:1px solid rgba(255,255,255,0.08);}
-/* 分隔光线 */
-.card .card-head::after{content:'';position:absolute;bottom:0;left:0;right:0;height:1.5px;background:linear-gradient(90deg,rgba(255,255,255,0) 0%,rgba(255,255,255,0.6) 50%,rgba(255,255,255,0) 100%);pointer-events:none;}
-.card .card-head .name{font-size:15px;font-weight:800;color:#fff;letter-spacing:1px;text-shadow:0 1px 2px rgba(0,0,0,0.5);}
-.card .card-head .tag{font-size:11px;font-weight:600;color:rgba(255,255,255,0.7);letter-spacing:.5px;}
-.card .card-head.hostile .tag{color:#ffaaaa;}
+/* ===== .card — 用于选择/指引/策略卡 (非wiki信息卡) ===== */
+.card{background:rgba(18,22,18,0.97);border-radius:8px;padding:0;color:#e8e8e8;font-size:12px;line-height:1.5;overflow:hidden;}
+.card .card-head{padding:8px 12px;display:flex;align-items:center;gap:7px;min-height:40px;position:relative;}
+.card .card-head.hostile{background:#8b1a1a;}.card .card-head.neutral,.card .card-head.passive{background:#3f9e25;}
+.card .card-head.item,.card .card-head.structure,.card .card-head.default{background:#1e2020;border-bottom:1px solid rgba(255,255,255,0.08);}
+.card .card-head::after{content:'';position:absolute;bottom:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.3) 50%,transparent);pointer-events:none;}
+.card .card-head .name{font-size:14px;font-weight:800;color:#fff;letter-spacing:1px;}
+.card .card-head .tag{font-size:10.5px;color:rgba(255,255,255,0.72);}
 .card .k{color:#9fff84;font-weight:600;}
-/* 实体图片浮于右上角 */
-.card .card-head .entity-img{position:absolute;right:8px;top:50%;transform:translateY(-50%);width:64px;height:64px;object-fit:contain;image-rendering:pixelated;filter:drop-shadow(0 2px 4px rgba(0,0,0,0.5));pointer-events:none;}
-
-/* Card inner padding wrapper */
-.card .card-body{padding:10px 12px;}
-
-/* Description text */
-.card .card-desc{font-size:12px;color:rgba(255,255,255,0.64);line-height:1.7;margin-bottom:8px;padding-right:68px;}
-
-/* Stats section — dark gradient bar */
-.card .stats-bar{background:linear-gradient(135deg,#535353 0%,#3a3a3a 100%);border-radius:5px;padding:8px 12px;margin-top:6px;box-shadow:0 4px 0 rgba(0,0,0,1);}
-.card .stats-bar .stat-row{display:flex;gap:0;flex-wrap:wrap;}
-.card .stats-bar .stat-item{display:flex;align-items:baseline;gap:6px;flex:1;min-width:120px;margin-bottom:4px;}
-.card .stats-bar .stat-item:last-child{margin-bottom:0;}
-.card .stats-bar .stat-label{color:rgba(255,255,255,0.48);font-size:11px;font-weight:500;min-width:52px;}
-.card .stats-bar .stat-val{color:#fff;font-size:11px;font-weight:500;}
-
-/* Drops section */
-.card .drops-sec{margin-top:6px;padding:8px 12px;background:rgba(0,0,0,0.45);border-radius:5px;}
-.card .drops-sec .sec-title{color:#fff;font-size:12px;font-weight:700;margin-bottom:8px;letter-spacing:.5px;}
-.drops-grid{display:flex;gap:8px;flex-wrap:nowrap;overflow-x:auto;padding-bottom:2px;-webkit-overflow-scrolling:touch;}
-.drops-grid::-webkit-scrollbar{height:2px;}
-.drops-grid::-webkit-scrollbar-thumb{background:rgba(255,255,255,.2);border-radius:1px;}
-.drop-item{flex-shrink:0;display:flex;flex-direction:column;align-items:center;gap:3px;}
-.drop-item .di-icon{width:44px;height:44px;background:#6b6b6b;border-radius:3px;display:flex;align-items:center;justify-content:center;overflow:hidden;}
-.drop-item .di-icon canvas,.drop-item .di-icon img{image-rendering:pixelated;image-rendering:-moz-crisp-edges;width:80%;height:80%;object-fit:contain;}
-.drop-item .di-name{font-size:10px;color:rgba(255,255,255,0.75);text-align:center;line-height:1.3;max-width:52px;}
-
-/* Spawn rule / location section */
-.card .spawn-sec{margin-top:6px;padding:8px 12px;background:rgba(0,0,0,0.45);border-radius:5px;}
-.card .spawn-sec .sec-title{color:#fff;font-size:12px;font-weight:700;margin-bottom:6px;letter-spacing:.5px;}
-.card .spawn-sec .sec-text{font-size:11.5px;color:rgba(255,255,255,0.7);line-height:1.7;}
-
-/* Craft recipe section */
-.card .craft-sec{margin-top:6px;background:rgba(255,255,255,0.04);border-radius:5px;padding:8px 12px;}
-.card .craft-sec .craft-grid{display:flex;align-items:center;gap:8px;}
-.craft-3x3{display:grid;grid-template-columns:repeat(3,1fr);gap:2px;width:90px;height:90px;background:#8b8b8b;border:2px solid #373737;border-radius:3px;overflow:hidden;}
-.craft-cell{background:#9a9a9a;display:flex;align-items:center;justify-content:center;}
-.craft-cell img,.craft-cell canvas{width:80%;height:80%;object-fit:contain;image-rendering:pixelated;}
-.craft-arrow{color:rgba(255,255,255,0.5);font-size:18px;flex-shrink:0;}
-.craft-result{width:44px;height:44px;background:#6b6b6b;border:2px solid #373737;border-radius:3px;display:flex;align-items:center;justify-content:center;}
-.craft-result img,.craft-result canvas{width:80%;height:80%;object-fit:contain;image-rendering:pixelated;}
-.craft-materials{flex:1;padding-left:4px;}
-.craft-mat-row{display:flex;justify-content:space-between;align-items:center;padding:4px 0;border-bottom:1px dashed rgba(255,255,255,0.12);}
-.craft-mat-row:last-child{border-bottom:none;}
-.craft-mat-name{color:#9fff84;font-size:11px;font-weight:600;text-decoration:underline;text-decoration-style:dotted;}
-.craft-mat-count{color:#fff;font-size:11px;font-weight:700;}
-
-/* Can-craft section */
-.card .can-craft-sec{margin-top:6px;padding:8px 12px;background:rgba(0,0,0,0.45);border-radius:5px;}
-.card .can-craft-sec .sec-title{color:#fff;font-size:12px;font-weight:700;margin-bottom:8px;}
-.can-craft-list{display:flex;gap:8px;flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;}
-.can-craft-item{flex-shrink:0;display:flex;flex-direction:column;align-items:center;gap:3px;}
-.can-craft-item .cci-icon{width:44px;height:44px;background:#5a5a5a;border-radius:3px;display:flex;align-items:center;justify-content:center;}
-.can-craft-item .cci-icon img,.can-craft-item .cci-icon canvas{width:80%;height:80%;object-fit:contain;image-rendering:pixelated;}
-.can-craft-item .cci-name{font-size:10px;color:rgba(255,255,255,0.7);text-align:center;max-width:52px;}
-
-/* Choice buttons */
+.card .card-body{padding:8px 10px;}
 .card .opt{width:100%;padding:8px 12px;background:#2e7d32;border:none;border-radius:5px;color:#fff;font-size:13px;font-weight:600;display:flex;align-items:center;gap:8px;margin-top:6px;text-align:left;cursor:pointer;letter-spacing:.5px;transition:background .15s;}
 .card .opt:active{background:#388e3c;}
 .card .opt .oi{width:18px;height:18px;flex-shrink:0;display:inline-flex;align-items:center;justify-content:center;}
 .card .opt .oi svg{width:100%;height:100%;fill:currentColor;}
-
-/* === Legacy compat — kept for non-info cards === */
-.card .card-head.legacy{background:#000;padding:6px 10px;border-radius:5px;margin-bottom:7px;}
-.card .card-head.legacy .tag{padding:2px 8px;background:rgba(255,255,255,0.1);border-radius:4px;font-size:10px;color:#ccc;}
+.card .card-desc{font-size:11.5px;color:rgba(255,255,255,0.64);line-height:1.65;margin-bottom:5px;}
+.card .stats-bar{background:rgba(255,255,255,0.055);border-radius:5px;padding:6px 10px;margin-top:5px;}
+.card .stats-bar .stat-row{display:flex;flex-wrap:wrap;gap:0;}
+.card .stats-bar .stat-item{flex:0 0 50%;display:flex;align-items:baseline;gap:5px;padding:2px 0;}
+.card .stats-bar .stat-label{color:rgba(255,255,255,0.45);font-size:11px;min-width:44px;}
+.card .stats-bar .stat-val{color:#fff;font-size:11px;font-weight:500;}
+.card .drops-sec,.card .spawn-sec{margin-top:5px;padding:5px 8px;background:rgba(255,255,255,0.04);border-radius:5px;}
+.card .drops-sec .sec-title,.card .spawn-sec .sec-title{color:#fff;font-size:11px;font-weight:700;margin-bottom:3px;}
+.card .spawn-sec .sec-text{font-size:11px;color:rgba(255,255,255,0.68);line-height:1.6;}
+.drops-grid{display:flex;gap:6px;flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:2px;}
+.drops-grid::-webkit-scrollbar{height:2px;}.drops-grid::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.18);border-radius:1px;}
+.drop-item{flex-shrink:0;display:flex;flex-direction:column;align-items:center;gap:3px;}
+.drop-item .di-icon{width:40px;height:40px;background:#6b6b6b;border-radius:3px;display:flex;align-items:center;justify-content:center;overflow:hidden;}
+.drop-item .di-icon canvas,.drop-item .di-icon img{image-rendering:pixelated;width:80%;height:80%;object-fit:contain;}
+.drop-item .di-name{font-size:10px;color:rgba(255,255,255,0.72);text-align:center;max-width:48px;}
+.card .craft-sec{margin-top:5px;background:rgba(255,255,255,0.04);border-radius:5px;padding:6px 10px;}
+.card .craft-sec .craft-grid{display:flex;align-items:center;gap:6px;}
+.craft-3x3{display:grid;grid-template-columns:repeat(3,1fr);gap:2px;width:82px;height:82px;background:#8b8b8b;border:2px solid #373737;border-radius:3px;overflow:hidden;}
+.craft-cell{background:#9a9a9a;display:flex;align-items:center;justify-content:center;}
+.craft-cell img,.craft-cell canvas{width:80%;height:80%;object-fit:contain;image-rendering:pixelated;}
+.craft-arrow{color:rgba(255,255,255,0.5);font-size:14px;flex-shrink:0;}
+.craft-result{width:40px;height:40px;background:#6b6b6b;border:2px solid #373737;border-radius:3px;display:flex;align-items:center;justify-content:center;}
+.craft-result img,.craft-result canvas{width:80%;height:80%;object-fit:contain;image-rendering:pixelated;}
+.craft-materials{flex:1;padding-left:4px;}
+.craft-mat-row{display:flex;justify-content:space-between;align-items:center;padding:3px 0;border-bottom:1px dashed rgba(255,255,255,0.1);}.craft-mat-row:last-child{border-bottom:none;}
+.craft-mat-name{color:#9fff84;font-size:11px;text-decoration:underline;text-decoration-style:dotted;}
+.craft-mat-count{color:#fff;font-size:11px;font-weight:700;}
+.can-craft-list{display:flex;gap:8px;flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;}
+.can-craft-item{flex-shrink:0;display:flex;flex-direction:column;align-items:center;gap:3px;}
+.can-craft-item .cci-icon{width:40px;height:40px;background:#5a5a5a;border-radius:3px;display:flex;align-items:center;justify-content:center;}
+.can-craft-item .cci-icon img,.can-craft-item .cci-icon canvas{width:80%;height:80%;object-fit:contain;image-rendering:pixelated;}
+.can-craft-item .cci-name{font-size:10px;color:rgba(255,255,255,0.7);text-align:center;max-width:48px;}
 .info-body{display:flex;gap:8px;margin-bottom:2px;padding:2px 0;}
-.info-body .thumb{width:54px;height:54px;background:rgba(255,255,255,0.06);border-radius:5px;flex-shrink:0;display:flex;align-items:center;justify-content:center;overflow:hidden;padding:3px;}
-.info-body .thumb canvas,.info-body .thumb img{image-rendering:pixelated;image-rendering:-moz-crisp-edges;width:100%;height:100%;object-fit:contain;}
-.info-body .desc{flex:1;color:#e0e0e0;padding-top:2px;font-size:11.5px;line-height:1.5;}
-.stats-row{margin-top:6px;padding:7px 10px;background:rgba(0,0,0,0.35);border-radius:5px;display:flex;justify-content:space-between;align-items:center;gap:6px;}
-.stats-row .label{color:#7ed957;font-size:12px;font-weight:600;flex-shrink:0;letter-spacing:.5px;}
-.stats-row .val{display:flex;gap:2px;align-items:center;font-size:11px;color:#ccc;flex-wrap:wrap;justify-content:flex-end;}
-.hearts{display:inline-flex;gap:1px;}.hearts svg{width:12px;height:12px;}
-.stats-row .num{margin-left:6px;font-family:monospace;color:#fff;font-size:12px;font-weight:600;}
-.drops-row{margin-top:6px;padding:6px 8px;background:rgba(0,0,0,0.35);border-radius:5px;}
-.drops-row .label{color:#7ed957;font-size:11px;font-weight:600;margin-bottom:4px;letter-spacing:.5px;}
-.drops-list{display:flex;gap:5px;flex-wrap:nowrap;overflow-x:auto;align-items:center;padding-bottom:2px;-webkit-overflow-scrolling:touch;}
-.drops-list::-webkit-scrollbar{height:2px;}.drops-list::-webkit-scrollbar-thumb{background:rgba(126,217,87,.3);border-radius:1px;}
-.drop{flex-shrink:0;display:inline-flex;align-items:center;}
-.drop .lbl{display:inline-block;padding:3px 7px;background:#1e2d1f;border:1px solid #3a5040;border-radius:10px;font-size:10.5px;color:#c8e6c9;letter-spacing:.2px;white-space:nowrap;}
-.drop .icon-wrap{display:none;}
-.loc-row{margin-top:6px;padding:7px 10px;background:rgba(0,0,0,0.35);border-radius:5px;}
-.loc-row .title{color:#7ed957;font-size:11px;font-weight:600;margin-bottom:4px;display:flex;align-items:center;gap:4px;letter-spacing:.5px;}
-.loc-row .title svg{width:12px;height:12px;fill:#7ed957;}
-.loc-row .text{font-size:11.5px;line-height:1.6;color:#ddd;}
-.guide-sec{margin-bottom:7px;}.guide-sec:last-child{margin-bottom:0;}
-.guide-sec .sec-title{font-size:12px;font-weight:700;color:#fff;margin-bottom:4px;padding:5px 10px;background:rgba(0,0,0,0.35);border-radius:4px;letter-spacing:.5px;}
-.guide-sec .sec-text{font-size:11.5px;line-height:1.6;color:#e0e0e0;padding:2px 2px;}
-.guide-action{margin-top:8px;text-align:right;}
-.guide-action button{background:#2e7d32;color:#fff;padding:6px 14px;border-radius:5px;border:none;font-size:12px;font-weight:600;letter-spacing:.5px;cursor:pointer;}
+.info-body .thumb{width:50px;height:50px;background:rgba(255,255,255,0.06);border-radius:5px;flex-shrink:0;display:flex;align-items:center;justify-content:center;overflow:hidden;padding:3px;}
+.info-body .thumb canvas,.info-body .thumb img{image-rendering:pixelated;width:100%;height:100%;object-fit:contain;}
+.info-body .desc{flex:1;color:#e0e0e0;padding-top:2px;font-size:11px;line-height:1.5;}
+.guide-sec{margin-bottom:6px;}.guide-sec:last-child{margin-bottom:0;}
+.guide-sec .sec-title{font-size:11px;font-weight:700;color:#fff;margin-bottom:3px;padding:4px 8px;background:rgba(0,0,0,0.3);border-radius:4px;}
+.guide-sec .sec-text{font-size:11px;line-height:1.6;color:#e0e0e0;padding:2px;}
+.guide-action{margin-top:6px;text-align:right;}
+.guide-action button{background:#2e7d32;color:#fff;padding:5px 12px;border-radius:5px;border:none;font-size:11px;font-weight:600;cursor:pointer;}
 .guide-action button:active{background:#388e3c;}
-
-/* Componentized strategy output */
+.drops-row{margin-top:4px;padding:4px 8px;background:rgba(0,0,0,0.3);border-radius:4px;}
+.drops-row .label{color:#7ed957;font-size:10px;font-weight:600;margin-bottom:3px;}
+.drops-list{display:flex;gap:4px;flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;}
+.drops-list::-webkit-scrollbar{height:2px;}.drops-list::-webkit-scrollbar-thumb{background:rgba(126,217,87,0.3);border-radius:1px;}
+.drop{flex-shrink:0;display:inline-flex;align-items:center;}
+.drop .lbl{display:inline-block;padding:2px 6px;background:#1e2d1f;border:1px solid #3a5040;border-radius:8px;font-size:10px;color:#c8e6c9;white-space:nowrap;}
+.drop .icon-wrap{display:none;}
+.loc-row{margin-top:4px;padding:5px 8px;background:rgba(0,0,0,0.3);border-radius:4px;}
+.loc-row .title{color:#7ed957;font-size:10px;font-weight:600;margin-bottom:3px;display:flex;align-items:center;gap:3px;}
+.loc-row .title svg{width:11px;height:11px;fill:#7ed957;}
+.loc-row .text{font-size:11px;line-height:1.6;color:#ddd;}
+.stats-row{margin-top:4px;padding:5px 8px;background:rgba(0,0,0,0.3);border-radius:4px;display:flex;justify-content:space-between;align-items:center;gap:5px;}
+.stats-row .label{color:#7ed957;font-size:11px;font-weight:600;flex-shrink:0;}
+.stats-row .val{display:flex;gap:2px;align-items:center;font-size:10px;color:#ccc;flex-wrap:wrap;justify-content:flex-end;}
+.hearts{display:inline-flex;gap:1px;}.hearts svg{width:11px;height:11px;}
+.stats-row .num{margin-left:4px;font-family:monospace;color:#fff;font-size:11px;font-weight:600;}
 .cmp-card .cmp-id{font:9px monospace;color:#79bfff;margin-left:auto;opacity:.75;}
-.cmp-section{margin-top:6px;padding:7px 8px;background:rgba(0,0,0,.36);border:1px solid rgba(255,255,255,.09);border-radius:5px;}
-.cmp-section .cmp-title,.cmp-section .cmp-label{font-size:10px;color:#96a89a;margin-bottom:4px;letter-spacing:.5px;font-weight:600;}
-.cmp-section .cmp-text,.cmp-section .cmp-body{font-size:11.5px;color:#ecefec;line-height:1.6;}
+.cmp-section{margin-top:4px;padding:5px 8px;background:rgba(0,0,0,.36);border:1px solid rgba(255,255,255,.09);border-radius:5px;}
+.cmp-section .cmp-title,.cmp-section .cmp-label{font-size:10px;color:#96a89a;margin-bottom:3px;letter-spacing:.5px;font-weight:600;}
+.cmp-section .cmp-text,.cmp-section .cmp-body{font-size:11px;color:#ecefec;line-height:1.6;}
 .cmp-section .cmp-body{display:flex;flex-wrap:wrap;gap:4px;}
-.cmp-metric{text-align:center;padding:14px 10px 10px;background:linear-gradient(180deg,rgba(126,217,87,.13),rgba(0,0,0,.3));border-radius:6px;}
-.cmp-metric .big{font:700 36px/1 monospace;color:#8fe56b;text-shadow:0 0 14px rgba(126,217,87,.28);}
-.cmp-metric .unit{font-size:12px;color:#bdd6b6;margin-left:4px;}
-.cmp-metric .sub{font-size:10px;color:#8d9b8f;margin-top:8px;}
-.cmp-recipe{display:flex;gap:5px;align-items:center;flex-wrap:wrap;}
-.cmp-chip{padding:3px 6px;background:#222b23;border:1px solid #405244;border-radius:4px;color:#dfe7df;font-size:11px;}
+.cmp-metric{text-align:center;padding:12px 10px 10px;background:linear-gradient(180deg,rgba(126,217,87,.13),rgba(0,0,0,.3));border-radius:6px;}
+.cmp-metric .big{font:700 34px/1 monospace;color:#8fe56b;}
+.cmp-metric .unit{font-size:11px;color:#bdd6b6;margin-left:4px;}
+.cmp-metric .sub{font-size:10px;color:#8d9b8f;margin-top:6px;}
+.cmp-recipe{display:flex;gap:4px;align-items:center;flex-wrap:wrap;}
+.cmp-chip{padding:2px 6px;background:#222b23;border:1px solid #405244;border-radius:4px;color:#dfe7df;font-size:10.5px;}
 .card.cmp-card{border:1px solid rgba(126,217,87,.2);}
 
 /* Foot */
@@ -2211,8 +2231,8 @@ const COMPACT_ITEMS={
   raw_iron:   {name:'生铁',tag:'原矿材料',intro:'开采铁矿石掉落的原矿，需放入熔炉熔炼成铁锭方可使用。',keywords:['铁锭','熔炉'],uses:'熔炼后获得铁锭，是制作工具和护甲的基础。',recipe:null,source:'开采铁矿石掉落'},
   raw_gold:   {name:'生金',tag:'原矿材料',intro:'开采金矿石掉落的原矿，熔炼后得到金锭。',keywords:['金锭','熔炉'],uses:'熔炼后获得金锭，用于合成金制装备和钟。',recipe:null,source:'开采金矿石掉落'},
   gold_ingot: {name:'金锭',tag:'材料',intro:'黄金材料，可制作金制装备、钟和其他装饰品。',keywords:['金制装备','钟'],uses:'制作金剑、金甲、钟和胡萝卜钓竿。',recipe:['金矿石','熔炼','金锭'],source:'熔炼生金获得'},
-  horse:      {name:'马',tag:'中立动物',intro:'马会在平原、向日葵平原、热带草原等生物群系中生成。可驯服骑乘。',keywords:['驯服','骑乘','平原'],uses:'驯服后可骑乘，装上马鞍可控制方向，装马铠可提高防御。',recipe:null,source:'平原、热带草原等生物群系随机生成。',stats:{'最大生命':'15–30','生物ID':'horse','掉落物':'皮革'}},
-  creeper:    {name:'苦力怕',tag:'敌对生物',intro:'苦力怕（Creeper）是常见的敌对生物，靠近玩家3格内会引爆，是火药的主要来源。',keywords:['爆炸','火药','音乐唱片'],uses:'被闪电击中可变成充能苦力怕，爆炸可凿穿方块和获取稀有唱片。',recipe:null,source:'主世界光照等级7或以下的地表和洞穴中生成。',stats:{'最大生命':'20','攻击力（爆炸）':'49/25/6','生物ID':'creeper'}},
+  horse:      {name:'马',tag:'中立温顺的动物',intro:'马会在平原、向日葵平原、热带草原、热带高原和风袭热带草原生物群系中周期生成与伴随生成。',keywords:['平原','驯服','骑乘'],uses:'驯服后可骑乘，装上马鞍可控制方向，装马铠可提高防御。',recipe:null,source:'平原、向日葵平原、热带草原等生物群系随机生成。',stats:{'最大生命':'15-30','生物ID':'horse','掉落物':'皮革'}},
+  creeper:    {name:'苦力怕',tag:'敌对生物',intro:'苦力怕（Creeper）是常见的敌对生物，它会悄无声息地接近玩家，当距离目标3格以内时就会开始爆炸。苦力怕是火药的主要来源，也是获取部分音乐唱片的唯一方式。',keywords:['爆炸','火药','音乐唱片'],uses:null,recipe:null,source:'苦力怕会在主世界中光照等级7或以下的地表和洞穴中生成。',stats:{'最大生命':'20'},drops:[{name:'火药',type:'gunpowder',count:1},{name:'音乐唱片',type:'music_disc',count:1}]},
 };
 
 const CITY_MOD_WIKI = {
@@ -2296,9 +2316,14 @@ function compactWikiFor(type){
   if(snap) return {C1:snap.C1,C2:{intro:snap.C2.intro,keywords:[]},C3:{label:'关键数值',value:snap.C3||{}},C4:{drops:normalizeDrops(snap.C4)},C5:{uses:snap.C5||''},C6:{recipe:snap.C6},C7:{source:snap.C7||'',keywords:[]},icon:snap.icon,links:snap.links||{}};
   const special=COMPACT_ITEMS[type];
   if(special) return {
-    C1:{name:special.name,tag:special.tag},C2:{intro:special.intro,keywords:special.keywords},
-    C3:{label:'关键数值',value:special.stats||null},C4:{drops:[]},C5:{uses:special.uses},
-    C6:{recipe:special.recipe},C7:{source:special.source,keywords:[]},links:{}
+    C1:{name:special.name,tag:special.tag},
+    C2:{intro:special.intro,keywords:special.keywords||[]},
+    C3:{label:'关键数值',value:special.stats||null},
+    C4:{drops:normalizeDrops(special.drops||[])},
+    C5:{uses:special.uses||''},
+    C6:{recipe:special.recipe},
+    C7:{source:special.source||'',keywords:[]},
+    links:{}
   };
   const info=BLOCK_INFO[type]||{name:type,desc:'暂无介绍'};
   const bc=BLOCK_CARDS[type]||{tag:'方块',desc:info.desc,kw:[],hardness:null,drops:[],loc:'暂无可靠位置信息',locKw:[]};
@@ -2335,64 +2360,77 @@ function requiredCComponents(type,record){
   return ['C1','C2','C3','C4','C5','C6','C7'];
 }
 
+const ENTITY_WIKI_IMAGES={
+  horse:'./assets/mc/entities/horse.png',
+  sheep:'./assets/mc/entities/sheep.png',
+  creeper:'./assets/mc/entities/creeper.png',
+  book:'./assets/mc/entities/book.png',
+  wooden_sword:'./assets/mc/entities/wooden_sword.png',
+  jungle_temple:'./assets/mc/entities/jungle_temple.png',
+};
+
 function buildPureCWikiCard(result,type){
   const C=compactWikiFor(type);
   const record=WIKI_SNAPSHOT.records[type];
   const requested=(result.componentPlan&&result.componentPlan.components)||[];
   const ids=new Set([...requested,...requiredCComponents(type,record)]);
   const headCls=entityHeadClass(type);
-  const c=document.createElement('div');c.className='card pure-c-card';
+  const entityImg=ENTITY_WIKI_IMAGES[type]||(record?.icon)||null;
+  const links=C.links||{};
+  const c=document.createElement('div');c.className='wiki-card';
+  let html='';
 
   // Header
-  let html=`<div class="card-head ${headCls}"><span class="name">${escapeHtml(C.C1.name)}</span><span class="tag">${escapeHtml(C.C1.tag)}</span></div>`;
-  html+=`<div class="card-body">`;
+  html+=`<div class="wc-head ${headCls}">
+    <span class="wc-name">${escapeHtml(C.C1.name)}</span><span class="wc-tag">${escapeHtml(C.C1.tag)}</span>
+    ${entityImg?`<img class="wc-entity" src="${entityImg}" alt="" onerror="this.style.display='none'">`:''}</div>`;
 
-  // C2: 简介 + 缩略图
-  if(ids.has('C2')){
-    const img=C.icon?`<img class="mc-icon" src="${C.icon}" alt="${escapeHtml(C.C1.name)}" style="float:right;width:52px;height:52px;margin:0 0 4px 8px;image-rendering:pixelated;object-fit:contain;">`:'';
-    html+=`<p class="card-desc" style="padding-right:${C.icon?'0':'0'}">${img}${linkedWikiText(C.C2.intro,C.links)}</p>`;
+  // C2: 描述
+  if(C.C2&&C.C2.intro){
+    html+=`<p class="wc-desc">${linkedWikiText(C.C2.intro,links)}</p>`;
   }
 
-  // C3: 关键数值 (stats-bar)
-  if(ids.has('C3')&&C.C3.value&&Object.keys(C.C3.value).length){
-    const items=Object.entries(C.C3.value).map(([k,v])=>`<div class="stat-item"><span class="stat-label">${escapeHtml(k)}</span><span class="stat-val k">${escapeHtml(v)}</span></div>`).join('');
-    html+=`<div class="stats-bar"><div class="stat-row">${items}</div></div>`;
+  // C3: Stats — flat key-value grid
+  const statsVal=C.C3&&C.C3.value;
+  if(statsVal&&Object.keys(statsVal).length){
+    const items=Object.entries(statsVal).map(([k,v])=>{
+      const isDropLink=k.includes('掉落');
+      return `<div class="wc-stat"><span class="wc-sl">${escapeHtml(k)}</span><span class="wc-sv${isDropLink?' link wiki-link" data-wiki="'+type+'"':'"}'>${escapeHtml(v)}</span></div>`;
+    }).join('');
+    html+=`<div class="wc-stats">${items}</div>`;
   }
 
-  // C4: 掉落物 (icon grid)
-  if(ids.has('C4')&&C.C4.drops.length){
-    const dItems=C.C4.drops.map(d=>`<div class="drop-item"><div class="di-icon" data-t="${type}"></div><div class="di-name">${linkedWikiText(d.name,C.links)}${d.count>1?` ×${d.count}`:''}</div></div>`).join('');
-    html+=`<div class="drops-sec"><div class="sec-title">掉落物</div><div class="drops-grid">${dItems}</div></div>`;
+  // C4: Drops icon grid
+  if(C.C4&&C.C4.drops.length){
+    const dItems=C.C4.drops.map(d=>`<div class="wc-dp"><div class="wc-di" data-t="${d.type||type}"></div><div class="wc-dn">${linkedWikiText(d.name,links)}${d.count>1?` ×${d.count}`:''}</div></div>`).join('');
+    html+=`<div class="wc-drops"><div class="wc-sec-t">掉落物</div><div class="wc-dg">${dItems}</div></div>`;
   }
 
-  // C5: 能做什么
-  if(ids.has('C5')&&C.C5.uses){
-    html+=`<div class="spawn-sec"><div class="sec-title">能做什么</div><div class="sec-text">${linkedWikiText(C.C5.uses,C.links)}</div></div>`;
+  // C5: Uses
+  if(C.C5&&C.C5.uses){
+    html+=`<div class="wc-section"><div class="wc-sec-t">能做什么</div><div class="wc-sec-b">${linkedWikiText(C.C5.uses,links)}</div></div>`;
   }
 
-  // C6: 合成配方
-  if(ids.has('C6')&&C.C6.recipe){
-    const mats=C.C6.recipe.filter((_,i)=>i<C.C6.recipe.length-1);
-    const output=C.C6.recipe[C.C6.recipe.length-1];
-    const matsHtml=mats.map(m=>`<div class="craft-mat-row"><span class="craft-mat-name">${linkedWikiText(m,C.links)}</span></div>`).join('');
-    html+=`<div class="craft-sec"><div class="craft-grid">
-      <div class="craft-3x3">${Array(9).fill('<div class="craft-cell"></div>').join('')}</div>
-      <span class="craft-arrow">→</span>
-      <div class="craft-result"><div class="di-icon" data-t="${type}"></div></div>
-      <div class="craft-materials">${matsHtml}</div>
+  // C6: Recipe
+  if(C.C6&&C.C6.recipe&&C.C6.recipe.length>1){
+    const mats=C.C6.recipe.slice(0,-1);
+    const matsHtml=mats.map(m=>`<div class="wc-mat"><span class="wc-mn">${linkedWikiText(m,links)}</span></div>`).join('');
+    html+=`<div class="wc-recipe"><div class="wc-recipe-row">
+      <div class="wc-craft3">${Array(9).fill('<div class="wc-cell"></div>').join('')}</div>
+      <span class="wc-arrow">→</span>
+      <div class="wc-result" data-t="${type}"></div>
+      <div class="wc-mats">${matsHtml}</div>
     </div></div>`;
   }
 
-  // C7: 在哪里
-  if(ids.has('C7')&&C.C7.source){
-    html+=`<div class="spawn-sec"><div class="sec-title">在哪里</div><div class="sec-text">${linkedWikiText(C.C7.source,C.links)}</div></div>`;
+  // C7: Location/spawn
+  if(C.C7&&C.C7.source){
+    html+=`<div class="wc-section"><div class="wc-sec-t">在哪里</div><div class="wc-sec-b">${linkedWikiText(C.C7.source,links)}</div></div>`;
   }
 
-  html+=`</div>`; // card-body
+  html+=`<div class="wc-pad"></div>`;
   c.innerHTML=html;
-  // fill icon thumbs
-  c.querySelectorAll('.di-icon[data-t]').forEach(w=>{if(!w.querySelector('canvas,img'))w.appendChild(makeThumb(w.getAttribute('data-t')));});
-  // wiki link bindings
+  c.querySelectorAll('[data-t]').forEach(w=>{if(w.tagName==='DIV'&&!w.querySelector('canvas,img'))w.appendChild(makeThumb(w.getAttribute('data-t')));});
   bindWikiLinks(c);
   return c;
 }
