@@ -180,6 +180,11 @@ canvas{display:block;width:100%;height:100%;touch-action:none;}
 .wiki-card .wc-section .wc-sec-b .wiki-link{color:#9fff84;text-decoration:underline;text-decoration-style:dotted;cursor:pointer;}
 /* Recipe */
 .wiki-card .wc-recipe{margin:6px 10px 0;background:rgba(255,255,255,0.04);border-radius:6px;padding:7px 10px;}
+.wc-mats-list{margin-top:5px;display:flex;flex-direction:column;gap:2px;}
+.wc-mat{display:flex;justify-content:space-between;align-items:center;padding:4px 6px;background:rgba(255,255,255,0.04);border-radius:4px;}
+.wc-mat:last-child{border-bottom:none;}
+.wc-mn{color:#9fff84;font-size:11.5px;cursor:pointer;}
+.wc-mc{color:#fff;font-size:11.5px;font-weight:700;margin-left:6px;}
 .wc-recipe-row{display:flex;align-items:center;gap:7px;margin-bottom:7px;}.wc-recipe-row:last-child{margin-bottom:0;}
 .wc-craft3{display:grid;grid-template-columns:repeat(3,1fr);gap:2px;width:82px;height:82px;background:#8b8b8b;border:2px solid #373737;border-radius:3px;overflow:hidden;flex-shrink:0;}
 .wc-cell{background:#9a9a9a;display:flex;align-items:center;justify-content:center;}
@@ -2416,20 +2421,25 @@ function buildPureCWikiCard(result,type){
     html+=`<div class="wc-section"><div class="wc-sec-t">能做什么</div><div class="wc-sec-b">${linkedWikiText(C.C5.uses,links)}</div></div>`;
   }
 
-  // C6: Recipe
+  // C6: Recipe — 有配方就不再显示 C7
+  let hasRecipe=false;
   if(ids.has('C6')&&C.C6&&C.C6.recipe&&C.C6.recipe.length>1){
+    hasRecipe=true;
     const mats=C.C6.recipe.slice(0,-1);
-    const matsHtml=mats.map(m=>`<div class="wc-mat"><span class="wc-mn">${linkedWikiText(m,links)}</span></div>`).join('');
-    html+=`<div class="wc-recipe"><div class="wc-recipe-row">
-      <div class="wc-craft3">${Array(9).fill('<div class="wc-cell"></div>').join('')}</div>
-      <span class="wc-arrow">→</span>
-      <div class="wc-result" data-t="${type}"></div>
-      <div class="wc-mats">${matsHtml}</div>
-    </div></div>`;
+    // 解析 "纸 ×3" → {name:'纸', count:'×3'}
+    const parseMat=str=>{const m=str.match(/^(.+?)\s*(×\d+)$/);return m?{name:m[1].trim(),count:m[2]}:{name:str,count:''};};
+    const matsHtml=mats.map(m=>{
+      const {name,count}=parseMat(m);
+      return '<div class="wc-mat"><span class="wc-mn">'+linkedWikiText(name,links)+'</span>'+(count?'<span class="wc-mc">'+escapeHtml(count)+'</span>':'')+'</div>';
+    }).join('');
+    html+=`<div class="wc-recipe">
+      <div class="wc-sec-t">合成配方</div>
+      <div class="wc-mats-list">${matsHtml}</div>
+    </div>`;
   }
 
-  // C7: Location/spawn
-  if(ids.has('C7')&&C.C7&&C.C7.source){
+  // C7: 在哪里 — 只在没有配方时展示（有配方的物品就是合成来的，无需再说来源）
+  if(!hasRecipe&&ids.has('C7')&&C.C7&&C.C7.source){
     html+=`<div class="wc-section"><div class="wc-sec-t">在哪里</div><div class="wc-sec-b">${linkedWikiText(C.C7.source,links)}</div></div>`;
   }
 
