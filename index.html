@@ -1359,6 +1359,46 @@ function createZombie(x,z){
   boxPart(g,[.28,.85,.28],[-.2,.42,0],0x394a70);boxPart(g,[.28,.85,.28],[.2,.42,0],0x394a70);
   g.position.set(spawn[0],0,spawn[1]);return registerEntity(g,'zombie','僵尸',bounds);
 }
+function createHorse(x,z){
+  const bounds={xMin:-8,xMax:8,zMin:-18,zMax:-6};
+  const spawn=findClearSpawn(x,z,bounds);
+  const g=new THREE.Group();
+  const brown=0x7a4a1e,dark=0x4a2a08,cream=0xd4a76a;
+  // body
+  boxPart(g,[1.4,.85,.7],[0,.85,0],brown);
+  // neck+head
+  boxPart(g,[.44,.6,.44],[.65,1.2,.1],brown);
+  boxPart(g,[.48,.5,.5],[.9,1.65,.1],brown);
+  // snout
+  boxPart(g,[.28,.22,.2],[1.04,1.46,.1],cream);
+  // ears
+  boxPart(g,[.1,.2,.08],[.82,1.92,.02],dark);boxPart(g,[.1,.2,.08],[.98,1.92,.02],dark);
+  // mane
+  boxPart(g,[.12,.38,.12],[.62,1.62,.1],dark);
+  // legs
+  [[-0.4,0,-0.22],[-.4,0,.22],[.4,0,-.22],[.4,0,.22]].forEach(p=>boxPart(g,[.22,.75,.22],p,dark));
+  // tail
+  const tail=boxPart(g,[.12,.5,.12],[-.75,.65,.0],dark);tail.rotation.x=.4;
+  g.position.set(spawn[0],0,spawn[1]);return registerEntity(g,'horse','马',bounds);
+}
+function createCreeper(x,z){
+  const bounds={xMin:6,xMax:20,zMin:-20,zMax:-5};
+  const spawn=findClearSpawn(x,z,bounds);
+  const g=new THREE.Group();
+  const green=0x3a7a2e,dark=0x1e4a18;
+  // body
+  boxPart(g,[.52,.72,.36],[0,.95,0],green);
+  // head
+  boxPart(g,[.64,.64,.64],[0,1.72,0],green);
+  // face eyes
+  boxPart(g,[.14,.14,.05],[-.18,1.84,.33],dark);boxPart(g,[.14,.14,.05],[.18,1.84,.33],dark);
+  // face mouth
+  boxPart(g,[.1,.1,.05],[-.14,1.56,.33],dark);boxPart(g,[.1,.1,.05],[.14,1.56,.33],dark);
+  boxPart(g,[.06,.1,.05],[0,1.56,.33],green);
+  // legs
+  [[-.16,0,-.1],[-.16,0,.1],[.16,0,-.1],[.16,0,.1]].forEach(p=>boxPart(g,[.24,.6,.24],p,green));
+  g.position.set(spawn[0],0,spawn[1]);return registerEntity(g,'creeper','苦力怕',bounds);
+}
 function updateRoamingEntities(dt,now){
   for(const e of roamingEntities){
     if(now>e.userData.nextTurn){e.userData.dir+=(Math.random()-.5)*2.2;e.userData.nextTurn=now+1400+Math.random()*2400;}
@@ -1371,6 +1411,8 @@ function updateRoamingEntities(dt,now){
 buildSheepPen();
 createSheep(.3,3.4);createSheep(1.7,5.2);createSheep(2.9,6.7);
 createZombie(-10,-6);createZombie(-14,-10);
+createHorse(3,-12);createHorse(-2,-15);
+createCreeper(12,-10);createCreeper(16,-14);
 
 const wolfLegs=[];let wolfTail=null,wolfCarry=null;
 const WOLF_STATES=new Set(['follow','wander','work','build','idle']);
@@ -2169,6 +2211,8 @@ const COMPACT_ITEMS={
   raw_iron:   {name:'生铁',tag:'原矿材料',intro:'开采铁矿石掉落的原矿，需放入熔炉熔炼成铁锭方可使用。',keywords:['铁锭','熔炉'],uses:'熔炼后获得铁锭，是制作工具和护甲的基础。',recipe:null,source:'开采铁矿石掉落'},
   raw_gold:   {name:'生金',tag:'原矿材料',intro:'开采金矿石掉落的原矿，熔炼后得到金锭。',keywords:['金锭','熔炉'],uses:'熔炼后获得金锭，用于合成金制装备和钟。',recipe:null,source:'开采金矿石掉落'},
   gold_ingot: {name:'金锭',tag:'材料',intro:'黄金材料，可制作金制装备、钟和其他装饰品。',keywords:['金制装备','钟'],uses:'制作金剑、金甲、钟和胡萝卜钓竿。',recipe:['金矿石','熔炼','金锭'],source:'熔炼生金获得'},
+  horse:      {name:'马',tag:'中立动物',intro:'马会在平原、向日葵平原、热带草原等生物群系中生成。可驯服骑乘。',keywords:['驯服','骑乘','平原'],uses:'驯服后可骑乘，装上马鞍可控制方向，装马铠可提高防御。',recipe:null,source:'平原、热带草原等生物群系随机生成。',stats:{'最大生命':'15–30','生物ID':'horse','掉落物':'皮革'}},
+  creeper:    {name:'苦力怕',tag:'敌对生物',intro:'苦力怕（Creeper）是常见的敌对生物，靠近玩家3格内会引爆，是火药的主要来源。',keywords:['爆炸','火药','音乐唱片'],uses:'被闪电击中可变成充能苦力怕，爆炸可凿穿方块和获取稀有唱片。',recipe:null,source:'主世界光照等级7或以下的地表和洞穴中生成。',stats:{'最大生命':'20','攻击力（爆炸）':'49/25/6','生物ID':'creeper'}},
 };
 
 const CITY_MOD_WIKI = {
@@ -2253,8 +2297,8 @@ function compactWikiFor(type){
   const special=COMPACT_ITEMS[type];
   if(special) return {
     C1:{name:special.name,tag:special.tag},C2:{intro:special.intro,keywords:special.keywords},
-    C3:{label:'关键数值',value:null},C4:{drops:[]},C5:{uses:special.uses},
-    C6:{recipe:special.recipe},C7:{source:special.source,keywords:[]}
+    C3:{label:'关键数值',value:special.stats||null},C4:{drops:[]},C5:{uses:special.uses},
+    C6:{recipe:special.recipe},C7:{source:special.source,keywords:[]},links:{}
   };
   const info=BLOCK_INFO[type]||{name:type,desc:'暂无介绍'};
   const bc=BLOCK_CARDS[type]||{tag:'方块',desc:info.desc,kw:[],hardness:null,drops:[],loc:'暂无可靠位置信息',locKw:[]};
@@ -2296,16 +2340,59 @@ function buildPureCWikiCard(result,type){
   const record=WIKI_SNAPSHOT.records[type];
   const requested=(result.componentPlan&&result.componentPlan.components)||[];
   const ids=new Set([...requested,...requiredCComponents(type,record)]);
-  const c=document.createElement('div');c.className='card cmp-card pure-c-card';
-  let html=`<div class="card-head default" data-component="C1"><span class="name">${escapeHtml(C.C1.name)}</span><span class="tag">${escapeHtml(C.C1.tag)}</span><span class="cmp-id">C1</span></div>`;
-  if(ids.has('C2')) html+=`<div class="info-body" data-component="C2"><div class="thumb" data-t="${type}">${C.icon?`<img class="mc-icon" src="${C.icon}" alt="${escapeHtml(C.C1.name)}">`:''}</div><div class="desc">${linkedWikiText(C.C2.intro,C.links)}</div></div>`;
-  if(ids.has('C3')&&C.C3.value!=null&&Object.keys(C.C3.value).length) html+=sectionHtml('C3',C.C3.label,formatC3(C.C3.value));
-  if(ids.has('C4')&&C.C4.drops.length) html+=sectionHtml('C4','掉落物',C.C4.drops.map(d=>`<span class="cmp-chip">${linkedWikiText(d.name,C.links)}${d.count>1?` ×${escapeHtml(d.count)}`:''}</span>`).join(' '));
-  if(ids.has('C5')) html+=sectionHtml('C5','能做什么',linkedWikiText(C.C5.uses,C.links));
-  if(ids.has('C6')&&C.C6.recipe) html+=sectionHtml('C6','合成配方',`<div class="cmp-recipe">${C.C6.recipe.map((x,i)=>`${i?'<span>→</span>':''}<span class="cmp-chip">${linkedWikiText(x,C.links)}</span>`).join('')}</div>`);
-  if(ids.has('C7')) html+=sectionHtml('C7','在哪里',linkedWikiText(C.C7.source,C.links));
+  const headCls=entityHeadClass(type);
+  const c=document.createElement('div');c.className='card pure-c-card';
+
+  // Header
+  let html=`<div class="card-head ${headCls}"><span class="name">${escapeHtml(C.C1.name)}</span><span class="tag">${escapeHtml(C.C1.tag)}</span></div>`;
+  html+=`<div class="card-body">`;
+
+  // C2: 简介 + 缩略图
+  if(ids.has('C2')){
+    const img=C.icon?`<img class="mc-icon" src="${C.icon}" alt="${escapeHtml(C.C1.name)}" style="float:right;width:52px;height:52px;margin:0 0 4px 8px;image-rendering:pixelated;object-fit:contain;">`:'';
+    html+=`<p class="card-desc" style="padding-right:${C.icon?'0':'0'}">${img}${linkedWikiText(C.C2.intro,C.links)}</p>`;
+  }
+
+  // C3: 关键数值 (stats-bar)
+  if(ids.has('C3')&&C.C3.value&&Object.keys(C.C3.value).length){
+    const items=Object.entries(C.C3.value).map(([k,v])=>`<div class="stat-item"><span class="stat-label">${escapeHtml(k)}</span><span class="stat-val k">${escapeHtml(v)}</span></div>`).join('');
+    html+=`<div class="stats-bar"><div class="stat-row">${items}</div></div>`;
+  }
+
+  // C4: 掉落物 (icon grid)
+  if(ids.has('C4')&&C.C4.drops.length){
+    const dItems=C.C4.drops.map(d=>`<div class="drop-item"><div class="di-icon" data-t="${type}"></div><div class="di-name">${linkedWikiText(d.name,C.links)}${d.count>1?` ×${d.count}`:''}</div></div>`).join('');
+    html+=`<div class="drops-sec"><div class="sec-title">掉落物</div><div class="drops-grid">${dItems}</div></div>`;
+  }
+
+  // C5: 能做什么
+  if(ids.has('C5')&&C.C5.uses){
+    html+=`<div class="spawn-sec"><div class="sec-title">能做什么</div><div class="sec-text">${linkedWikiText(C.C5.uses,C.links)}</div></div>`;
+  }
+
+  // C6: 合成配方
+  if(ids.has('C6')&&C.C6.recipe){
+    const mats=C.C6.recipe.filter((_,i)=>i<C.C6.recipe.length-1);
+    const output=C.C6.recipe[C.C6.recipe.length-1];
+    const matsHtml=mats.map(m=>`<div class="craft-mat-row"><span class="craft-mat-name">${linkedWikiText(m,C.links)}</span></div>`).join('');
+    html+=`<div class="craft-sec"><div class="craft-grid">
+      <div class="craft-3x3">${Array(9).fill('<div class="craft-cell"></div>').join('')}</div>
+      <span class="craft-arrow">→</span>
+      <div class="craft-result"><div class="di-icon" data-t="${type}"></div></div>
+      <div class="craft-materials">${matsHtml}</div>
+    </div></div>`;
+  }
+
+  // C7: 在哪里
+  if(ids.has('C7')&&C.C7.source){
+    html+=`<div class="spawn-sec"><div class="sec-title">在哪里</div><div class="sec-text">${linkedWikiText(C.C7.source,C.links)}</div></div>`;
+  }
+
+  html+=`</div>`; // card-body
   c.innerHTML=html;
-  c.querySelectorAll('.thumb').forEach(w=>{if(!w.querySelector('img'))w.appendChild(makeThumb(w.dataset.t));});
+  // fill icon thumbs
+  c.querySelectorAll('.di-icon[data-t]').forEach(w=>{if(!w.querySelector('canvas,img'))w.appendChild(makeThumb(w.getAttribute('data-t')));});
+  // wiki link bindings
   bindWikiLinks(c);
   return c;
 }
@@ -2318,18 +2405,17 @@ function buildMixedGuideCard(result,type){
   const C=compactWikiFor(type);
   const ids=new Set((result.componentPlan&&result.componentPlan.components)||[]);
   const lines=splitGenerated(result.output&&result.output.text);
-  const c=document.createElement('div');c.className='card cmp-card mixed-card';
-  let html=`<div class="card-head default"><span class="name">${escapeHtml(C.C1.name||'综合建议')}</span><span class="tag">混合策略</span></div>`;
+  const headCls=entityHeadClass(type);
+  const c=document.createElement('div');c.className='card mixed-card';
   const reason=lines[0]||'已结合对象资料和当前状态完成判断。';
   const advice=lines.slice(1).join(' ')||'建议先确认当前条件，再按步骤处理。';
-  if(ids.has('G2')||ids.has('G4')||ids.has('C2')||ids.has('C3')) html+=sectionHtml(ids.has('G4')?'G4':'G2','原因',highlight(reason,[C.C1.name]));
-  if(ids.has('G3')) html+=sectionHtml('G3','解决步骤',highlight(advice,[C.C1.name]));
-  else html+=sectionHtml('G6','建议',highlight(advice,[C.C1.name]));
-  if(ids.has('C6')&&C.C6.recipe) html+=sectionHtml('C6','所需配方',C.C6.recipe.map(x=>`<span class="cmp-chip">${escapeHtml(x)}</span>`).join(' '));
-  if(ids.has('C7')) html+=sectionHtml('C7','具体来源',wikiLinks(C.C7.source));
-  c.innerHTML=html;
-  bindWikiLinks(c);
-  return c;
+  let html=`<div class="card-head ${headCls}"><span class="name">${escapeHtml(C.C1.name||'综合建议')}</span><span class="tag">混合策略</span></div><div class="card-body">`;
+  html+=`<div class="spawn-sec"><div class="sec-title">原因</div><div class="sec-text">${highlight(reason,[C.C1.name])}</div></div>`;
+  html+=`<div class="spawn-sec"><div class="sec-title">建议</div><div class="sec-text">${highlight(advice,[C.C1.name])}</div></div>`;
+  if(ids.has('C6')&&C.C6.recipe) html+=`<div class="spawn-sec"><div class="sec-title">所需配方</div><div class="sec-text">${C.C6.recipe.map(x=>`<span class="cmp-chip">${escapeHtml(x)}</span>`).join(' ')}</div></div>`;
+  if(ids.has('C7')&&C.C7.source) html+=`<div class="spawn-sec"><div class="sec-title">具体来源</div><div class="sec-text">${wikiLinks(C.C7.source)}</div></div>`;
+  html+=`</div>`;
+  c.innerHTML=html;bindWikiLinks(c);return c;
 }
 
 function statFromQuery(query,context){
