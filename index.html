@@ -465,7 +465,7 @@ body.ai-suppressed #chat-panel{opacity:.32 !important;filter:saturate(.4);transi
     <div id="strategy-answer-scenes" style="display:none"><button id="strategy-domain-back">← 六大能力</button><div class="st-scenes">
       <button data-showcase-scene="zombie-fight">1 · 能打僵尸吗</button><button data-showcase-scene="diamond-tool">2 · 为什么挖不动钻石</button><button data-showcase-scene="next-step">3 · 下一步做什么</button><button data-showcase-scene="sheep-care">4 · 羊怎么饲养</button><button data-showcase-scene="iron-locate">5 · 铁矿在哪里</button><button data-showcase-scene="enchant-room">6 · 书架如何增强附魔</button><button data-showcase-scene="furnace-fail">7 · 熔炉为什么不工作</button><button data-showcase-scene="player-stats">8 · 玩家数据总结</button>
     </div></div>
-    <button id="showcase-return-lobby">返回大厅</button>
+    <button id="showcase-return-lobby">← 返回大厅</button>
     <div class="st-input"><input id="strategy-query" placeholder="输入问题，如：这把剑还能用多久？"><button id="strategy-run">运行</button></div>
     <div class="st-layer" id="st-l1"><div class="st-name">层1 · 意图分类器</div><div class="st-value">等待输入</div></div>
     <div class="st-layer" id="st-l2"><div class="st-name">层2 · 路径决策器</div><div class="st-value">答案核心是否输出 Wiki？是否读取玩家/世界状态？</div></div>
@@ -1423,7 +1423,7 @@ function checkModPortalEntry(){
 // ============================================================
 // Scene management: lobby <-> city MOD
 // ============================================================
-let SCENE_MODE='lobby';
+window.SCENE_MODE='lobby';
 const lobbyObjects=[];
 const cityGroup=new THREE.Group();cityGroup.visible=false;scene.add(cityGroup);
 const cityZombies=[];
@@ -1502,21 +1502,12 @@ function spawnCityZombies(){
   });
 }
 
-function showSceneBadge(mode){
-  let badge=document.getElementById('scene-badge');
-  if(!badge){badge=document.createElement('div');badge.id='scene-badge';document.body.appendChild(badge);}
-  badge.textContent=mode==='city'?'🏙 城市求生 MOD':'';
-  badge.style.cssText='position:fixed;top:10px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,0.75);color:#ffdc50;padding:4px 14px;border-radius:20px;font-size:12px;font-weight:600;z-index:60;border:1px solid rgba(255,220,80,0.5);letter-spacing:1px;pointer-events:none;';
-  if(window.__cityExitBtn)window.__cityExitBtn.style.display=mode==='city'?'block':'none';
-}
-function hideSceneBadge(){
-  const b=document.getElementById('scene-badge');if(b)b.remove();
-  if(window.__cityExitBtn)window.__cityExitBtn.style.display='none';
-}
+function showSceneBadge(){}
+function hideSceneBadge(){}
 
 function enterCityScene(){
-  if(SCENE_MODE==='city')return;
-  SCENE_MODE='city';
+  if(window.SCENE_MODE==='city')return;
+  window.SCENE_MODE='city';
   scene.children.forEach(o=>{
     if(o===cityGroup)return;
     if(o.isLight)return;
@@ -1527,16 +1518,15 @@ function enterCityScene(){
   player.pos.set(0,0,2);
   if(cityZombies.length===0)spawnCityZombies();
   else cityZombies.forEach(z=>{z.visible=true;});
-  showSceneBadge('city');
   openChat(false);
-  addAIMsg(buildTextCard('已进入【城市求生MOD】！街道上僵尸横行，点击左上角【规划编排】获取专属城市攻略，或直接问我"怎么打"。'));
+  addAIMsg(buildTextCard('已进入【城市求生MOD】！街道上僵尸横行，点击策略控制台【规划编排】获取专属城市攻略，或直接问我"怎么打"。'));
   PLAYER_RUNTIME_STATE.worldState={nearby:[{type:'city_zombie',distance:6}],time:'dusk',scene:'city'};
   syncRuntimeUI();
 }
 
 function exitCityScene(){
-  if(SCENE_MODE!=='city')return;
-  SCENE_MODE='lobby';
+  if(window.SCENE_MODE!=='city')return;
+  window.SCENE_MODE='lobby';
   cityGroup.visible=false;
   cityZombies.forEach(z=>{z.visible=false;});
   lobbyObjects.forEach(o=>{o.visible=true;});lobbyObjects.length=0;
@@ -1547,15 +1537,6 @@ function exitCityScene(){
   showAgentNotice('已返回大厅。');
 }
 
-(function setupCityExitBtn(){
-  const btn=document.createElement('button');
-  btn.id='city-exit-btn';
-  btn.textContent='← 返回大厅';
-  btn.style.cssText='position:fixed;bottom:150px;right:24px;padding:8px 16px;border-radius:20px;background:rgba(0,0,0,0.75);border:1px solid rgba(255,220,80,0.6);color:#ffdc50;font-size:12px;font-weight:600;z-index:30;display:none;letter-spacing:1px;cursor:pointer;-webkit-tap-highlight-color:transparent;';
-  document.body.appendChild(btn);
-  btn.addEventListener('click',()=>exitCityScene());
-  window.__cityExitBtn=btn;
-})();
 
 const MEMORY_MILESTONES=[];
 const MEMORY_COMBAT={active:false,playerHits:0,zombieHits:0,zombie:null,diamondArmored:true,lastTap:null};
@@ -2381,7 +2362,7 @@ function aiContextFor(type){
 }
 
 async function runAIChat(query,type,options={}){
-  if(window.SCENE_MODE==='city'&&/攻略|怎么打|下一步|规划|怎么玩|boss|领主|僵尸|发电站/i.test(query)){
+  if(window.SCENE_MODE==='city'&&/攻略|怎么打|下一步|规划|怎么玩|boss|领主|僵尸|发电站|该干什么|干啥|干什么|怎么过|城市|mod/i.test(query)){
     openChat(false);addAIMsg(buildCityPlanningCard());return;
   }
   const API=window.MixedOutputStrategy;
@@ -3551,6 +3532,11 @@ window.MC_DEMO_BRIDGE={
     return result;
   }
   function returnToLobby(){
+    if(window.SCENE_MODE==='city'){
+      panel.classList.remove('open');
+      window.MC_DEMO_BRIDGE.exitCityScene();
+      return;
+    }
     Object.assign(PLAYER_RUNTIME_STATE,JSON.parse(JSON.stringify(LOBBY_RUNTIME_SNAPSHOT)));syncRuntimeUI();
     window.MC_DEMO_BRIDGE.setPlayerPose(LOBBY_PLAYER_POSITION);
     CHAT.selectedType=null;CHAT.selectionSource=null;clearChip();closeChat(false);panel.classList.remove('open');
