@@ -65,21 +65,22 @@ canvas{display:block;width:100%;height:100%;touch-action:none;}
 #center-cross::after{left:0;top:50%;width:100%;height:2px;transform:translateY(-50%);}
 
 /* AI Ball — five-state glass orb */
-#ai-ball{--orb:#79838e;--orb-soft:rgba(121,131,142,.34);position:fixed;top:22px;right:22px;width:60px;height:60px;border-radius:50%;z-index:120;background:radial-gradient(circle at 30% 22%,rgba(255,255,255,.42),transparent 28%),radial-gradient(circle at 50% 62%,var(--orb),#121820 76%);border:1px solid rgba(255,255,255,.36);box-shadow:0 10px 28px rgba(0,0,0,.34),0 0 22px var(--orb-soft),inset 0 1px 1px rgba(255,255,255,.42),inset 0 -10px 20px rgba(0,0,0,.3);display:flex;align-items:center;justify-content:center;transition:transform .28s cubic-bezier(.2,.8,.2,1),box-shadow .4s ease,background .4s ease;touch-action:none;isolation:isolate;}
-#ai-ball::before{content:"";position:absolute;inset:9px;border-radius:50%;background:radial-gradient(circle at 38% 30%,rgba(255,255,255,.42),rgba(255,255,255,.06) 36%,rgba(0,0,0,.18) 72%);border:1px solid rgba(255,255,255,.18);box-shadow:inset 0 0 12px rgba(255,255,255,.08),0 0 13px var(--orb-soft);z-index:1;}
-#ai-ball::after{content:"";position:absolute;left:17px;top:11px;width:19px;height:8px;border-radius:50%;background:linear-gradient(180deg,rgba(255,255,255,.62),rgba(255,255,255,0));filter:blur(.4px);transform:rotate(-18deg);z-index:3;opacity:.72;}
-#ai-ball .core{position:relative;z-index:2;width:12px;height:12px;border-radius:50%;background:#e5ebef;box-shadow:0 0 7px rgba(255,255,255,.82),0 0 18px var(--orb);transition:transform .35s ease,background .35s ease,box-shadow .35s ease;}
-#ai-ball .ring{position:absolute;inset:-6px;border-radius:50%;border:1px solid rgba(255,255,255,.14);pointer-events:none;opacity:.55;transition:opacity .35s ease,transform .35s ease,border-color .35s ease;}
-#ai-ball .ring::before,#ai-ball .ring::after{content:"";position:absolute;inset:4px;border-radius:50%;border:1px solid transparent;}
-#ai-ball .badge{position:absolute;top:-2px;right:-2px;width:11px;height:11px;border-radius:50%;background:#ff665c;border:2px solid #e8edf0;display:none;box-shadow:0 0 10px rgba(255,102,92,.72);z-index:5;}
+#ai-ball{position:fixed;top:14px;right:14px;width:56px;height:56px;border-radius:50%;z-index:120;background:url('./assets/mc/entities/ai-avatar.png') center/cover no-repeat;border:3px solid #2a1200;box-shadow:0 4px 16px rgba(0,0,0,.55);transition:transform .22s cubic-bezier(.2,.8,.2,1);touch-action:none;}
+#ai-ball::before{display:none;}
+#ai-ball::after{display:none;}
+#ai-ball .core{display:none;}
+#ai-ball .ring{position:absolute;inset:-5px;border-radius:50%;border:2.5px solid transparent;pointer-events:none;transition:border-color .3s,box-shadow .3s;}
+#ai-ball .ring::before,#ai-ball .ring::after{display:none;}
+#ai-ball .badge{position:absolute;top:-2px;right:-2px;width:11px;height:11px;border-radius:50%;background:#ff665c;border:2px solid #2a1200;display:none;z-index:5;}
 #ai-ball.has-history .badge{display:block;animation:badgeBreath 2.4s ease-in-out infinite;}
-#ai-ball[data-state="idle"]{--orb:#79838e;--orb-soft:rgba(121,131,142,.28);animation:orbIdle 4.2s ease-in-out infinite;}
-#ai-ball[data-state="listen"]{--orb:#dd8b38;--orb-soft:rgba(221,139,56,.42);transform:scale(1.035);}
-#ai-ball[data-state="listen"] .ring{border-color:rgba(255,184,92,.55);animation:listenWave 1.55s cubic-bezier(.2,.65,.25,1) infinite;}
-#ai-ball[data-state="listen"] .ring::before{border-color:rgba(255,190,105,.3);animation:listenWave 1.55s .42s cubic-bezier(.2,.65,.25,1) infinite;}
-#ai-ball[data-state="sense"]{--orb:#8b68d8;--orb-soft:rgba(139,104,216,.48);transform:scale(1.07);}
-#ai-ball[data-state="sense"] .ring{opacity:1;border-top-color:#d9c8ff;border-right-color:rgba(217,200,255,.16);border-bottom-color:#8e6ee2;border-left-color:rgba(142,110,226,.16);animation:senseScan 1.35s linear infinite;}
-#ai-ball[data-state="sense"] .ring::after{inset:-4px;border-top-color:rgba(217,200,255,.34);border-bottom-color:rgba(139,104,216,.16);animation:senseScan 2.4s linear infinite reverse;}
+#ai-ball[data-state="idle"]{animation:none;}
+#ai-ball[data-state="listen"]{transform:scale(1.08);} 
+#ai-ball[data-state="listen"] .ring{border-color:rgba(255,180,50,.9);box-shadow:0 0 14px rgba(255,170,30,.7);}
+#ai-ball[data-state="sense"]{transform:scale(1.12);}
+#ai-ball[data-state="sense"] .ring{border-color:rgba(200,140,255,.9);box-shadow:0 0 18px rgba(160,100,255,.7);animation:senseScan 1.35s linear infinite;}
+#ai-ball[data-state="think"]{transform:scale(1.04);}
+#ai-ball[data-state="think"] .ring{border-color:rgba(79,195,247,.9);box-shadow:0 0 14px rgba(79,195,247,.6);animation:senseScan .82s cubic-bezier(.55,.1,.45,.9) infinite;}
+#ai-ball[data-state="active"] .ring{border-color:rgba(126,217,87,.7);}
 #ai-ball[data-state="think"]{--orb:#3f8ed8;--orb-soft:rgba(63,142,216,.5);}
 #ai-ball[data-state="think"] .core{animation:thinkCore 1.05s ease-in-out infinite;}
 #ai-ball[data-state="think"] .ring{opacity:1;border-top-color:#bde7ff;border-right-color:#4ba3ed;border-bottom-color:rgba(75,163,237,.12);animation:senseScan .82s cubic-bezier(.55,.1,.45,.9) infinite;}
@@ -98,13 +99,22 @@ canvas{display:block;width:100%;height:100%;touch-action:none;}
 #drag-cross{position:fixed;width:60px;height:60px;pointer-events:none;z-index:119;display:none;transform:translate(-50%,-50%);}
 #drag-cross svg{width:100%;height:100%;filter:drop-shadow(0 0 8px rgba(255,220,80,1));}
 
-/* Voice bubble */
-#voice-bubble{position:fixed;top:22px;right:92px;left:auto;max-width:220px;padding:8px 14px;border-radius:16px 16px 4px 16px;background:rgba(0,0,0,.88);border:1px solid rgba(126,217,87,.55);color:#eaffd6;font-size:13px;font-weight:600;line-height:1.4;z-index:65;display:none;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);text-align:left;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;box-shadow:0 8px 22px rgba(0,0,0,.5),0 0 16px rgba(126,217,87,.28);}
-#voice-bubble .mic{display:inline-block;width:8px;height:8px;border-radius:50%;background:#ef5350;margin-right:8px;vertical-align:middle;animation:pulse 1s infinite;}
-#voice-bubble.sense-mode{border-color:rgba(255,220,80,.7);color:#fff8d0;box-shadow:0 8px 22px rgba(0,0,0,.5),0 0 16px rgba(255,200,50,.3);}
-#voice-bubble.sense-mode .mic{background:#ffdc50;animation:senseScan 1.2s linear infinite;}
+/* Voice bubble — Figma 新模态2: orange gaming box */
+#voice-bubble{
+  position:fixed;z-index:65;display:none;
+  background:#df6f1b;border:3px solid #1a0a00;border-radius:4px;
+  color:#fff;font-size:17px;font-weight:900;line-height:1.2;
+  padding:8px 14px;white-space:nowrap;
+  text-shadow:-2px -2px 0 #1a0a00,2px -2px 0 #1a0a00,-2px 2px 0 #1a0a00,2px 2px 0 #1a0a00,0 -2px 0 #1a0a00,0 2px 0 #1a0a00,-2px 0 0 #1a0a00,2px 0 0 #1a0a00;
+  box-shadow:0 3px 10px rgba(0,0,0,.5);
+}
+#voice-bubble .mic{display:none;}
+#voice-bubble.sense-mode{background:#df6f1b;}
+#voice-bubble.sense-mode .mic{display:none;}
 @keyframes pulse{0%,100%{opacity:1;transform:scale(1);}50%{opacity:.4;transform:scale(1.35);}}
 #voice-bubble .txt{vertical-align:middle;}
+#voice-bubble .cursor{display:inline-block;width:2px;height:1em;background:#fff;vertical-align:text-bottom;margin-left:3px;animation:cursorBlink .8s step-end infinite;}
+@keyframes cursorBlink{0%,100%{opacity:1;}50%{opacity:0;}}
 
 /* Block name label — hidden, name now shown in voice bubble */
 #block-label{display:none !important;}
@@ -131,9 +141,10 @@ canvas{display:block;width:100%;height:100%;touch-action:none;}
 .msg.user .bubble{max-width:100%;}
 .msg.ai .bubble{max-width:100%;flex:1;}
 
-/* User bubble */
-.msg.user .bubble{background:#2e7d32;color:#fff;padding:8px 12px;border-radius:0;font-size:13px;line-height:1.4;word-wrap:break-word;overflow-wrap:break-word;font-weight:500;}
-.msg.user .bubble.no-content{padding:0;background:transparent;}
+/* User bubble — gaming bold style matching Figma */
+.msg.user .bubble{background:#2e7d32;color:#fff;padding:8px 12px;border-radius:0;font-size:15px;font-weight:900;line-height:1.4;word-wrap:break-word;overflow-wrap:break-word;
+  text-shadow:-1.5px -1.5px 0 rgba(0,0,0,.6),1.5px -1.5px 0 rgba(0,0,0,.6),-1.5px 1.5px 0 rgba(0,0,0,.6),1.5px 1.5px 0 rgba(0,0,0,.6);}
+.msg.user .bubble.no-content{padding:0;background:transparent;text-shadow:none;}
 
 /* AI thinking bubble */
 .msg.ai .bubble.thinking{background:rgba(255,255,255,0.06);color:#b0bec5;padding:7px 12px;border-radius:0;font-style:italic;font-size:12px;border:1px solid rgba(255,255,255,0.08);flex:0 0 auto;align-self:flex-start;width:auto;min-width:110px;max-width:100%;white-space:nowrap;}
@@ -314,19 +325,26 @@ canvas{display:block;width:100%;height:100%;touch-action:none;}
 
 /* ===== 12态 × 13操作 演示层 ===== */
 /* 主动气泡 (S-03 / S-07) — 悬浮球旁一句话胶囊 */
-#proactive-bubble{position:fixed;z-index:75;max-width:230px;padding:10px 14px;border-radius:16px 16px 4px 16px;
-  background:rgba(18,24,20,.94);border:1px solid rgba(126,217,87,.5);color:#eaffea;font-size:13px;line-height:1.5;
-  box-shadow:0 8px 24px rgba(0,0,0,.5),0 0 18px rgba(126,217,87,.28);display:none;transform-origin:top right;
-  animation:bubbleIn .32s cubic-bezier(.2,.9,.25,1);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);}
-#proactive-bubble.sense{border-color:rgba(139,104,216,.55);box-shadow:0 8px 24px rgba(0,0,0,.5),0 0 18px rgba(139,104,216,.3);color:#efe8ff;}
-#proactive-bubble .pb-txt{margin-bottom:8px;}
-#proactive-bubble .pb-acts{display:flex;gap:8px;}
-#proactive-bubble .pb-btn{flex:1;padding:6px 0;border-radius:9px;border:none;font-size:12px;font-weight:600;letter-spacing:1px;}
-#proactive-bubble .pb-yes{background:linear-gradient(135deg,#7ed957,#3f9e42);color:#fff;}
-#proactive-bubble .pb-no{background:rgba(255,255,255,.1);color:#aab;}
-#proactive-bubble .pb-hint{margin-top:6px;font-size:9px;color:#889;letter-spacing:.5px;}
-@keyframes bubbleIn{from{opacity:0;transform:scale(.7) translateY(-6px);}to{opacity:1;transform:scale(1);}}
-/* 滑走 / 收起动效 */
+/* Proactive bubble — Figma 新模态1: green gaming box */
+#proactive-bubble{
+  position:fixed;z-index:75;
+  background:#3f9e25;border:3px solid #000;border-radius:4px;
+  color:#fff;font-size:17px;font-weight:900;line-height:1.2;
+  padding:9px 16px;display:none;
+  text-shadow:-2px -2px 0 #000,2px -2px 0 #000,-2px 2px 0 #000,2px 2px 0 #000,0 -2px 0 #000,0 2px 0 #000,-2px 0 0 #000,2px 0 0 #000;
+  box-shadow:0 4px 12px rgba(0,0,0,.5);
+  transform-origin:center right;
+  animation:bubbleIn .22s ease-out;
+}
+#proactive-bubble.sense{background:#8b40cc;}
+#proactive-bubble .pb-txt{margin-bottom:8px;font-size:17px;}
+#proactive-bubble .pb-acts{display:flex;gap:8px;margin-top:8px;}
+#proactive-bubble .pb-btn{flex:1;padding:7px 0;border-radius:3px;border:2px solid #000;font-size:13px;font-weight:900;letter-spacing:.5px;
+  text-shadow:-1px -1px 0 #000,1px -1px 0 #000,-1px 1px 0 #000,1px 1px 0 #000;cursor:pointer;}
+#proactive-bubble .pb-yes{background:#7ed957;color:#fff;}
+#proactive-bubble .pb-no{background:rgba(0,0,0,.3);color:#fff;}
+#proactive-bubble .pb-hint{margin-top:6px;font-size:10px;color:rgba(255,255,255,0.7);letter-spacing:.5px;text-shadow:none;font-weight:600;}
+@keyframes bubbleIn{from{opacity:0;transform:scale(.8) translateX(8px);}to{opacity:1;transform:scale(1) translateX(0);}}
 #proactive-bubble.leaving,#float-card.leaving{animation:none;transition:transform .28s cubic-bezier(.4,0,.6,1),opacity .28s ease;
   transform:translateX(135%) scale(.92);opacity:0;pointer-events:none;}
 #proactive-bubble.settling,#float-card.settling{transition:transform .18s ease;}
@@ -469,7 +487,6 @@ body.ai-suppressed #chat-panel{opacity:.32 !important;filter:saturate(.4);transi
 
   <div id="ai-ball" data-state="idle" aria-label="AI 助手：待命">
     <div class="ring"></div>
-    <div class="core"></div>
     <div class="badge"></div>
   </div>
 
@@ -484,7 +501,7 @@ body.ai-suppressed #chat-panel{opacity:.32 !important;filter:saturate(.4);transi
     </svg>
   </div>
 
-  <div id="voice-bubble"><span class="mic"></span><span class="txt" id="voice-txt">正在聆听...</span></div>
+  <div id="voice-bubble"><span class="txt" id="voice-txt">正在聆听...</span><span class="cursor"></span></div>
 
   <div id="block-label"></div>
 
@@ -673,7 +690,9 @@ function placeVoiceNearBall(){
   const r = aiBall.getBoundingClientRect();
   voiceBubble.style.left = 'auto';
   voiceBubble.style.right = (window.innerWidth - r.left + 10) + 'px';
-  voiceBubble.style.top = r.top + 'px';
+  // 垂直居中对齐头像
+  voiceBubble.style.top = (r.top + r.height/2) + 'px';
+  voiceBubble.style.transform = 'translateY(-50%)';
 }
 
 // ==============================================================
@@ -3331,6 +3350,8 @@ loadTip.textContent = '点击下方按钮进入';
 onResize();
 resetAIBallHome();
 requestAnimationFrame(loop);
+// 页面就绪后展示 idle 提示气泡
+setTimeout(()=>{ if(window.__showBubble) window.__showBubble('不知道要做啥吗'); }, 1800);
 
 // ==============================================================
 // 12态 × 13操作 演示层
