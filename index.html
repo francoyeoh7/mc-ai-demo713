@@ -65,21 +65,15 @@ canvas{display:block;width:100%;height:100%;touch-action:none;}
 #center-cross::after{left:0;top:50%;width:100%;height:2px;transform:translateY(-50%);}
 
 /* AI Ball — five-state glass orb */
-#ai-ball{position:fixed;top:14px;right:14px;width:56px;height:56px;border-radius:50%;z-index:120;background:url('./assets/mc/entities/ai-avatar.png') center/cover no-repeat;border:3px solid #2a1200;box-shadow:0 4px 16px rgba(0,0,0,.55);outline:3px solid transparent;outline-offset:4px;transition:transform .22s cubic-bezier(.2,.8,.2,1),outline-color .25s,box-shadow .25s;touch-action:none;}
-#ai-ball::before{display:none;}
-#ai-ball::after{display:none;}
-#ai-ball .core{display:none;}
-#ai-ball .ring{display:none;}
-#ai-ball .badge{position:absolute;top:-2px;right:-2px;width:11px;height:11px;border-radius:50%;background:#ff665c;border:2px solid #2a1200;display:none;z-index:5;}
-#ai-ball.has-history .badge{display:block;animation:badgeBreath 2.4s ease-in-out infinite;}
-#ai-ball[data-state="idle"]{outline-color:transparent;}
-#ai-ball[data-state="listen"]{transform:scale(1.08);outline-color:rgba(255,180,50,.95);box-shadow:0 4px 16px rgba(0,0,0,.55),0 0 18px rgba(255,170,30,.7);}
-#ai-ball[data-state="sense"]{transform:scale(1.12);outline-color:rgba(200,140,255,.95);box-shadow:0 4px 16px rgba(0,0,0,.55),0 0 22px rgba(160,100,255,.7);}
-#ai-ball[data-state="think"]{transform:scale(1.04);outline-color:rgba(79,195,247,.95);box-shadow:0 4px 16px rgba(0,0,0,.55),0 0 18px rgba(79,195,247,.6);}
-#ai-ball[data-state="active"]{outline-color:rgba(126,217,87,.8);}
-#ai-ball[data-state="active"] .ring{border-color:rgba(145,231,157,.42);opacity:.82;}
-#ai-ball[data-state="active"] .core{background:#eaffea;box-shadow:0 0 8px rgba(234,255,234,.92),0 0 22px #62c679;}
-@keyframes orbIdle{0%,100%{transform:scale(.985);filter:saturate(.78);}50%{transform:scale(1);filter:saturate(.96);}}
+#ai-ball{position:fixed;top:14px;right:14px;width:56px;height:56px;border-radius:50%;z-index:120;background:url('./assets/mc/entities/ai-avatar.png') center/cover no-repeat;border:3px solid #2a1200;box-shadow:0 4px 16px rgba(0,0,0,.55);transition:transform .22s cubic-bezier(.2,.8,.2,1),box-shadow .25s;touch-action:none;}
+#ai-ball::before,#ai-ball::after{display:none;}
+#ai-ball .core,.ai-ball .ring{display:none;}
+#ai-ball .badge{display:none !important;}
+#ai-ball[data-state="idle"]{box-shadow:0 4px 16px rgba(0,0,0,.55);}
+#ai-ball[data-state="listen"]{transform:scale(1.08);box-shadow:0 0 0 4px rgba(255,180,50,.95),0 4px 16px rgba(0,0,0,.55),0 0 18px rgba(255,170,30,.5);}
+#ai-ball[data-state="sense"]{transform:scale(1.12);box-shadow:0 0 0 4px rgba(200,140,255,.95),0 4px 16px rgba(0,0,0,.55),0 0 22px rgba(160,100,255,.5);}
+#ai-ball[data-state="think"]{transform:scale(1.04);box-shadow:0 0 0 4px rgba(79,195,247,.95),0 4px 16px rgba(0,0,0,.55),0 0 18px rgba(79,195,247,.4);}
+#ai-ball[data-state="active"]{box-shadow:0 0 0 3px rgba(126,217,87,.8),0 4px 16px rgba(0,0,0,.55);}
 @keyframes listenWave{0%{transform:scale(.82);opacity:.76;}75%,100%{transform:scale(1.28);opacity:0;}}
 @keyframes senseScan{to{transform:rotate(360deg);}}
 @keyframes thinkCore{0%,100%{transform:scale(.65);opacity:.65;}50%{transform:scale(1.2);opacity:1;}}
@@ -1401,23 +1395,59 @@ function createHorse(x,z){
   const bounds={xMin:-8,xMax:8,zMin:-18,zMax:-6};
   const spawn=findClearSpawn(x,z,bounds);
   const g=new THREE.Group();
-  const brown=0x7a4a1e,dark=0x4a2a08,cream=0xd4a76a;
-  // body
-  boxPart(g,[1.4,.85,.7],[0,.85,0],brown);
-  // neck+head
-  boxPart(g,[.44,.6,.44],[.65,1.2,.1],brown);
-  boxPart(g,[.48,.5,.5],[.9,1.65,.1],brown);
-  // snout
-  boxPart(g,[.28,.22,.2],[1.04,1.46,.1],cream);
-  // ears
-  boxPart(g,[.1,.2,.08],[.82,1.92,.02],dark);boxPart(g,[.1,.2,.08],[.98,1.92,.02],dark);
-  // mane
-  boxPart(g,[.12,.38,.12],[.62,1.62,.1],dark);
-  // legs
-  [[-0.4,0,-0.22],[-.4,0,.22],[.4,0,-.22],[.4,0,.22]].forEach(p=>boxPart(g,[.22,.75,.22],p,dark));
-  // tail
-  const tail=boxPart(g,[.12,.5,.12],[-.75,.65,.0],dark);tail.rotation.x=.4;
-  g.position.set(spawn[0],0,spawn[1]);return registerEntity(g,'horse','马',bounds);
+  const body=new THREE.Group();g.add(body);
+  const brown=0x8b5a2b,darkBrown=0x4a2a08,cream=0xe8c99a,black=0x1a0a00;
+  // — 身体 —
+  boxPart(body,[1.5,.9,.7],[0,.9,0],brown);
+  // — 颈部（前倾 25°）—
+  const neck=new THREE.Group();
+  boxPart(neck,[.38,.65,.38],[0,0,0],brown);
+  neck.position.set(.65,1.35,0);neck.rotation.z=-.42;body.add(neck);
+  // — 头 —
+  const head=new THREE.Group();
+  boxPart(head,[.52,.48,.4],[0,0,0],brown);
+  // 口鼻
+  boxPart(head,[.32,.24,.3],[.18,-.12,0],cream);
+  // 鼻孔
+  boxPart(head,[.06,.05,.06],[.26,-.09,-.08],black);
+  boxPart(head,[.06,.05,.06],[.26,-.09,.08],black);
+  // 眼睛
+  boxPart(head,[.08,.08,.04],[.1,.12,-.2],black);
+  boxPart(head,[.08,.08,.04],[.1,.12,.2],black);
+  head.position.set(.28,.58,0);neck.add(head);
+  // 耳朵
+  boxPart(head,[.08,.18,.07],[-.04,.26,-.12],darkBrown);
+  boxPart(head,[.08,.18,.07],[-.04,.26,.12],darkBrown);
+  // — 鬃毛（沿颈部）—
+  for(let i=0;i<4;i++){const m=boxPart(body,[.1,.22,.08],[.48+i*.08,1.42-.08*i,.0],darkBrown);m.rotation.z=-.3;}
+  // — 腿部（4条）—
+  const legData=[];
+  const legPositions=[
+    [.45,.5,-.22,'fl'],[.45,.5,.22,'fr'],
+    [-.42,.5,-.22,'bl'],[-.42,.5,.22,'br']
+  ];
+  legPositions.forEach(([lx,ly,lz,name])=>{
+    const legGroup=new THREE.Group();
+    boxPart(legGroup,[.2,.5,.2],[0,0,0],darkBrown);          // 上腿
+    const lowerLeg=new THREE.Group();
+    boxPart(lowerLeg,[.18,.45,.18],[0,-.45,0],brown);         // 下腿
+    boxPart(lowerLeg,[.2,.12,.22],[0,-.92,0],black);          // 蹄
+    lowerLeg.position.set(0,-.1,0);
+    legGroup.add(lowerLeg);
+    legGroup.position.set(lx,ly,lz);
+    body.add(legGroup);
+    legData.push({group:legGroup,lower:lowerLeg,name,phase:name==='fl'||name==='br'?0:Math.PI});
+  });
+  // — 尾巴 —
+  const tailRoot=new THREE.Group();
+  boxPart(tailRoot,[.12,.42,.12],[0,0,0],darkBrown);
+  const tailTip=new THREE.Group();
+  boxPart(tailTip,[.14,.32,.14],[0,-.35,0],darkBrown);
+  tailRoot.add(tailTip);tailRoot.position.set(-.82,.88,0);tailRoot.rotation.x=.5;
+  body.add(tailRoot);
+  g.position.set(spawn[0],0,spawn[1]);
+  g.userData.legData=legData;g.userData.tailRoot=tailRoot;g.userData.walkPhase=0;
+  return registerEntity(g,'horse','马',bounds);
 }
 function createCreeper(x,z){
   const bounds={xMin:6,xMax:20,zMin:-20,zMax:-5};
@@ -1444,6 +1474,18 @@ function updateRoamingEntities(dt,now){
     let nx=e.position.x+Math.cos(e.userData.dir)*speed*dt,nz=e.position.z+Math.sin(e.userData.dir)*speed*dt;
     if(nx<b.xMin||nx>b.xMax||nz<b.zMin||nz>b.zMax||!canEntityOccupy(nx,nz)){e.userData.dir+=Math.PI*.75;continue;}
     e.position.x=nx;e.position.z=nz;e.rotation.y=-e.userData.dir;
+    // 马腿行走动画
+    if(e.userData.type==='horse'&&e.userData.legData){
+      e.userData.walkPhase=(e.userData.walkPhase||0)+dt*6;
+      const ph=e.userData.walkPhase;
+      const swing=0.52;
+      e.userData.legData.forEach(({group,lower,phase})=>{
+        const a=Math.sin(ph+phase)*swing;
+        group.rotation.x=a;
+        lower.rotation.x=Math.max(0,a)*.6;
+      });
+      if(e.userData.tailRoot) e.userData.tailRoot.rotation.z=Math.sin(ph*.7)*.18;
+    }
   }
 }
 buildSheepPen();
