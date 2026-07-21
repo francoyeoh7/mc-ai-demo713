@@ -69,7 +69,7 @@ canvas{display:block;width:100%;height:100%;touch-action:none;}
 #ai-ball::before{display:none;}
 #ai-ball::after{display:none;}
 #ai-ball .core{display:none;}
-#ai-ball .ring{position:absolute;inset:-5px;border-radius:50%;border:2.5px solid transparent;pointer-events:none;transition:border-color .3s,box-shadow .3s;}
+#ai-ball .ring{position:absolute;top:50%;left:50%;width:calc(100% + 16px);height:calc(100% + 16px);transform:translate(-50%,-50%);border-radius:50%;border:2.5px solid transparent;pointer-events:none;transition:border-color .3s,box-shadow .3s;}
 #ai-ball .ring::before,#ai-ball .ring::after{display:none;}
 #ai-ball .badge{position:absolute;top:-2px;right:-2px;width:11px;height:11px;border-radius:50%;background:#ff665c;border:2px solid #2a1200;display:none;z-index:5;}
 #ai-ball.has-history .badge{display:block;animation:badgeBreath 2.4s ease-in-out infinite;}
@@ -103,17 +103,17 @@ canvas{display:block;width:100%;height:100%;touch-action:none;}
 #voice-bubble{
   position:fixed;z-index:65;display:none;
   background:#df6f1b;border:3px solid #1a0a00;border-radius:4px;
-  color:#fff;font-size:17px;font-weight:900;line-height:1.2;
-  padding:8px 14px;white-space:nowrap;
-  text-shadow:-2px -2px 0 #1a0a00,2px -2px 0 #1a0a00,-2px 2px 0 #1a0a00,2px 2px 0 #1a0a00,0 -2px 0 #1a0a00,0 2px 0 #1a0a00,-2px 0 0 #1a0a00,2px 0 0 #1a0a00;
+  color:#fff;font-size:13px;font-weight:900;line-height:1.3;
+  padding:7px 12px;max-width:50vw;
+  overflow:hidden;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;
+  text-shadow:-1.5px -1.5px 0 #1a0a00,1.5px -1.5px 0 #1a0a00,-1.5px 1.5px 0 #1a0a00,1.5px 1.5px 0 #1a0a00,0 -1.5px 0 #1a0a00,0 1.5px 0 #1a0a00,-1.5px 0 0 #1a0a00,1.5px 0 0 #1a0a00;
   box-shadow:0 3px 10px rgba(0,0,0,.5);
 }
 #voice-bubble .mic{display:none;}
 #voice-bubble.sense-mode{background:#df6f1b;}
-#voice-bubble.sense-mode .mic{display:none;}
 @keyframes pulse{0%,100%{opacity:1;transform:scale(1);}50%{opacity:.4;transform:scale(1.35);}}
 #voice-bubble .txt{vertical-align:middle;}
-#voice-bubble .cursor{display:inline-block;width:2px;height:1em;background:#fff;vertical-align:text-bottom;margin-left:3px;animation:cursorBlink .8s step-end infinite;}
+#voice-bubble .cursor{display:inline-block;width:2px;height:0.85em;background:#fff;vertical-align:text-bottom;margin-left:2px;animation:cursorBlink .8s step-end infinite;}
 @keyframes cursorBlink{0%,100%{opacity:1;}50%{opacity:0;}}
 
 /* Block name label — hidden, name now shown in voice bubble */
@@ -142,7 +142,7 @@ canvas{display:block;width:100%;height:100%;touch-action:none;}
 .msg.ai .bubble{max-width:100%;flex:1;}
 
 /* User bubble — gaming bold style matching Figma */
-.msg.user .bubble{background:#2e7d32;color:#fff;padding:8px 12px;border-radius:0;font-size:15px;font-weight:900;line-height:1.4;word-wrap:break-word;overflow-wrap:break-word;
+.msg.user .bubble{background:#515653;color:#fff;padding:8px 12px;border-radius:0;font-size:15px;font-weight:900;line-height:1.4;word-wrap:break-word;overflow-wrap:break-word;
   text-shadow:-1.5px -1.5px 0 rgba(0,0,0,.6),1.5px -1.5px 0 rgba(0,0,0,.6),-1.5px 1.5px 0 rgba(0,0,0,.6),1.5px 1.5px 0 rgba(0,0,0,.6);}
 .msg.user .bubble.no-content{padding:0;background:transparent;text-shadow:none;}
 
@@ -227,7 +227,8 @@ canvas{display:block;width:100%;height:100%;touch-action:none;}
 .card .card-head .tag{font-size:10.5px;color:rgba(255,255,255,0.72);}
 .card .k{color:#9fff84;font-weight:600;}
 .card .card-body{padding:8px 10px;}
-.card .opt{width:100%;padding:8px 12px;background:#2e7d32;border:none;border-radius:5px;color:#fff;font-size:13px;font-weight:600;display:flex;align-items:center;gap:8px;margin-top:6px;text-align:left;cursor:pointer;letter-spacing:.5px;transition:background .15s;}
+.card .opt{width:100%;padding:8px 12px;background:#2e7d32;border:none;border-radius:0;color:#fff;font-size:14px;font-weight:900;display:flex;align-items:center;gap:8px;margin-top:6px;text-align:left;cursor:pointer;letter-spacing:.5px;transition:background .15s;
+  text-shadow:-1.5px -1.5px 0 rgba(0,0,0,.6),1.5px -1.5px 0 rgba(0,0,0,.6),-1.5px 1.5px 0 rgba(0,0,0,.6),1.5px 1.5px 0 rgba(0,0,0,.6);}
 .card .opt:active{background:#388e3c;}
 .card .opt .oi{width:18px;height:18px;flex-shrink:0;display:inline-flex;align-items:center;justify-content:center;}
 .card .opt .oi svg{width:100%;height:100%;fill:currentColor;}
@@ -329,9 +330,10 @@ canvas{display:block;width:100%;height:100%;touch-action:none;}
 #proactive-bubble{
   position:fixed;z-index:75;
   background:#3f9e25;border:3px solid #000;border-radius:4px;
-  color:#fff;font-size:17px;font-weight:900;line-height:1.2;
-  padding:9px 16px;display:none;
-  text-shadow:-2px -2px 0 #000,2px -2px 0 #000,-2px 2px 0 #000,2px 2px 0 #000,0 -2px 0 #000,0 2px 0 #000,-2px 0 0 #000,2px 0 0 #000;
+  color:#fff;font-size:13px;font-weight:900;line-height:1.3;
+  padding:7px 12px;display:none;max-width:50vw;
+  overflow:hidden;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;
+  text-shadow:-1.5px -1.5px 0 #000,1.5px -1.5px 0 #000,-1.5px 1.5px 0 #000,1.5px 1.5px 0 #000,0 -1.5px 0 #000,0 1.5px 0 #000,-1.5px 0 0 #000,1.5px 0 0 #000;
   box-shadow:0 4px 12px rgba(0,0,0,.5);
   transform-origin:center right;
   animation:bubbleIn .22s ease-out;
