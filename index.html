@@ -1997,7 +1997,7 @@ function aiEnd(){
     }
     return;
   }
-  const info = WIKI_SNAPSHOT.records[selType]?.C1 || BLOCK_INFO[selType] || {name:selType};
+  const info = WIKI_SNAPSHOT.records[selType]?.C1 || BLOCK_INFO[selType] || COMPACT_ITEMS[selType] || {name:selType};
   if(!voice){
     // Choice card
     addUserMsg('[选中 '+info.name+']');
@@ -2358,7 +2358,7 @@ function compactWikiFor(type){
     C5:{uses:special.uses||''},
     C6:{recipe:special.recipe,recipeGrid:special.recipeGrid||null},
     C7:{source:special.source||'',keywords:[]},
-    links:{}
+    links:special.links||{}
   };
   const info=BLOCK_INFO[type]||{name:type,desc:'暂无介绍'};
   const bc=BLOCK_CARDS[type]||{tag:'方块',desc:info.desc,kw:[],hardness:null,drops:[],loc:'暂无可靠位置信息',locKw:[]};
