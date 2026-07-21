@@ -2594,14 +2594,49 @@ function splitGenerated(text){
   return String(text||'').split(/\n+/).map(s=>s.trim()).filter(Boolean);
 }
 
+// 从玩家实际状态生成混合策略建议（fallback 用）
+function generateMixedAdvice(type, C){
+  const ps=PLAYER_RUNTIME_STATE;
+  const weapon=ps.mainHand?(WIKI_SNAPSHOT.records[ps.mainHand]?.C1?.name||ps.mainHand):'徒手';
+  const armorCount=Array.isArray(ps.armor)?ps.armor.length:0;
+  const hp=ps.health||20;
+  const hunger=ps.hunger||20;
+  const tag=(C.C1?.tag||'').toLowerCase();
+  const name=C.C1?.name||type;
+
+  // 敌对生物 → 战斗建议
+  if(tag.includes('敌对')||tag.includes('hostile')||/zombie|creeper|skeleton|spider/.test(type)){
+    if(armorCount<2) return `当前护甲不足（${armorCount}件），建议先打造铁甲再挑战${name}，否则容易被一击。手持 ${weapon} 攻击力${weapon==='iron_sword'?'充足':'偏低'}。`;
+    if(hp<10) return `血量偏低（${hp}/20），不建议现在主动攻击${name}，先找食物回满血再战。`;
+    return `当前状态可以一战：手持 ${weapon}，穿${armorCount}件护甲，血量 ${hp}/20。建议保持距离用 ${weapon} 快速击杀，注意走位躲开反击。`;
+  }
+  // 矿石/方块 → 采集建议
+  if(tag.includes('矿')||tag.includes('ore')||(C.C5?.uses||'').includes('镐')){
+    const hasPick=ps.hotbar?.some(s=>s?.id?.includes('pickaxe'))||ps.mainHand?.includes('pickaxe');
+    if(!hasPick) return `背包里没有发现合适的镐，无法开采${name}。先去合成工作台制作石镐或铁镐。`;
+    return `手持镐可以开采${name}。确认工具等级足够后直接挖，注意用铁镐才能采钻石级矿石。`;
+  }
+  // 动物/食物 → 互动建议
+  if(tag.includes('中立')||tag.includes('被动')||tag.includes('passive')||tag.includes('neutral')){
+    if(hunger<8) return `饥饿值偏低（${hunger}/20），建议优先和${name}互动获取食物补充体力。手持小麦或苹果接近即可喂养。`;
+    return `当前饥饿值 ${hunger}/20，状态良好。可以用小麦靠近${name}进行驯服或繁殖，靠近后右键互动即可。`;
+  }
+  // 物品/材料 → 合成建议
+  if(tag.includes('材料')||tag.includes('物品')||tag.includes('武器')||tag.includes('工具')){
+    return `已掌握${name}的用途。检查背包是否有合成所需材料，打开工作台按配方合成即可。`;
+  }
+  // 通用
+  return `当前状态：血量 ${hp}/20，饥饿 ${hunger}/20，手持 ${weapon}。根据${name}的特性选择合适的行动方式。`;
+}
+
 function buildMixedGuideCard(result,type){
   const C=compactWikiFor(type);
   const ids=new Set((result.componentPlan&&result.componentPlan.components)||[]);
   const lines=splitGenerated(result.output&&result.output.text);
   const headCls=entityHeadClass(type);
   const c=document.createElement('div');c.className='card mixed-card';
-  const reason=lines[0]||'已结合对象资料和当前状态完成判断。';
-  const advice=lines.slice(1).join(' ')||'建议先确认当前条件，再按步骤处理。';
+  const reason=lines[0]||'已结合对象资料和当前玩家状态完成判断。';
+  const advice=lines.slice(1).join(' ')||generateMixedAdvice(type,C);
   let html=`<div class="card-head ${headCls}"><span class="name">${escapeHtml(C.C1.name||'综合建议')}</span><span class="tag">混合策略</span></div><div class="card-body">`;
   html+=`<div class="spawn-sec"><div class="sec-title">原因</div><div class="sec-text">${highlight(reason,[C.C1.name])}</div></div>`;
   html+=`<div class="spawn-sec"><div class="sec-title">建议</div><div class="sec-text">${highlight(advice,[C.C1.name])}</div></div>`;
