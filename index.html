@@ -65,7 +65,7 @@ canvas{display:block;width:100%;height:100%;touch-action:none;}
 #center-cross::after{left:0;top:50%;width:100%;height:2px;transform:translateY(-50%);}
 
 /* AI Ball — five-state glass orb */
-#ai-ball{position:fixed;top:14px;right:14px;width:56px;height:56px;border-radius:50%;z-index:120;background:url('./assets/mc/entities/ai-avatar.png') center/cover no-repeat;border:3px solid #2a1200;box-shadow:0 4px 16px rgba(0,0,0,.55);transition:transform .22s cubic-bezier(.2,.8,.2,1),box-shadow .25s;touch-action:none;}
+#ai-ball{position:fixed;top:14px;right:14px;width:56px;height:56px;border-radius:50%;z-index:120;background:url('./assets/mc/entities/ai-avatar.png') center/cover no-repeat;background-origin:border-box;background-clip:border-box;box-shadow:0 4px 16px rgba(0,0,0,.55);transition:transform .22s cubic-bezier(.2,.8,.2,1),box-shadow .25s;touch-action:none;}
 #ai-ball::before,#ai-ball::after{display:none;}
 #ai-ball .core,.ai-ball .ring{display:none;}
 #ai-ball .badge{display:none !important;}
@@ -97,9 +97,6 @@ canvas{display:block;width:100%;height:100%;touch-action:none;}
 #voice-bubble .txt{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;}
 #voice-bubble .mic{display:none;}
 #voice-bubble.sense-mode{background:#df6f1b;}
-@keyframes pulse{0%,100%{opacity:1;transform:scale(1);}50%{opacity:.4;transform:scale(1.35);}}
-#voice-bubble .cursor{display:inline-block;width:2px;height:0.85em;background:#fff;vertical-align:text-bottom;margin-left:2px;animation:cursorBlink .8s step-end infinite;}
-@keyframes cursorBlink{0%,100%{opacity:1;}50%{opacity:0;}}
 
 /* Block name label — hidden, name now shown in voice bubble */
 #block-label{display:none !important;}
@@ -487,7 +484,7 @@ body.ai-suppressed #chat-panel{opacity:.32 !important;filter:saturate(.4);transi
     </svg>
   </div>
 
-  <div id="voice-bubble"><span class="txt" id="voice-txt">正在聆听...</span><span class="cursor"></span></div>
+  <div id="voice-bubble"><span class="txt" id="voice-txt">语音中...</span></div>
 
   <div id="block-label"></div>
 
@@ -676,9 +673,19 @@ function placeVoiceNearBall(){
   const r = aiBall.getBoundingClientRect();
   voiceBubble.style.left = 'auto';
   voiceBubble.style.right = (window.innerWidth - r.left + 10) + 'px';
-  // 垂直居中对齐头像
   voiceBubble.style.top = (r.top + r.height/2) + 'px';
   voiceBubble.style.transform = 'translateY(-50%)';
+}
+// 统一 voice bubble 文字格式："马（语音中...）" 或 "马（说的内容）"
+function syncVoiceTxt(){
+  const selType=CHAT.selectedType;
+  const voice=CHAT.pendingVoice||'';
+  const name=selType?(WIKI_SNAPSHOT.records[selType]?.C1?.name||BLOCK_INFO[selType]?.name||COMPACT_ITEMS[selType]?.name||selType):null;
+  if(name){
+    voiceTxt.textContent=name+'（'+(voice||'语音中...')+'）';
+  } else {
+    voiceTxt.textContent=voice||'语音中...';
+  }
 }
 
 // ==============================================================
@@ -1939,9 +1946,9 @@ function aiStart(t){
       setAIState('listen');
       placeVoiceNearBall();
       voiceBubble.style.display='block';
-      voiceTxt.textContent='正在聆听...';
       CHAT.pendingVoice = '';
-      startVoice(text=>{ CHAT.pendingVoice = text; voiceTxt.textContent = text || '正在聆听...'; });
+      syncVoiceTxt();
+      startVoice(text=>{ CHAT.pendingVoice = text; syncVoiceTxt(); });
       if(navigator.vibrate) navigator.vibrate(20);
     }
   }, 300);
@@ -1960,10 +1967,10 @@ function activateAIDrag(){
   placeVoiceNearBall();
   voiceBubble.classList.add('sense-mode');
   voiceBubble.style.display='block';
-  voiceTxt.textContent = CHAT.pendingVoice || '感知中...';
+  syncVoiceTxt();
   if(!recActive){
     CHAT.pendingVoice = '';
-    startVoice(text=>{ CHAT.pendingVoice = text; voiceTxt.textContent = text || '感知中...'; });
+    startVoice(text=>{ CHAT.pendingVoice = text; syncVoiceTxt(); });
   }
   if(hintEl) hintEl.classList.add('hidden');
 }
@@ -1977,7 +1984,7 @@ function selectUISlotAt(x,y){
   CHAT.selectedType=id;CHAT.selectedPos=null;CHAT.selectionSource='ui';
   const _slotName=record?.C1?.name||id;
   blockLabel.style.display='none';
-  if(voiceBubble.style.display==='block'&&!CHAT.pendingVoice)voiceTxt.textContent=_slotName;
+  if(voiceBubble.style.display==='block')syncVoiceTxt();
   return true;
 }
 
@@ -3243,7 +3250,7 @@ function raycastCrosshair(){
     highlightOutline.visible=true;highlightFill.visible=true;
     const _eName=root.userData.name||root.userData.type;
     blockLabel.style.display='none';
-    if(AI_DRAG.active&&voiceBubble.style.display==='block'&&!CHAT.pendingVoice)voiceTxt.textContent=_eName;
+    if(AI_DRAG.active&&voiceBubble.style.display==='block'){CHAT.selectedType=CHAT.selectedType||root.userData.type;syncVoiceTxt();}
     setAIState('sense');return;
   }
   const hits=blockHits;
@@ -3251,7 +3258,7 @@ function raycastCrosshair(){
     CHAT.selectedType=null; CHAT.selectedPos=null; CHAT.selectionSource=null;
     highlightOutline.visible=false; highlightFill.visible=false;
     blockLabel.style.display='none';
-    if(AI_DRAG.active&&voiceBubble.style.display==='block'&&!CHAT.pendingVoice)voiceTxt.textContent='感知中...';
+    if(AI_DRAG.active&&voiceBubble.style.display==='block')syncVoiceTxt();
     return;
   }
   setAIState('sense');
@@ -3271,7 +3278,7 @@ function raycastCrosshair(){
   const info = BLOCK_INFO[type];
   const _bName=info?.name||WIKI_SNAPSHOT.records[type]?.C1?.name||type;
   blockLabel.style.display='none';
-  if(AI_DRAG.active&&voiceBubble.style.display==='block'&&!CHAT.pendingVoice)voiceTxt.textContent=_bName;
+  if(AI_DRAG.active&&voiceBubble.style.display==='block')syncVoiceTxt();
 }
 
 // ==============================================================
@@ -3697,9 +3704,10 @@ requestAnimationFrame(loop);
     listenOrb(){                                  // S-08 聆听·悬浮球
       hideBubble(); hideCard(); closeChat(false);
       setAIState('listen');
-      voiceTxt.textContent = '正在聆听…（快捷语音）';
+      CHAT.pendingVoice='';
       placeVoiceNearBall();
       voiceBubble.style.display = 'block';
+      syncVoiceTxt();
       clearTimeout(listenTimer);
       listenTimer = setTimeout(()=>{ voiceBubble.style.display='none'; setAIState('idle'); }, 2600);
     },
