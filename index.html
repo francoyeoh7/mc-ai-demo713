@@ -65,26 +65,18 @@ canvas{display:block;width:100%;height:100%;touch-action:none;}
 #center-cross::after{left:0;top:50%;width:100%;height:2px;transform:translateY(-50%);}
 
 /* AI Ball — five-state glass orb */
-#ai-ball{position:fixed;top:14px;right:14px;width:56px;height:56px;border-radius:50%;z-index:120;background:url('./assets/mc/entities/ai-avatar.png') center/cover no-repeat;border:3px solid #2a1200;box-shadow:0 4px 16px rgba(0,0,0,.55);transition:transform .22s cubic-bezier(.2,.8,.2,1);touch-action:none;}
+#ai-ball{position:fixed;top:14px;right:14px;width:56px;height:56px;border-radius:50%;z-index:120;background:url('./assets/mc/entities/ai-avatar.png') center/cover no-repeat;border:3px solid #2a1200;box-shadow:0 4px 16px rgba(0,0,0,.55);outline:3px solid transparent;outline-offset:4px;transition:transform .22s cubic-bezier(.2,.8,.2,1),outline-color .25s,box-shadow .25s;touch-action:none;}
 #ai-ball::before{display:none;}
 #ai-ball::after{display:none;}
 #ai-ball .core{display:none;}
-#ai-ball .ring{position:absolute;top:50%;left:50%;width:calc(100% + 16px);height:calc(100% + 16px);transform:translate(-50%,-50%);border-radius:50%;border:2.5px solid transparent;pointer-events:none;transition:border-color .3s,box-shadow .3s;}
-#ai-ball .ring::before,#ai-ball .ring::after{display:none;}
+#ai-ball .ring{display:none;}
 #ai-ball .badge{position:absolute;top:-2px;right:-2px;width:11px;height:11px;border-radius:50%;background:#ff665c;border:2px solid #2a1200;display:none;z-index:5;}
 #ai-ball.has-history .badge{display:block;animation:badgeBreath 2.4s ease-in-out infinite;}
-#ai-ball[data-state="idle"]{animation:none;}
-#ai-ball[data-state="listen"]{transform:scale(1.08);} 
-#ai-ball[data-state="listen"] .ring{border-color:rgba(255,180,50,.9);box-shadow:0 0 14px rgba(255,170,30,.7);}
-#ai-ball[data-state="sense"]{transform:scale(1.12);}
-#ai-ball[data-state="sense"] .ring{border-color:rgba(200,140,255,.9);box-shadow:0 0 18px rgba(160,100,255,.7);animation:senseScan 1.35s linear infinite;}
-#ai-ball[data-state="think"]{transform:scale(1.04);}
-#ai-ball[data-state="think"] .ring{border-color:rgba(79,195,247,.9);box-shadow:0 0 14px rgba(79,195,247,.6);animation:senseScan .82s cubic-bezier(.55,.1,.45,.9) infinite;}
-#ai-ball[data-state="active"] .ring{border-color:rgba(126,217,87,.7);}
-#ai-ball[data-state="think"]{--orb:#3f8ed8;--orb-soft:rgba(63,142,216,.5);}
-#ai-ball[data-state="think"] .core{animation:thinkCore 1.05s ease-in-out infinite;}
-#ai-ball[data-state="think"] .ring{opacity:1;border-top-color:#bde7ff;border-right-color:#4ba3ed;border-bottom-color:rgba(75,163,237,.12);animation:senseScan .82s cubic-bezier(.55,.1,.45,.9) infinite;}
-#ai-ball[data-state="active"]{--orb:#54a968;--orb-soft:rgba(84,169,104,.42);animation:activeBloom 2.8s ease-in-out infinite;}
+#ai-ball[data-state="idle"]{outline-color:transparent;}
+#ai-ball[data-state="listen"]{transform:scale(1.08);outline-color:rgba(255,180,50,.95);box-shadow:0 4px 16px rgba(0,0,0,.55),0 0 18px rgba(255,170,30,.7);}
+#ai-ball[data-state="sense"]{transform:scale(1.12);outline-color:rgba(200,140,255,.95);box-shadow:0 4px 16px rgba(0,0,0,.55),0 0 22px rgba(160,100,255,.7);}
+#ai-ball[data-state="think"]{transform:scale(1.04);outline-color:rgba(79,195,247,.95);box-shadow:0 4px 16px rgba(0,0,0,.55),0 0 18px rgba(79,195,247,.6);}
+#ai-ball[data-state="active"]{outline-color:rgba(126,217,87,.8);}
 #ai-ball[data-state="active"] .ring{border-color:rgba(145,231,157,.42);opacity:.82;}
 #ai-ball[data-state="active"] .core{background:#eaffea;box-shadow:0 0 8px rgba(234,255,234,.92),0 0 22px #62c679;}
 @keyframes orbIdle{0%,100%{transform:scale(.985);filter:saturate(.78);}50%{transform:scale(1);filter:saturate(.96);}}
@@ -105,14 +97,13 @@ canvas{display:block;width:100%;height:100%;touch-action:none;}
   background:#df6f1b;border:3px solid #1a0a00;border-radius:4px;
   color:#fff;font-size:13px;font-weight:900;line-height:1.3;
   padding:7px 12px;max-width:50vw;
-  overflow:hidden;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;
   text-shadow:-1.5px -1.5px 0 #1a0a00,1.5px -1.5px 0 #1a0a00,-1.5px 1.5px 0 #1a0a00,1.5px 1.5px 0 #1a0a00,0 -1.5px 0 #1a0a00,0 1.5px 0 #1a0a00,-1.5px 0 0 #1a0a00,1.5px 0 0 #1a0a00;
   box-shadow:0 3px 10px rgba(0,0,0,.5);
 }
+#voice-bubble .txt{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;}
 #voice-bubble .mic{display:none;}
 #voice-bubble.sense-mode{background:#df6f1b;}
 @keyframes pulse{0%,100%{opacity:1;transform:scale(1);}50%{opacity:.4;transform:scale(1.35);}}
-#voice-bubble .txt{vertical-align:middle;}
 #voice-bubble .cursor{display:inline-block;width:2px;height:0.85em;background:#fff;vertical-align:text-bottom;margin-left:2px;animation:cursorBlink .8s step-end infinite;}
 @keyframes cursorBlink{0%,100%{opacity:1;}50%{opacity:0;}}
 
@@ -332,14 +323,13 @@ canvas{display:block;width:100%;height:100%;touch-action:none;}
   background:#3f9e25;border:3px solid #000;border-radius:4px;
   color:#fff;font-size:13px;font-weight:900;line-height:1.3;
   padding:7px 12px;display:none;max-width:50vw;
-  overflow:hidden;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;
   text-shadow:-1.5px -1.5px 0 #000,1.5px -1.5px 0 #000,-1.5px 1.5px 0 #000,1.5px 1.5px 0 #000,0 -1.5px 0 #000,0 1.5px 0 #000,-1.5px 0 0 #000,1.5px 0 0 #000;
   box-shadow:0 4px 12px rgba(0,0,0,.5);
   transform-origin:center right;
   animation:bubbleIn .22s ease-out;
 }
 #proactive-bubble.sense{background:#8b40cc;}
-#proactive-bubble .pb-txt{margin-bottom:8px;font-size:17px;}
+#proactive-bubble .pb-txt{margin-bottom:8px;font-size:13px;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;}
 #proactive-bubble .pb-acts{display:flex;gap:8px;margin-top:8px;}
 #proactive-bubble .pb-btn{flex:1;padding:7px 0;border-radius:3px;border:2px solid #000;font-size:13px;font-weight:900;letter-spacing:.5px;
   text-shadow:-1px -1px 0 #000,1px -1px 0 #000,-1px 1px 0 #000,1px 1px 0 #000;cursor:pointer;}
@@ -3352,8 +3342,7 @@ loadTip.textContent = '点击下方按钮进入';
 onResize();
 resetAIBallHome();
 requestAnimationFrame(loop);
-// 页面就绪后展示 idle 提示气泡
-setTimeout(()=>{ if(window.__showBubble) window.__showBubble('不知道要做啥吗'); }, 1800);
+// 不自动弹出空闲提示，用户从策略控制台自己触发
 
 // ==============================================================
 // 12态 × 13操作 演示层
@@ -3762,7 +3751,7 @@ setTimeout(()=>{ if(window.__showBubble) window.__showBubble('不知道要做啥
     if(moved){ idleSec = 0; }
     else {
       idleSec++;
-      if(idleSec >= 7){
+      if(idleSec >= 99999){  // 禁用自动空闲搭话，用户从策略控制台触发
         idleSec = 0; proactiveCooldown = 15;
         showBubble('在这待了一会儿了，需要我帮你看看接下来做什么吗？', {
           sense:true,
