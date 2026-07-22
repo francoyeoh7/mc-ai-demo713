@@ -2759,8 +2759,36 @@ function aiContextFor(type){
 }
 
 async function runAIChat(query,type,options={}){
+  // 城市场景拦截
   if(window.SCENE_MODE==='city'&&/攻略|怎么打|下一步|规划|怎么玩|boss|领主|僵尸|发电站|该干什么|干啥|干什么|怎么过|城市|mod/i.test(query)){
     openChat(false);addAIMsg(buildCityPlanningCard());return;
+  }
+  // ① 执行动作拦截：有规则 + 明确的收集/熔炼意图 → 直接触发小狼任务，不走 AI
+  if(type){
+    const rule=COLLECTION_RULES[type];
+    if(rule?.smelt&&/熔炼|smelt|帮我炼|炼一下|去炼/.test(query)){
+      startWolfSmeltingTask(type);return;
+    }
+    if(rule?.collectible&&!rule?.smelt&&/收集|帮我拿|帮我采|去采|去拿|collect/.test(query)){
+      startWolfCollectionTask(type);return;
+    }
+  }
+  // ② how-to 拦截：how-to + 已知实体 → 本地策略，不让云端 LOW_CONFIDENCE 追问
+  const isHowTo=/如何|怎么|怎样|怎么才能|如何才能|怎么用|怎么驯|怎么养|怎么骑|怎么喂|方法|步骤/.test(query);
+  if(isHowTo&&type){
+    const API=window.MixedOutputStrategy;
+    if(API){
+      const thinkingId=options.thinkingId||addThinkingMsg();
+      setAIState('think');
+      const context=aiContextFor(type);
+      // 强制走本地路径（不请求云端）
+      const result=await API.processRequest({query,context});
+      result.query=query;result.context=context;
+      removeMsg(thinkingId);
+      addAIMsg(buildStrategyCard(result,type));
+      setAIActive();CHAT.state='output';
+      return result;
+    }
   }
   const API=window.MixedOutputStrategy;
   if(!API){
