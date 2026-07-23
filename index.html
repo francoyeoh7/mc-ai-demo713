@@ -562,11 +562,12 @@ body.ai-suppressed #chat-panel{opacity:.32 !important;filter:saturate(.4);transi
     <button id="showcase-return-lobby">← 返回大厅</button>
     <div class="st-input"><input id="strategy-query" placeholder="输入问题，如：这把剑还能用多久？"><button id="strategy-run">运行</button></div>
     <div class="st-layer" id="st-l1"><div class="st-name">层1 · 意图分类器</div><div class="st-value">等待输入</div></div>
-    <div class="st-layer" id="st-l2"><div class="st-name">层2 · 路径决策器</div><div class="st-value">答案核心是否输出 Wiki？是否读取玩家/世界状态？</div></div>
-    <div class="st-layer" id="st-l3"><div class="st-name">层3 · 组件执行器</div><div class="st-value">C 按需调用；G 以 G1 为前置串行执行</div></div>
-    <div class="st-layer" id="st-l4"><div class="st-name">层4 · 整合器</div><div class="st-value">extract_core → fuse → assemble</div></div>
-    <div class="st-layer" id="st-l5"><div class="st-name">层5 · 上下文管理器</div><div class="st-value">参考对象、上轮路径与组件缓存</div></div>
+    <div class="st-layer" id="st-l2"><div class="st-name">层2 · 路径决策器</div><div class="st-value">等待输入</div></div>
+    <div class="st-layer" id="st-l3"><div class="st-name">层3 · 组件执行器</div><div class="st-value">等待输入</div></div>
+    <div class="st-layer" id="st-l4"><div class="st-name">层4 · 整合器</div><div class="st-value">等待输入</div></div>
+    <div class="st-layer" id="st-l5"><div class="st-name">层5 · 上下文管理器</div><div class="st-value">等待输入</div></div>
     <div class="st-layer" id="st-l6"><div class="st-name">层6 · 失败处理</div><div class="st-value">未触发</div></div>
+    <button id="reset-bubble-rule" style="margin-top:6px;width:100%;padding:6px;background:rgba(255,100,80,.15);border:1px solid rgba(255,100,80,.4);border-radius:5px;color:#ff9988;font-size:11px;font-weight:600;cursor:pointer;">重置气泡规则</button>
     <div class="st-output" id="strategy-output">选择场景或输入问题查看输出</div>
     <div class="st-note">C = 对象 Wiki 静态数据组件；G = 玩家/世界动态指引组件。C→G 与 G→C 表示数据调用顺序，不代表 LLM 顺序。</div>
   </div>
@@ -1524,7 +1525,10 @@ const wolfDrops=[];
 function spawnItemDrop(type,pos){const m=new THREE.Mesh(new THREE.BoxGeometry(.22,.22,.22),new THREE.MeshLambertMaterial({color:0x9b6a3d}));m.position.copy(pos);m.userData.type=type;scene.add(m);wolfDrops.push(m);return m;}
 function showAgentNotice(text,opts={}){
   if(typeof window.__showBubble==='function')window.__showBubble(text,opts);
-  ensureChatHasMessages();addAIMsg(buildTextCard(text));
+  // perm_hidden 时 __showBubble 已写入对话框，不重复写
+  if(!localStorage.getItem('mc_bubble_perm_hidden')){
+    ensureChatHasMessages();addAIMsg(buildTextCard(text));
+  }
 }
 function itemIconPath(id){return WIKI_SNAPSHOT.records[id]?.icon||`./assets/mc/${id}.png`;}
 function collectWolfDrop(drop){scene.remove(drop);wolfCarry.visible=true;setWolfState('follow');setTimeout(()=>{const id=drop.userData.type;PLAYER_RUNTIME_STATE.inventory[id]=(PLAYER_RUNTIME_STATE.inventory[id]||0)+1;const hot=PLAYER_RUNTIME_STATE.hotbar.find(x=>x.id===id);if(hot)hot.count=(hot.count||0)+1;wolfCarry.visible=false;syncRuntimeUI();showAgentNotice(`已带回 1 个${WIKI_SNAPSHOT.records[id]?.C1?.name||id}，数量 +1。`);},1200);}
@@ -4085,6 +4089,14 @@ window.MC_DEMO_BRIDGE={
   document.getElementById('strategy-domain-back').addEventListener('click',showStrategyDomainList);
   panel.querySelectorAll('[data-showcase-scene]').forEach(btn=>btn.addEventListener('click',()=>applyShowcase(btn.dataset.showcaseScene)));
   document.getElementById('showcase-return-lobby').addEventListener('click',returnToLobby);
+  document.getElementById('reset-bubble-rule').addEventListener('click',()=>{
+    localStorage.removeItem('mc_bubble_perm_hidden');
+    localStorage.removeItem('mc_bubble_hint_shown');
+    aiBall.classList.remove('perm-hidden');
+    const badge=aiBall.querySelector('.badge');if(badge)badge.style.display='none';
+    document.getElementById('reset-bubble-rule').textContent='✓ 已重置，气泡规则恢复';
+    setTimeout(()=>{ document.getElementById('reset-bubble-rule').textContent='重置气泡规则'; },2000);
+  });
 })();
 
 </script>
