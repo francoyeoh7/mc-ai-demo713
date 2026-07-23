@@ -68,7 +68,8 @@ canvas{display:block;width:100%;height:100%;touch-action:none;}
 #ai-ball{position:fixed;top:14px;right:14px;width:56px;height:56px;border-radius:50%;z-index:120;background:url('./assets/mc/entities/ai-avatar.png') center/cover no-repeat;background-origin:border-box;background-clip:border-box;box-shadow:0 4px 16px rgba(0,0,0,.55);transition:transform .22s cubic-bezier(.2,.8,.2,1),box-shadow .25s;touch-action:none;}
 #ai-ball::before,#ai-ball::after{display:none;}
 #ai-ball .core,.ai-ball .ring{display:none;}
-#ai-ball .badge{display:none !important;}
+#ai-ball .badge{position:absolute;top:-2px;right:-2px;width:11px;height:11px;border-radius:50%;background:#ff665c;border:2px solid #2a1200;display:none;z-index:5;animation:badgeBreath 2.4s ease-in-out infinite;}
+#ai-ball.perm-hidden .badge{display:block;}
 #ai-ball[data-state="idle"]{box-shadow:0 4px 16px rgba(0,0,0,.55);}
 #ai-ball[data-state="listen"]{transform:scale(1.08);box-shadow:0 0 0 4px rgba(255,180,50,.95),0 4px 16px rgba(0,0,0,.55),0 0 18px rgba(255,170,30,.5);}
 #ai-ball[data-state="sense"]{transform:scale(1.12);box-shadow:0 0 0 4px rgba(200,140,255,.95),0 4px 16px rgba(0,0,0,.55),0 0 22px rgba(160,100,255,.5);}
@@ -3454,6 +3455,11 @@ loadTip.textContent = '点击下方按钮进入';
 onResize();
 resetAIBallHome();
 requestAnimationFrame(loop);
+// 恢复永久隐藏气泡状态（刷新后持久）
+if(localStorage.getItem('mc_bubble_perm_hidden')){
+  aiBall.classList.add('perm-hidden');
+  const badge=aiBall.querySelector('.badge');if(badge)badge.style.display='block';
+}
 // 不自动弹出空闲提示，用户从策略控制台自己触发
 
 // ==============================================================
@@ -3514,6 +3520,14 @@ requestAnimationFrame(loop);
   let bubbleExpand = null;     // 气泡展开后要变成的卡片数据 (OP-04)
   function resetAnim(el){ el.classList.remove('leaving','settling'); el.style.transform=''; el.style.opacity=''; }
   function showBubble(text, opts={}){
+    // 永久隐藏时：改为在对话框展示，红点提示
+    if(localStorage.getItem('mc_bubble_perm_hidden')){
+      openChat(false);
+      addAIMsg(buildTextCard(text));
+      setAIActive();
+      const badge=aiBall.querySelector('.badge');if(badge)badge.style.display='block';
+      return;
+    }
     hideCard();
     if(chatPanel.classList.contains('open')) closeChat(false);   // 面板与气泡互斥
     bubbleExpand = opts.expand || null;
@@ -3564,10 +3578,15 @@ requestAnimationFrame(loop);
   pbTxt.addEventListener('click', ()=>{ logOp('OP-04','单击气泡→展开卡片'); showCard(bubbleExpand || DEFAULT_CARD); });
   // OP-06 划走气泡 → 驳回（动效已在 bindSwipeAway 内完成）
   bindSwipeAway(pb, ()=>{ logOp('OP-06','划走气泡→驳回本条'); hideBubble(); setAIState('idle'); });
-  // OP-05 长按气泡 → 次级菜单
+  // OP-05 长按气泡 → 次级菜单（仅一项：永久隐藏）
   bindLongPress(pb, (x,y)=> openCtxMenu(x,y,[
-    {label:'稍后提醒', fn:()=>{ closeBubble('idle'); }},
-    {label:'永久拒绝这类', danger:true, fn:()=>{ closeBubble('idle'); }},
+    {label:'永久隐藏气泡', danger:true, fn:()=>{
+      closeBubble('idle');
+      localStorage.setItem('mc_bubble_perm_hidden','1');
+      aiBall.classList.add('perm-hidden');
+      // 红点：永久隐藏气泡时亮起，提示内容会在对话框
+      const badge=aiBall.querySelector('.badge');if(badge)badge.style.display='block';
+    }},
   ]));
 
   // ---- 浮动卡片 (S-04) — 由气泡展开而来 ----
