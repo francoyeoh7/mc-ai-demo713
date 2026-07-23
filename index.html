@@ -2293,6 +2293,16 @@ function buildTextCard(text){
   c.innerHTML = `<div style="padding:4px 2px;">${escapeHtml(text)}</div>`;
   return c;
 }
+// 气泡内容路由到对话框时用的通知卡片：带绿色顶栏 + 白色文字
+function buildNotifyCard(text){
+  const c = document.createElement('div'); c.className = 'card';
+  c.innerHTML = `
+    <div class="card-head default" style="padding:6px 10px;font-size:11px;letter-spacing:.5px;opacity:.8;">💬 助手提示</div>
+    <div style="padding:10px 12px;font-size:14px;font-weight:900;color:#fff;line-height:1.5;
+      text-shadow:-1px -1px 0 rgba(0,0,0,.6),1px -1px 0 rgba(0,0,0,.6),-1px 1px 0 rgba(0,0,0,.6),1px 1px 0 rgba(0,0,0,.6);">
+      ${escapeHtml(text)}</div>`;
+  return c;
+}
 
 function linkedWikiText(text,links={},plainKeywords=[]){
   let s=escapeHtml(text);
@@ -3523,7 +3533,7 @@ if(localStorage.getItem('mc_bubble_perm_hidden')){
     // 永久隐藏时：改为在对话框展示，红点提示
     if(localStorage.getItem('mc_bubble_perm_hidden')){
       openChat(false);
-      addAIMsg(buildTextCard(text));
+      addAIMsg(buildNotifyCard(text));
       setAIActive();
       const badge=aiBall.querySelector('.badge');if(badge)badge.style.display='block';
       return;
